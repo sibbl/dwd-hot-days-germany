@@ -14,6 +14,7 @@ let currentViewMode = 'grid'; // 'grid' or 'single'
 let currentActiveYear = 2025; // Active year for the single map view
 let animationIntervalId = null;
 let animationSpeed = 250; // ms per year in animation
+let currentSearchQuery = ''; // Search query for filtering stations
 
 const minYearGlobal = 1961;
 const maxYearGlobal = 2025;
@@ -374,13 +375,12 @@ async function loadData() {
         // Initial render
         updateDashboard();
         
-        // Select station from URL or first station by default
-        const activeStations = getFilteredStations();
-        if (activeStations.length > 0) {
-            const defaultStationId = activeStations.some(s => s.station_id === selectedStationId)
-                ? selectedStationId
-                : activeStations[0].station_id;
-            selectStation(defaultStationId);
+        // Select station from URL if specified
+        if (selectedStationId) {
+            const activeStations = getFilteredStations();
+            if (activeStations.some(s => s.station_id === selectedStationId)) {
+                selectStation(selectedStationId);
+            }
         }
         
     } catch (err) {
@@ -635,6 +635,7 @@ function updateDashboard() {
     }
     
     renderInspectorStationList(filteredStations);
+    filterStationList(currentSearchQuery, true);
     
     // Calculate and update the checkbox label with (unmovedCount of totalCoverageCount)
     const baseStations = weatherData.filter(s => {
@@ -747,7 +748,8 @@ function renderInspectorStationList(filteredStations) {
     });
 }
 
-function filterStationList(query) {
+function filterStationList(query, skipHashUpdate = false) {
+    currentSearchQuery = query;
     const q = query.toLowerCase().trim();
     const filteredStations = getFilteredStations();
     
@@ -762,6 +764,10 @@ function filterStationList(query) {
             item.classList.add('hidden');
         }
     });
+    
+    if (!skipHashUpdate) {
+        updateURLHash();
+    }
 }
 
 function selectStation(sid) {
@@ -770,6 +776,21 @@ function selectStation(sid) {
         if (oldItem) {
             oldItem.className = oldItem.className.replace('bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20', 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800');
         }
+    }
+    
+    if (!sid) {
+        selectedStationId = null;
+        const workspace = document.getElementById('inspector-workspace');
+        if (workspace) {
+            workspace.innerHTML = `
+                <div id="inspector-empty-state" class="col-span-full flex flex-col items-center justify-center text-center text-slate-450 dark:text-slate-500 py-20">
+                    <svg class="w-16 h-16 stroke-current opacity-30 mb-4" fill="none" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <p id="inspector-select-prompt" class="text-sm font-semibold">${i18n[currentLang]['inspector-select-prompt']}</p>
+                </div>
+            `;
+        }
+        updateURLHash();
+        return;
     }
     
     selectedStationId = sid;
@@ -1335,6 +1356,9 @@ function updateURLHash() {
     }
     params.set('view', currentViewMode);
     params.set('year', currentActiveYear);
+    if (currentSearchQuery) {
+        params.set('search', currentSearchQuery);
+    }
     
     const hashString = '#' + params.toString();
     if (window.location.hash !== hashString) {
@@ -1350,6 +1374,7 @@ function loadStateFromURLHash() {
     // Set default responsive view mode if view parameter is missing
     currentViewMode = window.innerWidth < 1024 ? 'single' : 'grid';
     currentActiveYear = maxYearGlobal;
+    currentSearchQuery = '';
     
     if (!hash) return;
     
@@ -1382,6 +1407,9 @@ function loadStateFromURLHash() {
         const val = parseInt(params.get('year'));
         if (val >= minYearGlobal && val <= maxYearGlobal) currentActiveYear = val;
     }
+    if (params.has('search')) {
+        currentSearchQuery = params.get('search');
+    }
 }
 
 // Sync DOM elements to match loaded state variables
@@ -1403,6 +1431,9 @@ function syncUIControls() {
     
     const movesCheck = document.getElementById('check-moves-unmoved');
     if (movesCheck) movesCheck.checked = (currentMovesFilter === 'unmoved');
+
+    const searchInput = document.getElementById('input-station-search');
+    if (searchInput) searchInput.value = currentSearchQuery;
 
     // Visual switch buttons sync
     const btnGrid = document.getElementById('btn-view-grid');
@@ -1604,5 +1635,7 @@ window.addEventListener('hashchange', () => {
     updateDashboard();
     if (selectedStationId) {
         selectStation(selectedStationId);
+    } else {
+        selectStation(null);
     }
 });

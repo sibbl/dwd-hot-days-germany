@@ -314,23 +314,21 @@
                         Suchen Sie eine Wetterstation, um deren exakte Umzüge, Namensänderungen und Temperatur-Trends zu inspizieren.
                     </p>
                 </div>
-                
-                <!-- Search bar -->
-                <div class="relative w-full lg:w-80">
-                    <input id="input-station-search" type="text" placeholder="Station suchen (z.B. Berlin, Alfhausen)..." oninput="filterStationList(this.value)" class="w-full text-xs bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg pl-10 pr-4 py-2.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500">
-                    <span class="absolute left-3 top-3 text-slate-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </span>
-                </div>
             </div>
 
             <!-- Inspector Workspace Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[480px]">
                 
                 <!-- Station List Column -->
-                <div class="lg:col-span-3 bg-slate-150/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-lg p-3 flex flex-col">
-                    <span id="inspector-lbl-stations" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 px-2">Stationen</span>
-                    <div id="inspector-station-list" class="flex-grow overflow-y-auto max-h-[420px] flex flex-col gap-1 pr-1">
+                <div class="lg:col-span-3 bg-slate-150/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-lg p-3 flex flex-col gap-2">
+                    <span id="inspector-lbl-stations" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-2">Stationen</span>
+                    
+                    <!-- Minimal Small Search Input -->
+                    <div class="relative px-1">
+                        <input id="input-station-search" type="text" placeholder="Suchen / Search..." oninput="filterStationList(this.value)" class="w-full text-[11px] bg-slate-200/40 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500 transition duration-150">
+                    </div>
+                    
+                    <div id="inspector-station-list" class="flex-grow overflow-y-auto max-h-[380px] flex flex-col gap-1 pr-1 mt-1">
                         <!-- Loaded list dynamically -->
                     </div>
                 </div>
@@ -349,6 +347,6 @@
     </section>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>
