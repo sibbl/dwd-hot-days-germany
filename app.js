@@ -342,14 +342,31 @@ function formatDate(dStr) {
     return dStr;
 }
 
+const HEAT_SCALES = {
+    30: [5, 15, 30, 45, 60],
+    31: [5, 15, 30, 45, 60],
+    32: [5, 15, 30, 45, 60],
+    33: [5, 10, 15, 20, 25],
+    34: [5, 10, 15, 20, 25],
+    35: [1, 4, 8, 12, 16],
+    36: [1, 4, 8, 12, 16],
+    37: [1, 2, 4, 6, 8],
+    38: [1, 2, 4, 6, 8],
+    39: [1, 2, 3, 4, 5],
+    40: [1, 2, 3, 4, 5]
+};
+
 // Get heat bubble styling (radius, opacity, color)
 function getHeatStyle(days) {
     if (days === 0) return { r: 0.5, opacity: 0.05, fill: '#475569' }; // extremely faint gray dot
-    if (days >= 1 && days < 4) return { r: 2.2, opacity: 0.40, fill: '#ea580c' }; // single orange-red color, varying size & opacity
-    if (days >= 4 && days < 8) return { r: 3.4, opacity: 0.65, fill: '#ea580c' };
-    if (days >= 8 && days < 12) return { r: 4.6, opacity: 0.85, fill: '#ea580c' };
-    if (days >= 12 && days < 16) return { r: 5.8, opacity: 0.95, fill: '#ea580c' };
-    return { r: 7.0, opacity: 1.0, fill: '#ea580c' };
+    
+    const scale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
+    
+    if (days >= scale[0] && days < scale[1]) return { r: 2.2, opacity: 0.40, fill: '#ea580c' }; // single orange-red color, varying size & opacity
+    if (days >= scale[1] && days < scale[2]) return { r: 3.4, opacity: 0.65, fill: '#ea580c' };
+    if (days >= scale[2] && days < scale[3]) return { r: 4.6, opacity: 0.85, fill: '#ea580c' };
+    if (days >= scale[3] && days < scale[4]) return { r: 5.8, opacity: 0.95, fill: '#ea580c' };
+    return { r: 7.0, opacity: 1.0, fill: '#ea580c' }; // scale[4] or more
 }
 
 // Translate raw DWD equipment models to English
@@ -568,8 +585,6 @@ function renderMapsGrid(filteredStations) {
     
     // Check active theme
     const isDark = document.documentElement.classList.contains('dark');
-    const mapFill = isDark ? "rgba(30, 41, 59, 0.65)" : "rgba(203, 213, 225, 0.6)";
-    const mapStroke = isDark ? "rgba(148, 163, 184, 0.4)" : "rgba(71, 85, 105, 0.35)";
     
     const statesPathsSvg = geojson.features.map(f => {
         const d = geomToPath(f.geometry, 110, 140, bbox);
@@ -577,44 +592,71 @@ function renderMapsGrid(filteredStations) {
         return `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="0.5" />`;
     }).join('\n');
     
-    for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
-        let circlesSvg = '';
-        let totalYearDays = 0;
+    // Define the standardized decades matching the Mirror/Spiegel stats
+    const decades = [
+        [1961, 1970],
+        [1971, 1980],
+        [1981, 1990],
+        [1991, 2000],
+        [2001, 2010],
+        [2011, 2020],
+        [2021, 2025]
+    ];
+    
+    decades.forEach(dec => {
+        const startDec = dec[0];
+        const endDec = dec[1];
         
-        filteredStations.forEach(s => {
-            const yrData = s.annual_data[yr];
-            const days = yrData ? (yrData[`t${currentTempThreshold}`] || 0) : 0;
-            totalYearDays += days;
+        // Skip rendering this row entirely if the start year hides this decade completely
+        if (endDec < currentStartYear) return;
+        
+        for (let yr = startDec; yr <= endDec; yr++) {
+            if (yr < currentStartYear) {
+                // Render an empty card placeholder to align decade grids cleanly on desktop
+                const placeholder = document.createElement('div');
+                placeholder.className = 'hidden lg:block rounded-lg p-2.5 border border-transparent';
+                gridContainer.appendChild(placeholder);
+                continue;
+            }
             
-            const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
-            const style = getHeatStyle(days);
+            let circlesSvg = '';
+            let totalYearDays = 0;
             
-            circlesSvg += `
-                <circle cx="${x}" cy="${y}" r="${style.r}" 
-                        fill="${style.fill}" fill-opacity="${style.opacity}" 
-                        stroke="${isDark ? '#05070c' : '#ffffff'}" stroke-width="0.3"
-                        class="transition-all duration-300">
-                    <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
-                </circle>
+            filteredStations.forEach(s => {
+                const yrData = s.annual_data[yr];
+                const days = yrData ? (yrData[`t${currentTempThreshold}`] || 0) : 0;
+                totalYearDays += days;
+                
+                const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
+                const style = getHeatStyle(days);
+                
+                circlesSvg += `
+                    <circle cx="${x}" cy="${y}" r="${style.r}" 
+                            fill="${style.fill}" fill-opacity="${style.opacity}" 
+                            stroke="${isDark ? '#05070c' : '#ffffff'}" stroke-width="0.3"
+                            class="transition-all duration-300">
+                        <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
+                    </circle>
+                `;
+            });
+            
+            const card = document.createElement('div');
+            card.id = `map-card-${yr}`;
+            card.className = `glass-panel rounded-lg p-2.5 flex flex-col items-center justify-between border border-slate-200 dark:border-slate-850 cursor-pointer hover:border-slate-500 hover:scale-[1.03] transition-all duration-200`;
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-center w-full mb-1 text-[10px]">
+                    <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
+                    <span class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1 rounded border border-orange-500/10">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
+                </div>
+                <svg viewBox="0 0 110 140" class="w-full h-auto">
+                    ${statesPathsSvg}
+                    ${circlesSvg}
+                </svg>
             `;
-        });
-        
-        const card = document.createElement('div');
-        card.id = `map-card-${yr}`;
-        card.className = `glass-panel rounded-lg p-2.5 flex flex-col items-center justify-between border border-slate-200 dark:border-slate-850 cursor-pointer hover:border-slate-500 hover:scale-[1.03] transition-all duration-200`;
-        
-        card.innerHTML = `
-            <div class="flex justify-between items-center w-full mb-1 text-[10px]">
-                <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
-                <span class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1 rounded border border-orange-500/10">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
-            </div>
-            <svg viewBox="0 0 110 140" class="w-full h-auto">
-                ${statesPathsSvg}
-                ${circlesSvg}
-            </svg>
-        `;
-        gridContainer.appendChild(card);
-    }
+            gridContainer.appendChild(card);
+        }
+    });
 }
 
 // Perform dashboard redraw upon parameter changes
@@ -1233,13 +1275,13 @@ function updateLegend() {
     const isDark = document.documentElement.classList.contains('dark');
     const strokeColor = isDark ? '#05070c' : '#ffffff';
 
-    // Define the threshold groups matching getHeatStyle days ranges
+    const activeScale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
     const groups = [
-        { label: '1', minDays: 1 },
-        { label: '4', minDays: 4 },
-        { label: '8', minDays: 8 },
-        { label: '12', minDays: 12 },
-        { label: '16+', minDays: 16 }
+        { label: `${activeScale[0]}`, minDays: activeScale[0] },
+        { label: `${activeScale[1]}`, minDays: activeScale[1] },
+        { label: `${activeScale[2]}`, minDays: activeScale[2] },
+        { label: `${activeScale[3]}`, minDays: activeScale[3] },
+        { label: `${activeScale[4]}+`, minDays: activeScale[4] }
     ];
 
     container.innerHTML = groups.map(g => {
