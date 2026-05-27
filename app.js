@@ -938,13 +938,19 @@ function renderStationWorkspace(sid) {
                 <div class="bg-slate-200/30 dark:bg-slate-900/30 border border-slate-300/55 dark:border-slate-850/50 rounded-lg p-4 flex flex-col">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-550 dark:text-slate-400 border-b border-slate-300/50 dark:border-slate-850/50 pb-1.5 mb-3">${t['lbl-devices-timeline']}</span>
                     <div class="flex flex-col gap-3.5 overflow-y-auto max-h-[140px] pr-1">
-                        ${s.metadata.devices.map(d => `
+                        ${s.metadata.devices.filter(d => d.device.trim() || d.method.trim()).map(d => {
+                            const methodText = d.method.trim() ? translateDevice(d.method) : '';
+                            const heightText = d.sensor_height && d.sensor_height.trim() ? ` (${d.sensor_height.trim()}m)` : '';
+                            const subText = methodText || heightText ? `<span class="text-[9px] text-slate-600 dark:text-slate-400">${methodText}${heightText}</span>` : '';
+                            const deviceTitle = d.device.trim() ? translateDevice(d.device) : (currentLang === 'de' ? 'Unbekanntes Gerät' : 'Unknown Device');
+                            return `
                             <div class="flex flex-col gap-0.5 border-l-2 border-orange-500/20 pl-2.5">
-                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate" title="${d.device}">${translateDevice(d.device)}</span>
-                                <span class="text-[9px] text-slate-600 dark:text-slate-400">${translateDevice(d.method)} (${d.sensor_height}m)</span>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate" title="${deviceTitle}">${deviceTitle}</span>
+                                ${subText}
                                 <span class="text-[9px] text-slate-550 dark:text-slate-550">${formatDate(d.start)} - ${formatDate(d.end)}</span>
                             </div>
-                        `).join('') || `<span class="text-xs text-slate-500">${t['no-devices']}</span>`}
+                            `;
+                        }).join('') || `<span class="text-xs text-slate-500">${t['no-devices']}</span>`}
                     </div>
                 </div>
             </div>
