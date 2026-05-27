@@ -170,6 +170,47 @@
                     </div>
                 </div>
 
+                <!-- Parameter Control Panel (Horizontal Toolbar Bar) -->
+                <div class="bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-xl p-4 mb-4 mt-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        <!-- Temperature Selection -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span id="lbl-temp-threshold" class="font-semibold text-slate-500 dark:text-slate-400">Min. Temp. (°C):</span>
+                                <span id="temp-threshold-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">35 °C</span>
+                            </div>
+                            <input id="slider-temp-threshold" type="range" min="30" max="40" value="35" step="1" oninput="setTemperatureThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                        </div>
+
+                        <!-- Start Year Selection -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span id="lbl-start-year" class="font-semibold text-slate-500 dark:text-slate-400">Start-Jahr:</span>
+                                <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">1961</span>
+                            </div>
+                            <input id="slider-start-year" type="range" min="1961" max="2020" value="1961" step="1" oninput="updateStartYear(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                        </div>
+
+                        <!-- Coverage Selection -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
+                                <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">90 %</span>
+                            </div>
+                            <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                        </div>
+
+                        <!-- Station Moves Selection -->
+                        <div class="flex items-start gap-2.5 pt-1.5">
+                            <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                            <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
+                                <span id="lbl-moves-filter">Nur ortsfeste Stationen</span>
+                                <span id="lbl-moves-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Grid View Panel -->
                 <div id="map-grid-view" class="block">
                     <!-- Scrollable Grid Container -->
@@ -188,6 +229,22 @@
                 <!-- Single Map View Panel -->
                 <div id="map-single-view" class="hidden flex flex-col gap-4 items-center justify-center w-full min-h-[500px]">
                     
+                    <!-- Single Large SVG Canvas Container -->
+                    <div class="relative w-full max-w-[450px] aspect-[110/140] flex items-center justify-center p-3 mt-2">
+                        
+                        <!-- SVG Map Element -->
+                        <svg id="single-map-svg" viewBox="0 0 110 140" class="w-full h-auto select-none">
+                            <!-- Injected dynamically via JS -->
+                        </svg>
+                        
+                        <!-- Mini details overlay card -->
+                        <div class="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-955/95 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-3 text-[10px] shadow-lg backdrop-blur-md z-20 flex flex-col gap-0.5 min-w-[110px] hover:scale-105 transition duration-150">
+                            <span class="font-extrabold text-[8px] text-slate-500 dark:text-slate-550 uppercase tracking-widest" id="single-map-meta-title">Jahresübersicht</span>
+                            <span class="font-black text-base text-orange-600 dark:text-orange-400 mt-0.5" id="single-map-meta-year">2025</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-1 border-t border-slate-200 dark:border-slate-800 pt-1" id="single-map-meta-total">0 Tage gesamt</span>
+                        </div>
+                    </div>
+
                     <!-- Animation & Navigation Timeline Control Bar -->
                     <div class="flex flex-col sm:flex-row items-center justify-between w-full bg-slate-100/80 dark:bg-slate-900/60 border border-slate-350/50 dark:border-slate-800 rounded-xl p-3 text-xs gap-4 shadow-sm">
                         <div class="flex items-center gap-3">
@@ -221,70 +278,9 @@
                             </select>
                         </div>
                     </div>
-
-                    <!-- Single Large SVG Canvas Container -->
-                    <div class="relative w-full max-w-[450px] aspect-[110/140] flex items-center justify-center p-3 mt-2">
-                        
-                        <!-- SVG Map Element -->
-                        <svg id="single-map-svg" viewBox="0 0 110 140" class="w-full h-auto select-none">
-                            <!-- Injected dynamically via JS -->
-                        </svg>
-                        
-                        <!-- Mini details overlay card -->
-                        <div class="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-955/95 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-3 text-[10px] shadow-lg backdrop-blur-md z-20 flex flex-col gap-0.5 min-w-[110px] hover:scale-105 transition duration-150">
-                            <span class="font-extrabold text-[8px] text-slate-500 dark:text-slate-550 uppercase tracking-widest" id="single-map-meta-title">Jahresübersicht</span>
-                            <span class="font-black text-base text-orange-600 dark:text-orange-400 mt-0.5" id="single-map-meta-year">2025</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-1 border-t border-slate-200 dark:border-slate-800 pt-1" id="single-map-meta-total">0 Tage gesamt</span>
-                        </div>
-                    </div>
                 </div>
             </div>
-               <!-- Controls Section (Full Width) -->
-        <section class="w-full glass-panel rounded-xl p-5 flex flex-col gap-4">
-            <div class="border-b border-slate-200 dark:border-slate-800 pb-2">
-                <h2 id="card-title-filter" class="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-semibold">
-                    Parameter-Filter
-                </h2>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                <!-- Temperature Selection -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="lbl-temp-threshold" class="font-semibold text-slate-500 dark:text-slate-400">Min. Temp. (°C):</span>
-                        <span id="temp-threshold-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">35 °C</span>
-                    </div>
-                    <input id="slider-temp-threshold" type="range" min="30" max="40" value="35" step="1" oninput="setTemperatureThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
-                </div>
 
-                <!-- Start Year Selection -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="lbl-start-year" class="font-semibold text-slate-500 dark:text-slate-400">Start-Jahr:</span>
-                        <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">1961</span>
-                    </div>
-                    <input id="slider-start-year" type="range" min="1961" max="2020" value="1961" step="1" oninput="updateStartYear(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
-                </div>
-
-                <!-- Coverage Selection -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
-                        <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">90 %</span>
-                    </div>
-                    <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
-                </div>
-
-                <!-- Station Moves Selection -->
-                <div class="flex items-start gap-2.5 pt-1.5">
-                    <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
-                    <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
-                        <span id="lbl-moves-filter">Nur ortsfeste Stationen</span>
-                        <span id="lbl-moves-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
-                    </label>
-                </div>
-            </div>
-        </section>
 
     </main>
 
