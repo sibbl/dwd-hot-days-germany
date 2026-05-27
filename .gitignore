@@ -1,0 +1,19 @@
+# Python Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary Scraper Downloads & Archives
+data/zips/
+data/KL_Tageswerte_Beschreibung_Stationen.txt
+
+# OS-specific files
+.DS_Store
+Thumbs.db
