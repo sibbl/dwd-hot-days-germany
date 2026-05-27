@@ -595,6 +595,20 @@ function updateDashboard() {
     renderMapsGrid(filteredStations);
     renderInspectorStationList(filteredStations);
     
+    // Calculate and update the checkbox label with (unmovedCount of totalCoverageCount)
+    const baseStations = weatherData.filter(s => {
+        return calculateCoverageForPeriod(s, currentStartYear, maxYearGlobal) >= currentCoverageThreshold;
+    });
+    const y = baseStations.length;
+    const x = baseStations.filter(s => !checkMovesForPeriod(s, currentStartYear, maxYearGlobal)).length;
+    
+    const labelElement = document.getElementById('lbl-moves-filter');
+    if (labelElement) {
+        const baseText = i18n[currentLang]['lbl-moves-filter'];
+        const ofWord = currentLang === 'de' ? 'von' : 'of';
+        labelElement.textContent = `${baseText} (${x} ${ofWord} ${y})`;
+    }
+    
     // Update legend circles with visual sizes matching the maps
     updateLegend();
     setTimeout(updateLegend, 50);
