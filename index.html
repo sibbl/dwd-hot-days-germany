@@ -160,9 +160,9 @@
                 <div class="flex flex-col gap-2">
                     <div class="flex justify-between items-center text-xs">
                         <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
-                        <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">80 %</span>
+                        <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">90 %</span>
                     </div>
-                    <input id="slider-coverage" type="range" min="50" max="100" value="80" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                    <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
                     <p id="desc-coverage" class="text-[10px] text-slate-500 dark:text-slate-500 leading-tight">
                         Mindestanteil valider Daten im gewählten Zeitraum.
                     </p>
@@ -346,7 +346,25 @@
         </div>
     </section>
 
+    <!-- Footer Section -->
+    <footer class="glass-panel w-full mt-auto py-6 px-6 text-xs text-slate-500 dark:text-slate-400 z-10 border-t border-slate-200 dark:border-slate-850">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-center items-center gap-x-3 gap-y-2 font-medium text-center">
+            <span id="footer-made-by">
+                Erstellt von <a href="https://sibbl.net" target="_blank" class="text-orange-600 dark:text-orange-400 hover:underline font-semibold">sibbl</a>
+            </span>
+            <span class="text-slate-300 dark:text-slate-800">•</span>
+            <a href="https://github.com/sibbl/dwd-hot-days-germany" target="_blank" class="flex items-center gap-1.5 hover:text-slate-800 dark:hover:text-white transition duration-150">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span id="footer-github-text">GitHub-Repository</span>
+            </a>
+            <span class="text-slate-300 dark:text-slate-800">•</span>
+            <a href="https://www.spiegel.de/wissenschaft/natur/klimwandel-in-deutschland-aussergewoehnlich-warm-oder-schon-normal-a-ea8f6054-0d75-4dd6-ab7e-bbc0410ded27" target="_blank" class="hover:text-slate-800 dark:hover:text-white transition duration-150 flex items-center gap-1">
+                <span id="footer-original-idea-text">Original-Idee</span>
+            </a>
+        </div>
+    </footer>
+
     <!-- Main JS Application script -->
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>

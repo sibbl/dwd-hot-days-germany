@@ -2,7 +2,7 @@
   {
     "station_id": "00073",
     "name": "Aldersbach-Kramersepp",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19590301",
     "end_date": "20260525",
     "active": true,
@@ -1003,7 +1003,7 @@
   {
     "station_id": "00078",
     "name": "Alfhausen",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19610101",
     "end_date": "20260525",
     "active": true,
@@ -1976,7 +1976,7 @@
   {
     "station_id": "00142",
     "name": "Altomünster-Maisbrunn",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19550101",
     "end_date": "20260525",
     "active": true,
@@ -2956,7 +2956,7 @@
   {
     "station_id": "00150",
     "name": "Alzey",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -3971,7 +3971,7 @@
   {
     "station_id": "00151",
     "name": "Amberg-Unterammersricht",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -4958,7 +4958,7 @@
   {
     "station_id": "00164",
     "name": "Angermünde",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19080517",
     "end_date": "20260525",
     "active": true,
@@ -5987,7 +5987,7 @@
   {
     "station_id": "00183",
     "name": "Arkona",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -6960,7 +6960,7 @@
   {
     "station_id": "00198",
     "name": "Artern",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19540101",
     "end_date": "20260525",
     "active": true,
@@ -7940,7 +7940,7 @@
   {
     "station_id": "00217",
     "name": "Attenkam",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19410101",
     "end_date": "20260525",
     "active": true,
@@ -8906,7 +8906,7 @@
   {
     "station_id": "00232",
     "name": "Augsburg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -9893,7 +9893,7 @@
   {
     "station_id": "00257",
     "name": "Baden-Baden-Geroldsau",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -10901,7 +10901,7 @@
   {
     "station_id": "00259",
     "name": "Müllheim",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -11909,7 +11909,7 @@
   {
     "station_id": "00282",
     "name": "Bamberg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -12903,7 +12903,7 @@
   {
     "station_id": "00298",
     "name": "Barth",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -13707,8 +13707,8 @@
   },
   {
     "station_id": "00314",
-    "name": "Kubschütz,",
-    "state": "Unknown",
+    "name": "Kubschütz, Kr. Bautzen",
+    "state": "Sachsen",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -14723,7 +14723,7 @@
   {
     "station_id": "00320",
     "name": "Heinersreuth-Vollhof",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "18790101",
     "end_date": "20260525",
     "active": true,
@@ -15766,7 +15766,7 @@
   {
     "station_id": "00330",
     "name": "Oberzent-Beerfelden",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -16752,8 +16752,8 @@
   },
   {
     "station_id": "00377",
-    "name": "Bergzabern,",
-    "state": "Unknown",
+    "name": "Bergzabern, Bad",
+    "state": "Rheinland-Pfalz",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -17725,8 +17725,8 @@
   },
   {
     "station_id": "00379",
-    "name": "Berka,",
-    "state": "Unknown",
+    "name": "Berka, Bad (Flugplatz)",
+    "state": "Thüringen",
     "start_date": "19540701",
     "end_date": "20260525",
     "active": true,
@@ -18321,7 +18321,7 @@
   {
     "station_id": "00400",
     "name": "Berlin-Buch",
-    "state": "Unknown",
+    "state": "Berlin",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -19342,8 +19342,8 @@
   },
   {
     "station_id": "00403",
-    "name": "Berlin-Dahlem",
-    "state": "Unknown",
+    "name": "Berlin-Dahlem (FU)",
+    "state": "Berlin",
     "start_date": "19500101",
     "end_date": "20260525",
     "active": true,
@@ -20301,8 +20301,8 @@
   },
   {
     "station_id": "00427",
-    "name": "Berlin",
-    "state": "Unknown",
+    "name": "Berlin Brandenburg",
+    "state": "Brandenburg",
     "start_date": "19570101",
     "end_date": "20260525",
     "active": true,
@@ -21317,7 +21317,7 @@
   {
     "station_id": "00433",
     "name": "Berlin-Tempelhof",
-    "state": "Unknown",
+    "state": "Berlin",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -22310,8 +22310,8 @@
   },
   {
     "station_id": "00445",
-    "name": "Bernburg/Saale",
-    "state": "Unknown",
+    "name": "Bernburg/Saale (Nord)",
+    "state": "Sachsen-Anhalt",
     "start_date": "18980101",
     "end_date": "20260525",
     "active": true,
@@ -23347,7 +23347,7 @@
   {
     "station_id": "00460",
     "name": "Berus",
-    "state": "Unknown",
+    "state": "Saarland",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -24327,7 +24327,7 @@
   {
     "station_id": "00535",
     "name": "Blankenrath",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -25314,7 +25314,7 @@
   {
     "station_id": "00591",
     "name": "Boizenburg",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -26287,7 +26287,7 @@
   {
     "station_id": "00596",
     "name": "Boltenhagen",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -27274,7 +27274,7 @@
   {
     "station_id": "00619",
     "name": "Borkum-Süderstraße",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -28023,7 +28023,7 @@
   {
     "station_id": "00656",
     "name": "Braunlage",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19310101",
     "end_date": "20260525",
     "active": true,
@@ -29003,7 +29003,7 @@
   {
     "station_id": "00662",
     "name": "Braunschweig",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19610101",
     "end_date": "20260525",
     "active": true,
@@ -29990,7 +29990,7 @@
   {
     "station_id": "00691",
     "name": "Bremen",
-    "state": "Unknown",
+    "state": "Bremen",
     "start_date": "18900101",
     "end_date": "20260525",
     "active": true,
@@ -31054,7 +31054,7 @@
   {
     "station_id": "00701",
     "name": "Bremerhaven",
-    "state": "Unknown",
+    "state": "Bremen",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -32055,7 +32055,7 @@
   {
     "station_id": "00722",
     "name": "Brocken",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "18960101",
     "end_date": "20260525",
     "active": true,
@@ -33055,8 +33055,8 @@
   },
   {
     "station_id": "00755",
-    "name": "Buchen,",
-    "state": "Unknown",
+    "name": "Buchen, Kr. Neckar-Odenwald",
+    "state": "Baden-Württemberg",
     "start_date": "19350101",
     "end_date": "20260525",
     "active": true,
@@ -34043,7 +34043,7 @@
   {
     "station_id": "00817",
     "name": "Burgwald-Bottendorf",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19521001",
     "end_date": "20260525",
     "active": true,
@@ -35037,7 +35037,7 @@
   {
     "station_id": "00853",
     "name": "Chemnitz",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "18820101",
     "end_date": "20260525",
     "active": true,
@@ -36038,7 +36038,7 @@
   {
     "station_id": "00867",
     "name": "Lautertal-Oberlauter",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -37088,7 +37088,7 @@
   {
     "station_id": "00880",
     "name": "Cottbus",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "18870101",
     "end_date": "20260525",
     "active": true,
@@ -38096,7 +38096,7 @@
   {
     "station_id": "00891",
     "name": "Cuxhaven",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19460101",
     "end_date": "20260525",
     "active": true,
@@ -39076,7 +39076,7 @@
   {
     "station_id": "00896",
     "name": "Dachwig",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19490701",
     "end_date": "20260525",
     "active": true,
@@ -40056,7 +40056,7 @@
   {
     "station_id": "00953",
     "name": "Deuselbach",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19500801",
     "end_date": "20260523",
     "active": true,
@@ -41036,7 +41036,7 @@
   {
     "station_id": "00963",
     "name": "Diepholz",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19520901",
     "end_date": "20260525",
     "active": true,
@@ -42016,7 +42016,7 @@
   {
     "station_id": "00991",
     "name": "Dippoldiswalde-Reinberg",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19540901",
     "end_date": "20260525",
     "active": true,
@@ -42996,7 +42996,7 @@
   {
     "station_id": "01001",
     "name": "Doberlug-Kirchhain",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19480701",
     "end_date": "20260525",
     "active": true,
@@ -43997,7 +43997,7 @@
   {
     "station_id": "01048",
     "name": "Dresden-Klotzsche",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19340101",
     "end_date": "20260525",
     "active": true,
@@ -44977,7 +44977,7 @@
   {
     "station_id": "01050",
     "name": "Dresden-Hosterwitz",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -45921,8 +45921,8 @@
   },
   {
     "station_id": "01072",
-    "name": "Dürkheim,",
-    "state": "Unknown",
+    "name": "Dürkheim, Bad",
+    "state": "Rheinland-Pfalz",
     "start_date": "19520101",
     "end_date": "20260525",
     "active": true,
@@ -46958,7 +46958,7 @@
   {
     "station_id": "01078",
     "name": "Düsseldorf",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19520101",
     "end_date": "20260525",
     "active": true,
@@ -47833,7 +47833,7 @@
   {
     "station_id": "01161",
     "name": "Eichstätt-Landershofen",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19550101",
     "end_date": "20260525",
     "active": true,
@@ -48771,7 +48771,7 @@
   {
     "station_id": "01197",
     "name": "Ellwangen-Rindelbach",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19410101",
     "end_date": "20260525",
     "active": true,
@@ -49764,8 +49764,8 @@
   },
   {
     "station_id": "01207",
-    "name": "Elster,",
-    "state": "Unknown",
+    "name": "Elster, Bad-Sohl",
+    "state": "Sachsen",
     "start_date": "19480601",
     "end_date": "20260525",
     "active": true,
@@ -50773,7 +50773,7 @@
   {
     "station_id": "01270",
     "name": "Erfurt-Weimar",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -51753,7 +51753,7 @@
   {
     "station_id": "01279",
     "name": "Möhrendorf-Kleinseebach",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -52740,7 +52740,7 @@
   {
     "station_id": "01297",
     "name": "Eschwege",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19470901",
     "end_date": "20260525",
     "active": true,
@@ -53762,7 +53762,7 @@
   {
     "station_id": "01300",
     "name": "Eslohe",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19380101",
     "end_date": "20260525",
     "active": true,
@@ -54672,7 +54672,7 @@
   {
     "station_id": "01303",
     "name": "Essen-Bredeney",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19350101",
     "end_date": "20260525",
     "active": true,
@@ -55680,7 +55680,7 @@
   {
     "station_id": "01327",
     "name": "Weilerswist-Lommersum",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -56674,7 +56674,7 @@
   {
     "station_id": "01346",
     "name": "Feldberg/Schwarzwald",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19450101",
     "end_date": "20260525",
     "active": true,
@@ -57661,7 +57661,7 @@
   {
     "station_id": "01357",
     "name": "Fichtelberg/Oberfranken-Hüttstadl",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -58655,7 +58655,7 @@
   {
     "station_id": "01358",
     "name": "Fichtelberg",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "18900801",
     "end_date": "20260525",
     "active": true,
@@ -59628,7 +59628,7 @@
   {
     "station_id": "01411",
     "name": "Birx/Rhön",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19491001",
     "end_date": "20260525",
     "active": true,
@@ -60580,7 +60580,7 @@
   {
     "station_id": "01420",
     "name": "Frankfurt/Main",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19350701",
     "end_date": "20260525",
     "active": true,
@@ -61595,7 +61595,7 @@
   {
     "station_id": "01443",
     "name": "Freiburg",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "18740101",
     "end_date": "20260525",
     "active": true,
@@ -62596,7 +62596,7 @@
   {
     "station_id": "01468",
     "name": "Freudenstadt",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -63569,7 +63569,7 @@
   {
     "station_id": "01503",
     "name": "Friesoythe-Altenoythe",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19470201",
     "end_date": "20260525",
     "active": true,
@@ -64479,7 +64479,7 @@
   {
     "station_id": "01526",
     "name": "Fulda-Horas",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "18850101",
     "end_date": "20260525",
     "active": true,
@@ -65473,7 +65473,7 @@
   {
     "station_id": "01544",
     "name": "Gardelegen",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -66495,7 +66495,7 @@
   {
     "station_id": "01550",
     "name": "Garmisch-Partenkirchen",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -67489,7 +67489,7 @@
   {
     "station_id": "01580",
     "name": "Geisenheim",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "18840701",
     "end_date": "20260525",
     "active": true,
@@ -68469,7 +68469,7 @@
   {
     "station_id": "01605",
     "name": "Genthin",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -69463,7 +69463,7 @@
   {
     "station_id": "01612",
     "name": "Gera-Leumnitz",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19520101",
     "end_date": "20260525",
     "active": true,
@@ -70429,7 +70429,7 @@
   {
     "station_id": "01639",
     "name": "Gießen/Wettenberg",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19390101",
     "end_date": "20260525",
     "active": true,
@@ -71423,7 +71423,7 @@
   {
     "station_id": "01645",
     "name": "Gilserberg-Moischeid",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -72410,7 +72410,7 @@
   {
     "station_id": "01684",
     "name": "Görlitz",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "18600101",
     "end_date": "20260525",
     "active": true,
@@ -73453,7 +73453,7 @@
   {
     "station_id": "01691",
     "name": "Göttingen",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "18580101",
     "end_date": "20260525",
     "active": true,
@@ -74475,7 +74475,7 @@
   {
     "station_id": "01694",
     "name": "Goldberg",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -75483,7 +75483,7 @@
   {
     "station_id": "01736",
     "name": "Grambek",
-    "state": "Unknown",
+    "state": "Schleswig-Holstein",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -76337,7 +76337,7 @@
   {
     "station_id": "01757",
     "name": "Greifswald",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "18980301",
     "end_date": "20260525",
     "active": true,
@@ -77127,8 +77127,8 @@
   },
   {
     "station_id": "01803",
-    "name": "Sanitz-Groß",
-    "state": "Unknown",
+    "name": "Sanitz-Groß Lüsewitz",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19490701",
     "end_date": "20260525",
     "active": true,
@@ -78094,7 +78094,7 @@
   {
     "station_id": "01964",
     "name": "Olsdorf",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19520101",
     "end_date": "20260525",
     "active": true,
@@ -79060,7 +79060,7 @@
   {
     "station_id": "01975",
     "name": "Hamburg-Fuhlsbüttel",
-    "state": "Unknown",
+    "state": "Hamburg",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -80047,7 +80047,7 @@
   {
     "station_id": "01993",
     "name": "Hameln",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19400101",
     "end_date": "20260525",
     "active": true,
@@ -80803,7 +80803,7 @@
   {
     "station_id": "02014",
     "name": "Hannover",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -81797,7 +81797,7 @@
   {
     "station_id": "02044",
     "name": "Harzgerode",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19450501",
     "end_date": "20260525",
     "active": true,
@@ -82805,7 +82805,7 @@
   {
     "station_id": "02074",
     "name": "Hechingen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -83813,7 +83813,7 @@
   {
     "station_id": "02115",
     "name": "Helgoland",
-    "state": "Unknown",
+    "state": "Schleswig-Holstein",
     "start_date": "19520501",
     "end_date": "20260525",
     "active": true,
@@ -84841,8 +84841,8 @@
   },
   {
     "station_id": "02171",
-    "name": "Hersfeld,",
-    "state": "Unknown",
+    "name": "Hersfeld, Bad",
+    "state": "Hessen",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -85836,7 +85836,7 @@
   {
     "station_id": "02201",
     "name": "Hiddensee-Vitte",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19310414",
     "end_date": "20260525",
     "active": true,
@@ -86697,7 +86697,7 @@
   {
     "station_id": "02211",
     "name": "Hilgenroth",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -87656,7 +87656,7 @@
   {
     "station_id": "02261",
     "name": "Hof",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -88636,7 +88636,7 @@
   {
     "station_id": "02290",
     "name": "Hohenpeißenberg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "17810101",
     "end_date": "20260525",
     "active": true,
@@ -89615,8 +89615,8 @@
   },
   {
     "station_id": "02323",
-    "name": "Bevern,",
-    "state": "Unknown",
+    "name": "Bevern, Kr. Holzminden",
+    "state": "Niedersachsen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -90400,7 +90400,7 @@
   {
     "station_id": "02349",
     "name": "Hornisgrinde",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -91092,8 +91092,8 @@
   },
   {
     "station_id": "02444",
-    "name": "Jena",
-    "state": "Unknown",
+    "name": "Jena (Sternwarte)",
+    "state": "Thüringen",
     "start_date": "18210101",
     "end_date": "20260525",
     "active": true,
@@ -92059,7 +92059,7 @@
   {
     "station_id": "02480",
     "name": "Kahl/Main",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -93059,8 +93059,8 @@
   },
   {
     "station_id": "02483",
-    "name": "Kahler",
-    "state": "Unknown",
+    "name": "Kahler Asten",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19261101",
     "end_date": "20260525",
     "active": true,
@@ -94061,7 +94061,7 @@
   {
     "station_id": "02486",
     "name": "Kaiserslautern",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19010101",
     "end_date": "20260525",
     "active": true,
@@ -95013,7 +95013,7 @@
   {
     "station_id": "02497",
     "name": "Kall-Sistig",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -95986,7 +95986,7 @@
   {
     "station_id": "02559",
     "name": "Kempten",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19520101",
     "end_date": "20260525",
     "active": true,
@@ -96980,7 +96980,7 @@
   {
     "station_id": "02578",
     "name": "Kirchdorf/Poel",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "18650101",
     "end_date": "20260525",
     "active": true,
@@ -97945,8 +97945,8 @@
   },
   {
     "station_id": "02597",
-    "name": "Kissingen,",
-    "state": "Unknown",
+    "name": "Kissingen, Bad",
+    "state": "Bayern",
     "start_date": "19460101",
     "end_date": "20260525",
     "active": true,
@@ -98960,8 +98960,8 @@
   },
   {
     "station_id": "02601",
-    "name": "Kleiner",
-    "state": "Unknown",
+    "name": "Kleiner Feldberg/Taunus",
+    "state": "Hessen",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -99954,8 +99954,8 @@
   },
   {
     "station_id": "02618",
-    "name": "Kleiner",
-    "state": "Unknown",
+    "name": "Kleiner Inselsberg",
+    "state": "Thüringen",
     "start_date": "19580101",
     "end_date": "20260525",
     "active": true,
@@ -100893,7 +100893,7 @@
   {
     "station_id": "02629",
     "name": "Kleve",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19041001",
     "end_date": "20260525",
     "active": true,
@@ -101908,7 +101908,7 @@
   {
     "station_id": "02638",
     "name": "Klippeneck",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -102874,7 +102874,7 @@
   {
     "station_id": "02667",
     "name": "Köln/Bonn",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19570701",
     "end_date": "20260525",
     "active": true,
@@ -103860,8 +103860,8 @@
   },
   {
     "station_id": "02680",
-    "name": "Königshofen,",
-    "state": "Unknown",
+    "name": "Königshofen, Bad",
+    "state": "Bayern",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -104869,7 +104869,7 @@
   {
     "station_id": "02700",
     "name": "Kösching",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19610101",
     "end_date": "20260525",
     "active": true,
@@ -105841,8 +105841,8 @@
   },
   {
     "station_id": "02704",
-    "name": "Köthen",
-    "state": "Unknown",
+    "name": "Köthen (Anhalt)",
+    "state": "Sachsen-Anhalt",
     "start_date": "19550601",
     "end_date": "20260525",
     "active": true,
@@ -106654,7 +106654,7 @@
   {
     "station_id": "02712",
     "name": "Konstanz",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19590701",
     "end_date": "20260525",
     "active": true,
@@ -107487,7 +107487,7 @@
   {
     "station_id": "02750",
     "name": "Kronach",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19490101",
     "end_date": "20260525",
     "active": true,
@@ -108495,7 +108495,7 @@
   {
     "station_id": "02794",
     "name": "Kyritz",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19450501",
     "end_date": "20260525",
     "active": true,
@@ -109321,7 +109321,7 @@
   {
     "station_id": "02812",
     "name": "Lahr",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19500101",
     "end_date": "20260525",
     "active": true,
@@ -110294,7 +110294,7 @@
   {
     "station_id": "02814",
     "name": "Merklingen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19490101",
     "end_date": "20260228",
     "active": false,
@@ -111266,8 +111266,8 @@
   },
   {
     "station_id": "02878",
-    "name": "Lauchstädt,",
-    "state": "Unknown",
+    "name": "Lauchstädt, Bad",
+    "state": "Sachsen-Anhalt",
     "start_date": "19470401",
     "end_date": "20260525",
     "active": true,
@@ -112107,7 +112107,7 @@
   {
     "station_id": "02925",
     "name": "Leinefelde",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19570101",
     "end_date": "20260525",
     "active": true,
@@ -113080,7 +113080,7 @@
   {
     "station_id": "02928",
     "name": "Leipzig-Holzhausen",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "17591101",
     "end_date": "20260525",
     "active": true,
@@ -114067,7 +114067,7 @@
   {
     "station_id": "02932",
     "name": "Leipzig/Halle",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19340101",
     "end_date": "20260525",
     "active": true,
@@ -114928,7 +114928,7 @@
   {
     "station_id": "03015",
     "name": "Lindenberg",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19060401",
     "end_date": "20260525",
     "active": true,
@@ -115914,8 +115914,8 @@
   },
   {
     "station_id": "03028",
-    "name": "Lippspringe,",
-    "state": "Unknown",
+    "name": "Lippspringe, Bad",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -116894,8 +116894,8 @@
   },
   {
     "station_id": "03032",
-    "name": "List",
-    "state": "Unknown",
+    "name": "List auf Sylt",
+    "state": "Schleswig-Holstein",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -117874,8 +117874,8 @@
   },
   {
     "station_id": "03034",
-    "name": "Lobenstein,",
-    "state": "Unknown",
+    "name": "Lobenstein, Bad",
+    "state": "Thüringen",
     "start_date": "19520301",
     "end_date": "20260525",
     "active": true,
@@ -118876,7 +118876,7 @@
   {
     "station_id": "03093",
     "name": "Lüchow",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19541201",
     "end_date": "20260525",
     "active": true,
@@ -119884,7 +119884,7 @@
   {
     "station_id": "03126",
     "name": "Magdeburg",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "18810101",
     "end_date": "20260525",
     "active": true,
@@ -120905,8 +120905,8 @@
   },
   {
     "station_id": "03137",
-    "name": "Mainz-Lerchenberg",
-    "state": "Unknown",
+    "name": "Mainz-Lerchenberg (ZDF)",
+    "state": "Rheinland-Pfalz",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -121928,7 +121928,7 @@
   {
     "station_id": "03147",
     "name": "Mallersdorf-Pfaffenberg-Oberlindhart",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -122732,8 +122732,8 @@
   },
   {
     "station_id": "03164",
-    "name": "Cölbe,",
-    "state": "Unknown",
+    "name": "Cölbe, Kr. Marburg-Biedenkopf",
+    "state": "Hessen",
     "start_date": "19460101",
     "end_date": "20260525",
     "active": true,
@@ -123657,7 +123657,7 @@
   {
     "station_id": "03166",
     "name": "Marienberg",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19550801",
     "end_date": "20260525",
     "active": true,
@@ -124644,7 +124644,7 @@
   {
     "station_id": "03196",
     "name": "Marnitz",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19020101",
     "end_date": "20260525",
     "active": true,
@@ -125666,7 +125666,7 @@
   {
     "station_id": "03234",
     "name": "Klipphausen-Garsebach",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19560601",
     "end_date": "20260525",
     "active": true,
@@ -126555,7 +126555,7 @@
   {
     "station_id": "03244",
     "name": "Memmingen",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19610101",
     "end_date": "20260525",
     "active": true,
@@ -127548,8 +127548,8 @@
   },
   {
     "station_id": "03257",
-    "name": "Mergentheim,",
-    "state": "Unknown",
+    "name": "Mergentheim, Bad",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -128578,7 +128578,7 @@
   {
     "station_id": "03271",
     "name": "Metten",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19410101",
     "end_date": "20260525",
     "active": true,
@@ -129537,7 +129537,7 @@
   {
     "station_id": "03307",
     "name": "Mittenwald-Buckelwiesen",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -130538,7 +130538,7 @@
   {
     "station_id": "03366",
     "name": "Mühldorf",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -131532,7 +131532,7 @@
   {
     "station_id": "03376",
     "name": "Müncheberg",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -132505,7 +132505,7 @@
   {
     "station_id": "03379",
     "name": "München-Stadt",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19540601",
     "end_date": "20260525",
     "active": true,
@@ -133464,7 +133464,7 @@
   {
     "station_id": "03402",
     "name": "Münsingen-Apfelstetten",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19460101",
     "end_date": "20260525",
     "active": true,
@@ -134478,8 +134478,8 @@
   },
   {
     "station_id": "03426",
-    "name": "Muskau,",
-    "state": "Unknown",
+    "name": "Muskau, Bad",
+    "state": "Sachsen",
     "start_date": "19360518",
     "end_date": "20260525",
     "active": true,
@@ -135143,8 +135143,8 @@
   },
   {
     "station_id": "03442",
-    "name": "Nauheim,",
-    "state": "Unknown",
+    "name": "Nauheim, Bad",
+    "state": "Hessen",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -136123,8 +136123,8 @@
   },
   {
     "station_id": "03490",
-    "name": "Neuenahr,",
-    "state": "Unknown",
+    "name": "Neuenahr, Bad-Ahrweiler",
+    "state": "Rheinland-Pfalz",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -137089,8 +137089,8 @@
   },
   {
     "station_id": "03513",
-    "name": "Neuhaus",
-    "state": "Unknown",
+    "name": "Neuhaus am Rennweg",
+    "state": "Thüringen",
     "start_date": "19530701",
     "end_date": "20260525",
     "active": true,
@@ -137797,7 +137797,7 @@
   {
     "station_id": "03527",
     "name": "Neukirchen-Hauptschwenda",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -138770,7 +138770,7 @@
   {
     "station_id": "03621",
     "name": "Reimlingen",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -139778,7 +139778,7 @@
   {
     "station_id": "03631",
     "name": "Norderney",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "18580301",
     "end_date": "20260525",
     "active": true,
@@ -140779,7 +140779,7 @@
   {
     "station_id": "03668",
     "name": "Nürnberg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "18790101",
     "end_date": "20260525",
     "active": true,
@@ -141773,7 +141773,7 @@
   {
     "station_id": "03679",
     "name": "Kiefersfelden-Gach",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -142746,7 +142746,7 @@
   {
     "station_id": "03730",
     "name": "Oberstdorf",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19100101",
     "end_date": "20260525",
     "active": true,
@@ -143733,7 +143733,7 @@
   {
     "station_id": "03739",
     "name": "Oberviechtach",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19481001",
     "end_date": "20260525",
     "active": true,
@@ -144734,7 +144734,7 @@
   {
     "station_id": "03761",
     "name": "Öhringen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -145728,7 +145728,7 @@
   {
     "station_id": "03811",
     "name": "Oschatz",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19411001",
     "end_date": "20260525",
     "active": true,
@@ -146477,7 +146477,7 @@
   {
     "station_id": "03875",
     "name": "Parsberg/Oberpfalz-Eglwang",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19500101",
     "end_date": "20260525",
     "active": true,
@@ -147450,7 +147450,7 @@
   {
     "station_id": "03927",
     "name": "Pfullendorf",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19580101",
     "end_date": "20260525",
     "active": true,
@@ -148444,7 +148444,7 @@
   {
     "station_id": "03939",
     "name": "Pirmasens",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19500101",
     "end_date": "20260525",
     "active": true,
@@ -149046,7 +149046,7 @@
   {
     "station_id": "03946",
     "name": "Plauen",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "18820101",
     "end_date": "20260525",
     "active": true,
@@ -150089,7 +150089,7 @@
   {
     "station_id": "03987",
     "name": "Potsdam",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "18930101",
     "end_date": "20260525",
     "active": true,
@@ -151062,7 +151062,7 @@
   {
     "station_id": "04024",
     "name": "Putbus",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "18530701",
     "end_date": "20260525",
     "active": true,
@@ -152063,7 +152063,7 @@
   {
     "station_id": "04032",
     "name": "Quedlinburg",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19450101",
     "end_date": "20260525",
     "active": true,
@@ -152958,8 +152958,8 @@
   },
   {
     "station_id": "04036",
-    "name": "Querfurt-Mühle",
-    "state": "Unknown",
+    "name": "Querfurt-Mühle Lodersleben",
+    "state": "Sachsen-Anhalt",
     "start_date": "19530601",
     "end_date": "20260525",
     "active": true,
@@ -153701,7 +153701,7 @@
   {
     "station_id": "04063",
     "name": "Rahden-Kleinendorf",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -154708,8 +154708,8 @@
   },
   {
     "station_id": "04094",
-    "name": "Weingarten,",
-    "state": "Unknown",
+    "name": "Weingarten, Kr. Ravensburg",
+    "state": "Baden-Württemberg",
     "start_date": "19460101",
     "end_date": "20260525",
     "active": true,
@@ -155668,7 +155668,7 @@
   {
     "station_id": "04104",
     "name": "Regensburg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "18790101",
     "end_date": "20260525",
     "active": true,
@@ -156753,7 +156753,7 @@
   {
     "station_id": "04169",
     "name": "Rheinau-Memprechtshofen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19580101",
     "end_date": "20260525",
     "active": true,
@@ -157726,7 +157726,7 @@
   {
     "station_id": "04175",
     "name": "Rheinfelden",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19530901",
     "end_date": "20260525",
     "active": true,
@@ -158699,7 +158699,7 @@
   {
     "station_id": "04177",
     "name": "Rheinstetten",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -159357,7 +159357,7 @@
   {
     "station_id": "04271",
     "name": "Rostock-Warnemünde",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -160343,8 +160343,8 @@
   },
   {
     "station_id": "04275",
-    "name": "Rotenburg",
-    "state": "Unknown",
+    "name": "Rotenburg (Wümme)",
+    "state": "Niedersachsen",
     "start_date": "19460101",
     "end_date": "20260525",
     "active": true,
@@ -161281,8 +161281,8 @@
   },
   {
     "station_id": "04287",
-    "name": "Rothenburg",
-    "state": "Unknown",
+    "name": "Rothenburg ob der Tauber",
+    "state": "Bayern",
     "start_date": "19470601",
     "end_date": "20260525",
     "active": true,
@@ -162283,7 +162283,7 @@
   {
     "station_id": "04300",
     "name": "Rottweil",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19570201",
     "end_date": "20260525",
     "active": true,
@@ -163220,8 +163220,8 @@
   },
   {
     "station_id": "04301",
-    "name": "Kreuznach,",
-    "state": "Unknown",
+    "name": "Kreuznach, Bad",
+    "state": "Rheinland-Pfalz",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -164236,7 +164236,7 @@
   {
     "station_id": "04336",
     "name": "Saarbrücken-Ensheim",
-    "state": "Unknown",
+    "state": "Saarland",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -165215,8 +165215,8 @@
   },
   {
     "station_id": "04371",
-    "name": "Salzuflen,",
-    "state": "Unknown",
+    "name": "Salzuflen, Bad",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19350101",
     "end_date": "20260525",
     "active": true,
@@ -166181,8 +166181,8 @@
   },
   {
     "station_id": "04393",
-    "name": "Sankt",
-    "state": "Unknown",
+    "name": "Sankt Peter-Ording",
+    "state": "Schleswig-Holstein",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -167155,7 +167155,7 @@
   {
     "station_id": "04445",
     "name": "Wernigerode-Schierke",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19021201",
     "end_date": "20260525",
     "active": true,
@@ -168058,7 +168058,7 @@
   {
     "station_id": "04464",
     "name": "Schleiz",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19510401",
     "end_date": "20260525",
     "active": true,
@@ -168793,7 +168793,7 @@
   {
     "station_id": "04466",
     "name": "Schleswig",
-    "state": "Unknown",
+    "state": "Schleswig-Holstein",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -169759,7 +169759,7 @@
   {
     "station_id": "04501",
     "name": "Schmücke",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -170501,7 +170501,7 @@
   {
     "station_id": "04508",
     "name": "Schneifelforsthaus",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -171474,7 +171474,7 @@
   {
     "station_id": "04592",
     "name": "Schwandorf",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19551021",
     "end_date": "20260525",
     "active": true,
@@ -172433,7 +172433,7 @@
   {
     "station_id": "04605",
     "name": "Schwarzburg",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19490705",
     "end_date": "20260525",
     "active": true,
@@ -173434,7 +173434,7 @@
   {
     "station_id": "04625",
     "name": "Schwerin",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "18900101",
     "end_date": "20260525",
     "active": true,
@@ -174505,7 +174505,7 @@
   {
     "station_id": "04651",
     "name": "Seesen",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -175506,7 +175506,7 @@
   {
     "station_id": "04703",
     "name": "Sigmaringen-Laiz",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -176528,7 +176528,7 @@
   {
     "station_id": "04745",
     "name": "Soltau",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19350101",
     "end_date": "20260525",
     "active": true,
@@ -177515,7 +177515,7 @@
   {
     "station_id": "04748",
     "name": "Sondershausen",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "18610101",
     "end_date": "20260525",
     "active": true,
@@ -178355,7 +178355,7 @@
   {
     "station_id": "04763",
     "name": "Sontra",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19610101",
     "end_date": "20260525",
     "active": true,
@@ -179313,8 +179313,8 @@
   },
   {
     "station_id": "04878",
-    "name": "Oberharz",
-    "state": "Unknown",
+    "name": "Oberharz am Brocken-Stiege",
+    "state": "Sachsen-Anhalt",
     "start_date": "19300101",
     "end_date": "20260525",
     "active": true,
@@ -180049,7 +180049,7 @@
   {
     "station_id": "04887",
     "name": "Stötten",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -181029,7 +181029,7 @@
   {
     "station_id": "04911",
     "name": "Straubing",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19490501",
     "end_date": "20260525",
     "active": true,
@@ -181791,8 +181791,8 @@
   },
   {
     "station_id": "04928",
-    "name": "Stuttgart",
-    "state": "Unknown",
+    "name": "Stuttgart (Schnarrenberg)",
+    "state": "Baden-Württemberg",
     "start_date": "19580101",
     "end_date": "20260525",
     "active": true,
@@ -182779,7 +182779,7 @@
   {
     "station_id": "04931",
     "name": "Stuttgart-Echterdingen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -183794,7 +183794,7 @@
   {
     "station_id": "05009",
     "name": "Teterow",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -184781,7 +184781,7 @@
   {
     "station_id": "05014",
     "name": "Worpswede-Hüttenbusch",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19520101",
     "end_date": "20260525",
     "active": true,
@@ -185754,7 +185754,7 @@
   {
     "station_id": "05017",
     "name": "Teuschnitz",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -186762,7 +186762,7 @@
   {
     "station_id": "05078",
     "name": "Travemünde",
-    "state": "Unknown",
+    "state": "Schleswig-Holstein",
     "start_date": "19400101",
     "end_date": "20260525",
     "active": true,
@@ -187434,7 +187434,7 @@
   {
     "station_id": "05099",
     "name": "Trier-Zewen",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19070501",
     "end_date": "20260525",
     "active": true,
@@ -188316,7 +188316,7 @@
   {
     "station_id": "05100",
     "name": "Trier-Petrisberg",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -189289,7 +189289,7 @@
   {
     "station_id": "05111",
     "name": "Trostberg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19450101",
     "end_date": "20260525",
     "active": true,
@@ -190269,7 +190269,7 @@
   {
     "station_id": "05142",
     "name": "Ueckermünde",
-    "state": "Unknown",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "19360901",
     "end_date": "20260525",
     "active": true,
@@ -191277,7 +191277,7 @@
   {
     "station_id": "05146",
     "name": "Uelzen",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -192194,7 +192194,7 @@
   {
     "station_id": "05149",
     "name": "Gollhofen",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19510301",
     "end_date": "20260525",
     "active": true,
@@ -193006,7 +193006,7 @@
   {
     "station_id": "05229",
     "name": "Villingen-Schwenningen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -193993,7 +193993,7 @@
   {
     "station_id": "05279",
     "name": "Wesertal-Lippoldsberg",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -194980,7 +194980,7 @@
   {
     "station_id": "05300",
     "name": "Waldems-Reinborn",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19510101",
     "end_date": "20260525",
     "active": true,
@@ -195925,7 +195925,7 @@
   {
     "station_id": "05335",
     "name": "Waltershausen",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19450101",
     "end_date": "20260525",
     "active": true,
@@ -196841,8 +196841,8 @@
   },
   {
     "station_id": "05349",
-    "name": "Waren",
-    "state": "Unknown",
+    "name": "Waren (Müritz)",
+    "state": "Mecklenburg-Vorpommern",
     "start_date": "18890701",
     "end_date": "20260525",
     "active": true,
@@ -197843,7 +197843,7 @@
   {
     "station_id": "05371",
     "name": "Wasserkuppe",
-    "state": "Unknown",
+    "state": "Hessen",
     "start_date": "19230801",
     "end_date": "20260525",
     "active": true,
@@ -198851,7 +198851,7 @@
   {
     "station_id": "05397",
     "name": "Weiden",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -199859,7 +199859,7 @@
   {
     "station_id": "05404",
     "name": "Weihenstephan-Dürnast",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19360701",
     "end_date": "20260525",
     "active": true,
@@ -200811,7 +200811,7 @@
   {
     "station_id": "05424",
     "name": "Weimar-Schöndorf",
-    "state": "Unknown",
+    "state": "Thüringen",
     "start_date": "19490301",
     "end_date": "20260525",
     "active": true,
@@ -201574,7 +201574,7 @@
   {
     "station_id": "05426",
     "name": "Weinbiet",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19530101",
     "end_date": "20260525",
     "active": true,
@@ -202456,7 +202456,7 @@
   {
     "station_id": "05433",
     "name": "Weiskirchen/Saar",
-    "state": "Unknown",
+    "state": "Saarland",
     "start_date": "19570101",
     "end_date": "20260525",
     "active": true,
@@ -203429,7 +203429,7 @@
   {
     "station_id": "05440",
     "name": "Weißenburg-Emetzheim",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "18790101",
     "end_date": "20260525",
     "active": true,
@@ -204367,7 +204367,7 @@
   {
     "station_id": "05490",
     "name": "Wernigerode",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -205375,7 +205375,7 @@
   {
     "station_id": "05516",
     "name": "Fehmarn",
-    "state": "Unknown",
+    "state": "Schleswig-Holstein",
     "start_date": "19480101",
     "end_date": "20260525",
     "active": true,
@@ -206250,7 +206250,7 @@
   {
     "station_id": "05629",
     "name": "Wittenberg",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -207244,7 +207244,7 @@
   {
     "station_id": "05664",
     "name": "Wolfach",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19580101",
     "end_date": "20260525",
     "active": true,
@@ -208217,7 +208217,7 @@
   {
     "station_id": "05692",
     "name": "Worms",
-    "state": "Unknown",
+    "state": "Rheinland-Pfalz",
     "start_date": "19360101",
     "end_date": "20260525",
     "active": true,
@@ -209218,7 +209218,7 @@
   {
     "station_id": "05705",
     "name": "Würzburg",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19470101",
     "end_date": "20260525",
     "active": true,
@@ -210205,7 +210205,7 @@
   {
     "station_id": "05717",
     "name": "Wuppertal-Buchenhofen",
-    "state": "Unknown",
+    "state": "Nordrhein-Westfalen",
     "start_date": "19370101",
     "end_date": "20260525",
     "active": true,
@@ -211206,7 +211206,7 @@
   {
     "station_id": "05731",
     "name": "Wutöschingen-Ofteringen",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "19610101",
     "end_date": "20260525",
     "active": true,
@@ -212179,7 +212179,7 @@
   {
     "station_id": "05745",
     "name": "Zehdenick",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19480701",
     "end_date": "20260525",
     "active": true,
@@ -213159,7 +213159,7 @@
   {
     "station_id": "05750",
     "name": "Zeitz",
-    "state": "Unknown",
+    "state": "Sachsen-Anhalt",
     "start_date": "19520901",
     "end_date": "20260525",
     "active": true,
@@ -214153,7 +214153,7 @@
   {
     "station_id": "05792",
     "name": "Zugspitze",
-    "state": "Unknown",
+    "state": "Bayern",
     "start_date": "19000801",
     "end_date": "20260525",
     "active": true,
@@ -215112,7 +215112,7 @@
   {
     "station_id": "05797",
     "name": "Lichtentanne",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "18631204",
     "end_date": "20260525",
     "active": true,
@@ -215665,7 +215665,7 @@
   {
     "station_id": "05825",
     "name": "Nauen-Berge",
-    "state": "Unknown",
+    "state": "Brandenburg",
     "start_date": "19530701",
     "end_date": "20260525",
     "active": true,
@@ -216638,7 +216638,7 @@
   {
     "station_id": "05906",
     "name": "Mannheim",
-    "state": "Unknown",
+    "state": "Baden-Württemberg",
     "start_date": "17810101",
     "end_date": "20260525",
     "active": true,
@@ -217716,7 +217716,7 @@
   {
     "station_id": "06159",
     "name": "Dörpen",
-    "state": "Unknown",
+    "state": "Niedersachsen",
     "start_date": "19590301",
     "end_date": "20260525",
     "active": true,
@@ -218682,7 +218682,7 @@
   {
     "station_id": "06314",
     "name": "Nossen",
-    "state": "Unknown",
+    "state": "Sachsen",
     "start_date": "19490201",
     "end_date": "20260525",
     "active": true,

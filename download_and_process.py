@@ -119,27 +119,26 @@ def parse_stations_description(file_content):
     for line in lines[2:]:
         if not line.strip():
             continue
-        # Split by max 8 parts (Stationsname and Bundesland can have spaces, but they are after geoLaenge)
-        parts = [p.strip() for p in line.split(maxsplit=8)]
-        if len(parts) < 8:
+        if len(line) < 100:
             continue
+            
+        sid = line[0:5].strip().zfill(5)
+        von = line[6:14].strip()
+        bis = line[15:23].strip()
         
-        sid = parts[0].zfill(5)
-        von = parts[1]
-        bis = parts[2]
-        height = float(parts[3])
-        lat = float(parts[4])
-        lon = float(parts[5])
-        
-        # Split the remaining part to extract name and state
-        rest = parts[6]
-        # Bundesland is at the end of the text. DWD states are typically single words or hyphenated.
-        # Let's see if we can identify the state by splitting from the right
-        subparts = rest.rsplit(None, 1)
-        if len(subparts) == 2:
-            name, state = subparts[0].strip(), subparts[1].strip()
+        try:
+            height = float(line[24:38].strip())
+            lat = float(line[39:50].strip())
+            lon = float(line[51:60].strip())
+        except ValueError:
+            continue
+            
+        name = line[61:102].strip()
+        state_part = line[102:].strip()
+        if state_part:
+            state = state_part.split()[0]
         else:
-            name, state = rest, "Unknown"
+            state = "Unknown"
             
         stations.append({
             'station_id': sid,

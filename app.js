@@ -6,7 +6,7 @@ let bbox = null;
 let currentLang = 'de'; // 'de' or 'en'
 let currentTempThreshold = 35; // 30, 33, or 35
 let currentStartYear = 1961; // 1961 to 2020
-let currentCoverageThreshold = 0.80; // 0.50 to 1.00
+let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
 let selectedStationId = null;
 
@@ -87,7 +87,10 @@ const i18n = {
         'no-owners': "Keine Betreiberhistorie.",
         'no-devices': "Keine Gerätehistorie.",
         
-        'tooltip-move': "Standortwechsel am {date}!\nDistanz: {dist}\nNeuer Standort: {lat}°N, {lon}°E (Höhe: {elev}m)"
+        'tooltip-move': "Standortwechsel am {date}!\nDistanz: {dist}\nNeuer Standort: {lat}°N, {lon}°E (Höhe: {elev}m)",
+        'footer-made-by': 'Erstellt von <a href="https://sibbl.net" target="_blank" class="text-orange-600 dark:text-orange-400 hover:underline font-semibold">sibbl</a>',
+        'footer-github': 'GitHub-Repository',
+        'footer-original-idea': 'Original-Idee'
     },
     en: {
         'doc-title': "DWD Extremely Hot Days in Germany (1961–2025)",
@@ -155,7 +158,10 @@ const i18n = {
         'no-owners': "No operator history.",
         'no-devices': "No device history.",
         
-        'tooltip-move': "Relocation on {date}!\nDistance: {dist}\nNew Location: {lat}°N, {lon}°E (Elevation: {elev}m)"
+        'tooltip-move': "Relocation on {date}!\nDistance: {dist}\nNew Location: {lat}°N, {lon}°E (Elevation: {elev}m)",
+        'footer-made-by': 'Made by <a href="https://sibbl.net" target="_blank" class="text-orange-600 dark:text-orange-400 hover:underline font-semibold">sibbl</a>',
+        'footer-github': 'GitHub Repository',
+        'footer-original-idea': 'Original Idea'
     }
 };
 
@@ -201,6 +207,14 @@ function setLanguage(lang) {
     document.getElementById('inspector-subtitle').textContent = i18n[lang]['inspector-subtitle'];
     document.getElementById('inspector-lbl-stations').textContent = i18n[lang]['inspector-lbl-stations'];
     document.getElementById('input-station-search').placeholder = i18n[lang]['input-station-search-placeholder'];
+    
+    // Translate footer
+    const madeByEl = document.getElementById('footer-made-by');
+    if (madeByEl) madeByEl.innerHTML = i18n[lang]['footer-made-by'];
+    const githubEl = document.getElementById('footer-github-text');
+    if (githubEl) githubEl.textContent = i18n[lang]['footer-github'];
+    const ideaEl = document.getElementById('footer-original-idea-text');
+    if (ideaEl) ideaEl.textContent = i18n[lang]['footer-original-idea'];
     
     // Empty state inspector check
     const emptyState = document.getElementById('inspector-empty-state');
@@ -358,8 +372,8 @@ async function loadData() {
     try {
         console.log("Loading weather and mapping data...");
         const [weatherRes, geojsonRes] = await Promise.all([
-            fetch('data/weather_data.json'),
-            fetch('data/germany_states.json')
+            fetch('data/weather_data.json?v=' + Date.now()),
+            fetch('data/germany_states.json?v=' + Date.now())
         ]);
         
         weatherData = await weatherRes.json();
@@ -710,7 +724,8 @@ function renderInspectorStationList(filteredStations) {
         const periodCoverage = calculateCoverageForPeriod(s, currentStartYear, maxYearGlobal);
         const periodMoved = checkMovesForPeriod(s, currentStartYear, maxYearGlobal);
         
-        let subText = `${s.state} · ${Math.round(periodCoverage*100)}%`;
+        const showState = s.state && s.state !== 'Unknown';
+        let subText = showState ? `${s.state} · ${Math.round(periodCoverage*100)}%` : `${Math.round(periodCoverage*100)}%`;
         if (periodMoved) {
             let periodMoveCount = 0;
             const startStr = currentStartYear + '0101';
@@ -856,7 +871,7 @@ function renderStationWorkspace(sid) {
                     <div>
                         <span class="text-[9px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">${t['type-station']}</span>
                         <h3 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-1">${s.name}</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${s.state} · ID ${s.station_id}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${(s.state && s.state !== 'Unknown') ? s.state + ' · ' : ''}ID ${s.station_id}</p>
                     </div>
                     <div class="text-right flex flex-col text-xs text-slate-500 dark:text-slate-400">
                         <span>${t['lbl-active-span']}:</span>
@@ -939,12 +954,8 @@ function renderStationWorkspace(sid) {
         <!-- Right details column -->
         <div class="md:col-span-4 bg-slate-200/40 dark:bg-slate-900/40 border border-slate-300 dark:border-slate-850 rounded-xl p-5 flex flex-col gap-4">
             <div class="border-b border-slate-300 dark:border-slate-850 pb-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">${t['lbl-moves-map']}</h4>
-                <p class="text-[10px] text-slate-500 dark:text-slate-550 mt-0.5">${t['lbl-moves-map-sub']}</p>
-            </div>
-            
-            <div id="inspector-moves-map-container" class="relative w-full aspect-[4/5] bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-lg overflow-hidden flex items-center justify-center">
-                <!-- SVG map generated here -->
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">${t['lbl-moves-log']}</h4>
+                <p class="text-[10px] text-slate-500 dark:text-slate-550 mt-0.5">${currentLang === 'de' ? 'Chronologische Erfassung aller Standortverlegungen' : 'Chronological log of all station relocations'}</p>
             </div>
             
             <div class="flex flex-col gap-2 mt-1 text-xs text-slate-600 dark:text-slate-300">
@@ -961,8 +972,7 @@ function renderStationWorkspace(sid) {
             </div>
             
             <!-- Moves History Log -->
-            <div class="flex-grow overflow-y-auto max-h-[140px] flex flex-col gap-2.5 mt-2 pr-1 border-t border-slate-300 dark:border-slate-850/60 pt-3">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">${t['lbl-moves-log']}</span>
+            <div class="flex-grow overflow-y-auto max-h-[360px] flex flex-col gap-2.5 mt-2 pr-1 border-t border-slate-300 dark:border-slate-850/60 pt-3">
                 <div class="flex flex-col gap-3">
                     ${distinctCoords.map((g, i) => {
                         let distanceLabel = '';
@@ -990,104 +1000,7 @@ function renderStationWorkspace(sid) {
         </div>
     `;
     
-    renderStationMovesMap(distinctCoords, periodMoved);
     renderStationTrendChart(sid);
-}
-
-// Generate custom SVG station moves path inside period
-function renderStationMovesMap(distinctCoords, periodMoved) {
-    const container = document.getElementById('inspector-moves-map-container');
-    const width = 240;
-    const height = 300;
-    
-    const t = i18n[currentLang];
-    const isDark = document.documentElement.classList.contains('dark');
-    
-    const mapFill = isDark ? "rgba(30, 41, 59, 0.85)" : "rgba(203, 213, 225, 0.8)";
-    const mapStroke = isDark ? "rgba(148, 163, 184, 0.55)" : "rgba(71, 85, 105, 0.5)";
-    
-    const statesPathsSvg = geojson.features.map(f => {
-        const d = geomToPath(f.geometry, width, height, bbox);
-        const stroke = isDark ? "rgba(148, 163, 184, 0.45)" : "rgba(71, 85, 105, 0.35)";
-        return `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="0.6" />`;
-    }).join('\n');
-    
-    let pathSvg = '';
-    let markersSvg = '';
-    let boundsSvg = '';
-    
-    const pixels = distinctCoords.map(g => project(g.lon, g.lat, width, height, bbox));
-    
-    if (periodMoved && distinctCoords.length > 1) {
-        const pts = pixels.map(p => p.join(',')).join(' ');
-        pathSvg = `<polyline points="${pts}" fill="none" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="3,3" stroke-linecap="round" />`;
-        
-        let minX = 999, maxX = -999, minY = 999, maxY = -999;
-        pixels.forEach(([px, py]) => {
-            if (px < minX) minX = px;
-            if (px > maxX) maxX = px;
-            if (py < minY) minY = py;
-            if (py > maxY) maxY = py;
-        });
-        const midX = (minX + maxX) / 2;
-        const midY = (minY + maxY) / 2;
-        const rad = Math.max(maxX - minX, maxY - minY, 15) * 1.3;
-        
-        boundsSvg = `
-            <circle cx="${midX}" cy="${midY}" r="${rad}" fill="none" stroke="#fb923c" stroke-opacity="0.15" stroke-width="2" class="animate-ping" />
-            <circle cx="${midX}" cy="${midY}" r="${rad}" fill="none" stroke="#ea580c" stroke-opacity="0.25" stroke-width="1" />
-        `;
-    }
-    
-    distinctCoords.forEach((g, idx) => {
-        const [x, y] = pixels[idx];
-        
-        let fill = '#ef4444'; 
-        let stroke = '#fca5a5';
-        let label = `${t['legend-last-loc']} (${t['lbl-epoch']} ${idx+1})`;
-        
-        if (idx === 0) {
-            fill = '#22c55e'; 
-            stroke = '#86efac';
-            label = `${t['legend-first-loc']} (${t['lbl-epoch']} 1)`;
-        } else if (idx < distinctCoords.length - 1) {
-            fill = '#eab308'; 
-            stroke = '#fde047';
-            label = `${t['legend-move-loc']} (${t['lbl-epoch']} ${idx+1})`;
-        }
-        
-        markersSvg += `
-            <g class="cursor-pointer">
-                <circle cx="${x}" cy="${y}" r="4" fill="${fill}" stroke="${isDark ? '#05070c' : '#ffffff'}" stroke-width="1" />
-                <circle cx="${x}" cy="${y}" r="8" fill="none" stroke="${stroke}" stroke-opacity="0.3" stroke-width="1" />
-                <title>${label}\n${t['lbl-elevation']}: ${g.elevation}m\nKoord: ${g.lat.toFixed(4)}°N, ${g.lon.toFixed(4)}°E</title>
-            </g>
-        `;
-    });
-    
-    container.innerHTML = `
-        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="w-full h-full">
-            <g stroke="${isDark ? '#1e293b' : '#cbd5e1'}" stroke-width="0.3" stroke-dasharray="1,5">
-                <line x1="0" y1="${height/4}" x2="${width}" y2="${height/4}" />
-                <line x1="0" y1="${height/2}" x2="${width}" y2="${height/2}" />
-                <line x1="0" y1="${height*0.75}" x2="${width}" y2="${height*0.75}" />
-                <line x1="${width/4}" y1="0" x2="${width/4}" y2="${height}" />
-                <line x1="${width/2}" y1="0" x2="${width/2}" y2="${height}" />
-                <line x1="${width*0.75}" y1="0" x2="${width*0.75}" y2="${height}" />
-            </g>
-            
-            ${statesPathsSvg}
-            ${boundsSvg}
-            ${pathSvg}
-            ${markersSvg}
-        </svg>
-        
-        <div class="absolute bottom-2 left-2 flex flex-col gap-1 bg-white/90 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800/80 rounded px-2 py-1 text-[8px] font-semibold text-slate-800 dark:text-slate-200">
-            <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ${t['legend-first-loc']}</div>
-            ${periodMoved ? `<div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> ${t['legend-move-loc']}</div>` : ''}
-            <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> ${t['legend-last-loc']}</div>
-        </div>
-    `;
 }
 
 // Generate dynamic SVG trend chart strictly inside period
