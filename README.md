@@ -20,7 +20,7 @@ This project is a modern, interactive reconstruction and extension of the invest
    - Elegant, dynamic warm orange-red visual circles sized proportionally to heat days.
 2. **Pristine Visual Uniformity**:
    - The dashboard includes a **Dynamic scale tracker** in JavaScript. It measures the physical screen width of the responsive grid map cards and mathematically scales the legend's circles (`r * (width / 110)`) so they are **exactly, pixel-perfectly identical** to the map bubbles under all screen sizes, zooms, and window resizes.
-3. ** Granular Parameter Control**:
+3. **Granular Parameter Control**:
    - Live filters for temperature thresholds ($\ge$ 30 °C, 33 °C, or 35 °C).
    - Dynamic start-year adjustment slider (1961–2020) and data coverage completeness slider (50% to 100%).
 4. **Metadata Station Inspector**:
