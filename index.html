@@ -98,10 +98,6 @@
                         <span id="stat-lbl-reports" class="text-[9px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Meldungen</span>
                         <span id="stat-total-reports" class="font-bold text-red-600 dark:text-red-500 text-sm">---</span>
                     </div>
-                    <div class="flex flex-col bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800 rounded-lg px-3 py-1 text-center min-w-[80px]">
-                        <span id="stat-lbl-hottest" class="text-[9px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Heißestes</span>
-                        <span id="stat-hottest-year" class="font-bold text-amber-600 dark:text-amber-300 text-sm">---</span>
-                    </div>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -202,11 +198,23 @@
         <!-- Weather Map Grid -->
         <section class="lg:col-span-3 flex flex-col gap-4">
             <div class="glass-panel rounded-xl p-5 flex flex-col h-full">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
-                    <div>
-                        <h2 id="card-title-grid" class="text-lg font-bold text-slate-700 dark:text-slate-200">
-                            Deutschlandkarten-Raster (1961–2025)
-                        </h2>
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <h2 id="card-title-grid" class="text-lg font-bold text-slate-700 dark:text-slate-200">
+                                Deutschlandkarten-Raster (1961–2025)
+                            </h2>
+                            
+                            <!-- Segemented Tab Switcher for Grid/Single Views -->
+                            <div class="flex bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-850 rounded-lg p-0.5 overflow-hidden">
+                                <button id="btn-view-grid" onclick="setViewMode('grid')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm">
+                                    Raster
+                                </button>
+                                <button id="btn-view-single" onclick="setViewMode('single')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
+                                    Einzelkarte
+                                </button>
+                            </div>
+                        </div>
                         <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
                             Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.
                         </p>
@@ -221,15 +229,72 @@
                     </div>
                 </div>
 
-                <!-- Scrollable Grid Container -->
-                <div id="map-grid-container" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-8 gap-4 overflow-y-auto max-h-[720px] pr-2">
-                    <!-- Map cards dynamically injected -->
-                    <div id="grid-loading" class="col-span-full py-20 text-center flex flex-col items-center justify-center text-slate-400">
-                        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-orange-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <!-- Grid View Panel -->
+                <div id="map-grid-view" class="block">
+                    <!-- Scrollable Grid Container -->
+                    <div id="map-grid-container" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-8 gap-4 overflow-y-auto max-h-[720px] pr-2">
+                        <!-- Map cards dynamically injected -->
+                        <div id="grid-loading" class="col-span-full py-20 text-center flex flex-col items-center justify-center text-slate-400">
+                            <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-orange-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p id="loading-txt" class="text-sm font-semibold">Lade Klimadaten & Landkarten-Modul...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single Map View Panel -->
+                <div id="map-single-view" class="hidden flex flex-col gap-4 items-center justify-center w-full min-h-[500px]">
+                    
+                    <!-- Animation & Navigation Timeline Control Bar -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between w-full bg-slate-100/80 dark:bg-slate-900/60 border border-slate-350/50 dark:border-slate-800 rounded-xl p-3 text-xs gap-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <button id="btn-play-pause" onclick="togglePlayAnimation()" class="flex items-center justify-center w-9 h-9 rounded-full bg-orange-600 hover:bg-orange-500 text-white font-bold transition duration-150 shadow-md shadow-orange-500/20 active:scale-95" title="Animation abspielen / Pause">
+                                <!-- Play icon (default) -->
+                                <svg id="svg-play" class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <!-- Pause icon (hidden by default) -->
+                                <svg id="svg-pause" class="w-4 h-4 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </button>
+                            
+                            <div class="flex flex-col">
+                                <span id="lbl-active-year-val" class="font-extrabold text-lg text-orange-600 dark:text-orange-400 leading-none">2025</span>
+                                <span id="lbl-active-year-sub" class="text-[9px] text-slate-500 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Jahr / Year</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline Range Slider -->
+                        <div class="flex-grow flex items-center gap-3 px-2 w-full sm:w-auto">
+                            <span id="slider-min-year-lbl" class="text-[10px] text-slate-500 font-bold">1961</span>
+                            <input id="slider-single-year" type="range" min="1961" max="2025" value="2025" step="1" oninput="setActiveYear(this.value)" class="flex-grow h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                            <span id="slider-max-year-lbl" class="text-[10px] text-slate-500 font-bold">2025</span>
+                        </div>
+
+                        <!-- Speed Regulator dropdown -->
+                        <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                            <span id="speed-lbl" class="text-[10px] text-slate-500 font-medium">Tempo / Speed:</span>
+                            <select id="select-speed" onchange="setAnimationSpeed(this.value)" class="text-[10px] bg-slate-200 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-orange-500 cursor-pointer font-semibold">
+                                <option value="250" selected>Normal (0.25s)</option>
+                                <option value="100">Schnell / Fast (0.1s)</option>
+                                <option value="500">Langsam / Slow (0.5s)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Single Large SVG Canvas Container -->
+                    <div class="relative w-full max-w-[450px] aspect-[110/140] flex items-center justify-center p-3 mt-2">
+                        
+                        <!-- SVG Map Element -->
+                        <svg id="single-map-svg" viewBox="0 0 110 140" class="w-full h-auto select-none">
+                            <!-- Injected dynamically via JS -->
                         </svg>
-                        <p id="loading-txt" class="text-sm font-semibold">Lade Klimadaten & Landkarten-Modul...</p>
+                        
+                        <!-- Mini details overlay card -->
+                        <div class="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-950/95 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-3 text-[10px] shadow-lg backdrop-blur-md z-20 flex flex-col gap-0.5 min-w-[110px] hover:scale-105 transition duration-150">
+                            <span class="font-extrabold text-[8px] text-slate-500 dark:text-slate-500 uppercase tracking-widest" id="single-map-meta-title">Jahresübersicht</span>
+                            <span class="font-black text-base text-orange-600 dark:text-orange-400 mt-0.5" id="single-map-meta-year">2025</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-1 border-t border-slate-200 dark:border-slate-800 pt-1" id="single-map-meta-total">0 Tage gesamt</span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -10,6 +10,11 @@ let currentCoverageThreshold = 0.80; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
 let selectedStationId = null;
 
+let currentViewMode = 'grid'; // 'grid' or 'single'
+let currentActiveYear = 2025; // Active year for the single map view
+let animationIntervalId = null;
+let animationSpeed = 250; // ms per year in animation
+
 const minYearGlobal = 1961;
 const maxYearGlobal = 2025;
 
@@ -33,6 +38,8 @@ const i18n = {
         'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Überschreitungen des Schwellenwerts an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.",
+        'card-title-single': "Klimawandel-Animation",
+        'card-subtitle-single': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
         'legend-lbl-days': "Tage:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
@@ -99,6 +106,8 @@ const i18n = {
         'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent the accumulated days exceeding the threshold across all selected stations within each decade.",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid': "Each dot represents a weather station. Bubble size & color denote the count of days exceeding the threshold.",
+        'card-title-single': "Climate Change Animation",
+        'card-subtitle-single': "Use the play button to animate the rise of extremely hot days across decades.",
         'legend-lbl-days': "Days:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
@@ -532,7 +541,10 @@ function updateGlobalStats(filteredStations, decadeTotals) {
         }
     });
     
-    document.getElementById('stat-hottest-year').textContent = hottestYear !== 'N/A' ? `${hottestYear} (${maxYearCount})` : 'N/A';
+    const statHottestYear = document.getElementById('stat-hottest-year');
+    if (statHottestYear) {
+        statHottestYear.textContent = hottestYear !== 'N/A' ? `${hottestYear} (${maxYearCount})` : 'N/A';
+    }
 }
 
 // Render the miniature maps grid
@@ -595,11 +607,33 @@ function renderMapsGrid(filteredStations) {
 function updateDashboard() {
     const filteredStations = getFilteredStations();
     
-    document.getElementById('card-title-grid').textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–2025)`;
+    // Update headers based on view mode
+    const titleElement = document.getElementById('card-title-grid');
+    const subtitleElement = document.getElementById('card-subtitle-grid');
+    if (titleElement) {
+        if (currentViewMode === 'grid') {
+            titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–2025)`;
+        } else {
+            titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–2025)`;
+        }
+    }
+    if (subtitleElement) {
+        if (currentViewMode === 'grid') {
+            subtitleElement.textContent = i18n[currentLang]['card-subtitle-grid'];
+        } else {
+            subtitleElement.textContent = i18n[currentLang]['card-subtitle-single'];
+        }
+    }
     
     const decadeTotals = renderDecadalStats(filteredStations);
     updateGlobalStats(filteredStations, decadeTotals);
-    renderMapsGrid(filteredStations);
+    
+    if (currentViewMode === 'grid') {
+        renderMapsGrid(filteredStations);
+    } else {
+        renderSingleMap(filteredStations);
+    }
+    
     renderInspectorStationList(filteredStations);
     
     // Calculate and update the checkbox label with (unmovedCount of totalCoverageCount)
@@ -1247,8 +1281,8 @@ function updateLegend() {
     if (!container) return;
 
     // Measure the actual width of a rendered map SVG to calculate scaling factor
+    let scale = 0.9; // Sensible default scale for legend when grid is hidden
     const mapSvg = document.querySelector('#map-grid-container svg');
-    let scale = 1.0;
     if (mapSvg) {
         const rect = mapSvg.getBoundingClientRect();
         if (rect.width > 0) {
@@ -1299,6 +1333,8 @@ function updateURLHash() {
     if (selectedStationId) {
         params.set('station', selectedStationId);
     }
+    params.set('view', currentViewMode);
+    params.set('year', currentActiveYear);
     
     const hashString = '#' + params.toString();
     if (window.location.hash !== hashString) {
@@ -1310,6 +1346,11 @@ function updateURLHash() {
 // Load parameters from the URL hash into active state variables
 function loadStateFromURLHash() {
     const hash = window.location.hash.substring(1);
+    
+    // Set default responsive view mode if view parameter is missing
+    currentViewMode = window.innerWidth < 1024 ? 'single' : 'grid';
+    currentActiveYear = maxYearGlobal;
+    
     if (!hash) return;
     
     const params = new URLSearchParams(hash);
@@ -1333,6 +1374,14 @@ function loadStateFromURLHash() {
     if (params.has('station')) {
         selectedStationId = params.get('station');
     }
+    if (params.has('view')) {
+        const val = params.get('view');
+        if (val === 'grid' || val === 'single') currentViewMode = val;
+    }
+    if (params.has('year')) {
+        const val = parseInt(params.get('year'));
+        if (val >= minYearGlobal && val <= maxYearGlobal) currentActiveYear = val;
+    }
 }
 
 // Sync DOM elements to match loaded state variables
@@ -1354,6 +1403,190 @@ function syncUIControls() {
     
     const movesCheck = document.getElementById('check-moves-unmoved');
     if (movesCheck) movesCheck.checked = (currentMovesFilter === 'unmoved');
+
+    // Visual switch buttons sync
+    const btnGrid = document.getElementById('btn-view-grid');
+    const btnSingle = document.getElementById('btn-view-single');
+    if (btnGrid && btnSingle) {
+        if (currentViewMode === 'grid') {
+            btnGrid.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
+            btnSingle.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+        } else {
+            btnSingle.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
+            btnGrid.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+        }
+    }
+    
+    // View panel visibility sync
+    const gridView = document.getElementById('map-grid-view');
+    const singleView = document.getElementById('map-single-view');
+    if (gridView && singleView) {
+        if (currentViewMode === 'grid') {
+            gridView.classList.remove('hidden');
+            gridView.classList.add('block');
+            singleView.classList.remove('block');
+            singleView.classList.add('hidden');
+        } else {
+            singleView.classList.remove('hidden');
+            singleView.classList.add('block');
+            gridView.classList.remove('block');
+            gridView.classList.add('hidden');
+        }
+    }
+    
+    // Animate timeline bar year progress slider limits sync
+    const singleSlider = document.getElementById('slider-single-year');
+    if (singleSlider) {
+        singleSlider.min = currentStartYear;
+        singleSlider.value = currentActiveYear;
+    }
+    
+    const sliderMinYearLbl = document.getElementById('slider-min-year-lbl');
+    if (sliderMinYearLbl) {
+        sliderMinYearLbl.textContent = currentStartYear;
+    }
+}
+
+// Set the active visualization view mode ('grid' or 'single')
+function setViewMode(mode) {
+    if (currentViewMode === mode) return;
+    
+    // Pause animation if playing and switching away from single map
+    if (mode === 'grid' && animationIntervalId) {
+        togglePlayAnimation();
+    }
+    
+    currentViewMode = mode;
+    syncUIControls();
+    updateDashboard();
+}
+
+// Render the Single Large Map SVG
+function renderSingleMap(filteredStations) {
+    const singleMapSvg = document.getElementById('single-map-svg');
+    if (!singleMapSvg) return;
+    
+    // Ensure active year is valid
+    if (currentActiveYear < currentStartYear) {
+        currentActiveYear = currentStartYear;
+    }
+    if (currentActiveYear > maxYearGlobal) {
+        currentActiveYear = maxYearGlobal;
+    }
+    
+    const isDark = document.documentElement.classList.contains('dark');
+    const stroke = isDark ? "rgba(148, 163, 184, 0.3)" : "rgba(71, 85, 105, 0.25)";
+    
+    const statesPathsSvg = geojson.features.map(f => {
+        const d = geomToPath(f.geometry, 110, 140, bbox);
+        return `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="0.5" />`;
+    }).join('\n');
+    
+    let circlesSvg = '';
+    let totalYearDays = 0;
+    
+    filteredStations.forEach(s => {
+        const yrData = s.annual_data[currentActiveYear];
+        const days = yrData ? (yrData[`t${currentTempThreshold}`] || 0) : 0;
+        totalYearDays += days;
+        
+        const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
+        const style = getHeatStyle(days);
+        
+        const isSelected = s.station_id === selectedStationId;
+        const selectionRing = isSelected 
+            ? `<circle cx="${x}" cy="${y}" r="${style.r + 2.0}" fill="none" stroke="#ea580c" stroke-dasharray="1,1" stroke-width="0.6"/>` 
+            : '';
+            
+        circlesSvg += `
+            <g class="cursor-pointer" onclick="selectStation('${s.station_id}')">
+                ${selectionRing}
+                <circle cx="${x}" cy="${y}" r="${style.r}" 
+                        fill="${style.fill}" fill-opacity="${style.opacity}" 
+                        stroke="${isDark ? '#05070c' : '#ffffff'}" stroke-width="0.3"
+                        class="hover:stroke-orange-500 dark:hover:stroke-orange-400 hover:stroke-[0.8] transition-all duration-150">
+                    <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
+                </circle>
+            </g>
+        `;
+    });
+    
+    singleMapSvg.innerHTML = `${statesPathsSvg}${circlesSvg}`;
+    
+    // Update active labels
+    const activeYearDisplay = document.getElementById('lbl-active-year-val');
+    if (activeYearDisplay) activeYearDisplay.textContent = currentActiveYear;
+    
+    
+    
+    const metaYear = document.getElementById('single-map-meta-year');
+    if (metaYear) metaYear.textContent = currentActiveYear;
+    
+    const metaTotal = document.getElementById('single-map-meta-total');
+    if (metaTotal) {
+        const totalWord = currentLang === 'de' ? 'Tage gesamt' : 'days total';
+        metaTotal.textContent = `${totalYearDays} ${totalWord}`;
+    }
+}
+
+// Play/Pause Animation Loop
+function togglePlayAnimation() {
+    const playBtn = document.getElementById('btn-play-pause');
+    const svgPlay = document.getElementById('svg-play');
+    const svgPause = document.getElementById('svg-pause');
+    
+    if (animationIntervalId) {
+        // Pause
+        clearInterval(animationIntervalId);
+        animationIntervalId = null;
+        if (svgPlay) svgPlay.classList.remove('hidden');
+        if (svgPause) svgPause.classList.add('hidden');
+        if (playBtn) {
+            playBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
+            playBtn.classList.add('bg-orange-600', 'hover:bg-orange-500');
+        }
+    } else {
+        // Play
+        if (svgPlay) svgPlay.classList.add('hidden');
+        if (svgPause) svgPause.classList.remove('hidden');
+        if (playBtn) {
+            playBtn.classList.remove('bg-orange-600', 'hover:bg-orange-500');
+            playBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+        }
+        
+        animationIntervalId = setInterval(() => {
+            currentActiveYear++;
+            if (currentActiveYear > maxYearGlobal) {
+                currentActiveYear = currentStartYear;
+            }
+            
+            // Sync year slider value
+            const singleSlider = document.getElementById('slider-single-year');
+            if (singleSlider) singleSlider.value = currentActiveYear;
+            
+            const filteredStations = getFilteredStations();
+            renderSingleMap(filteredStations);
+            updateURLHash();
+        }, animationSpeed);
+    }
+}
+
+// Adjust Playback Speed
+function setAnimationSpeed(val) {
+    animationSpeed = parseInt(val);
+    if (animationIntervalId) {
+        // Reset interval with new speed
+        togglePlayAnimation(); // pauses
+        togglePlayAnimation(); // plays with new speed
+    }
+}
+
+// Set active year from slider
+function setActiveYear(year) {
+    currentActiveYear = parseInt(year);
+    const filteredStations = getFilteredStations();
+    renderSingleMap(filteredStations);
+    updateURLHash();
 }
 
 // Start application when page loads
