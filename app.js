@@ -36,6 +36,7 @@ const i18n = {
         'desc-coverage': "Mindestanteil valider Daten im gewählten Zeitraum.",
         'lbl-moves-filter': "Nur ortsfeste Stationen anzeigen",
         'card-title-decades': "Meldungen pro Jahrzehnt",
+        'btn-lbl-decades': "Jahrzehnte",
         'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Überschreitungen des Schwellenwerts an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.",
@@ -107,6 +108,7 @@ const i18n = {
         'desc-coverage': "Minimum percentage of valid data in the selected period.",
         'lbl-moves-filter': "Only show unmoved stations",
         'card-title-decades': "Reports per Decade",
+        'btn-lbl-decades': "Decades",
         'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent the accumulated days exceeding the threshold across all selected stations within each decade.",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid': "Each dot represents a weather station. Bubble size & color denote the count of days exceeding the threshold.",
@@ -197,6 +199,7 @@ function setLanguage(lang) {
     document.getElementById('lbl-moves-filter').textContent = i18n[lang]['lbl-moves-filter'];
     
     document.getElementById('card-title-decades').textContent = i18n[lang]['card-title-decades'];
+    document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
     document.getElementById('decades-methodology').innerHTML = i18n[lang]['decades-methodology'];
     
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–2025)`;
@@ -1516,7 +1519,12 @@ function renderSingleMap(filteredStations) {
     
     const metaTotal = document.getElementById('single-map-meta-total');
     if (metaTotal) {
-        const totalWord = currentLang === 'de' ? 'Tage gesamt' : 'days total';
+        let totalWord;
+        if (currentLang === 'de') {
+            totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
+        } else {
+            totalWord = totalYearDays === 1 ? 'day total' : 'days total';
+        }
         metaTotal.textContent = `${totalYearDays} ${totalWord}`;
     }
 }
@@ -1600,3 +1608,31 @@ window.addEventListener('hashchange', () => {
         selectStation(null);
     }
 });
+
+// Decades Modal controllers
+function openDecadesModal() {
+    const modal = document.getElementById('decades-modal');
+    const card = document.getElementById('decades-modal-card');
+    if (modal && card) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        // Smooth transition
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+}
+
+function closeDecadesModal() {
+    const modal = document.getElementById('decades-modal');
+    const card = document.getElementById('decades-modal-card');
+    if (modal && card) {
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 150);
+    }
+}

@@ -87,17 +87,27 @@
                 </p>
             </div>
             
-            <div class="flex items-center gap-6">
+            <div class="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-6">
                 <!-- Global Stats Ribbon -->
-                <div class="hidden md:flex items-center gap-4 text-xs">
-                    <div class="flex flex-col bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800 rounded-lg px-3 py-1 text-center min-w-[70px]">
+                <div class="flex items-center gap-2 sm:gap-3 text-xs">
+                    <div class="flex flex-col bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800 rounded-lg px-2.5 py-1 text-center min-w-[65px] sm:min-w-[70px]">
                         <span id="stat-lbl-stations" class="text-[9px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Stationen</span>
                         <span id="stat-stations-count" class="font-bold text-orange-600 dark:text-orange-400 text-sm">---</span>
                     </div>
-                    <div class="flex flex-col bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800 rounded-lg px-3 py-1 text-center min-w-[90px]">
+                    <div class="flex flex-col bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/80 dark:border-slate-800 rounded-lg px-2.5 py-1 text-center min-w-[75px] sm:min-w-[85px]">
                         <span id="stat-lbl-reports" class="text-[9px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Meldungen</span>
                         <span id="stat-total-reports" class="font-bold text-red-600 dark:text-red-500 text-sm">---</span>
                     </div>
+                    <!-- Decades Modal Trigger Button (Matched style) -->
+                    <button id="btn-show-decades" onclick="openDecadesModal()" class="flex flex-col bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-900/60 dark:hover:bg-slate-900 border border-slate-300/80 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 rounded-lg px-2.5 py-1 text-center min-w-[85px] sm:min-w-[95px] transition duration-150 active:scale-95 group">
+                        <span id="btn-lbl-decades" class="text-[9px] text-slate-500 dark:text-slate-550 font-semibold uppercase tracking-wider group-hover:text-orange-500 transition duration-150">Jahrzehnte</span>
+                        <span class="font-bold text-slate-600 dark:text-slate-400 text-[11px] sm:text-xs flex items-center justify-center gap-1 mt-0.5 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition duration-150">
+                            <svg class="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
+                            </svg>
+                            <span class="font-bold text-[10px] sm:text-xs">Diagramm</span>
+                        </span>
+                    </button>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -124,79 +134,10 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6">
         
-        <!-- Sidebar Controls Panel -->
-        <section class="lg:col-span-1 flex flex-col gap-6">
-            
-            <!-- Parameter Control Card -->
-            <div class="glass-panel rounded-xl p-5 flex flex-col gap-5">
-                <h2 id="card-title-filter" class="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">
-                    Parameter-Filter
-                </h2>
-                
-                <!-- Temperature Selection -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="lbl-temp-threshold" class="font-semibold text-slate-500 dark:text-slate-400">Min. Temperatur-Schwellenwert:</span>
-                        <span id="temp-threshold-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">35 °C</span>
-                    </div>
-                    <input id="slider-temp-threshold" type="range" min="30" max="40" value="35" step="1" oninput="setTemperatureThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
-                </div>
-
-                <!-- Start Year Selection -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="lbl-start-year" class="font-semibold text-slate-500 dark:text-slate-400">Start-Jahr des Zeitraums:</span>
-                        <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">1961</span>
-                    </div>
-                    <input id="slider-start-year" type="range" min="1961" max="2020" value="1961" step="1" oninput="updateStartYear(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
-                    <p id="desc-start-year" class="text-[10px] text-slate-550 dark:text-slate-500 leading-tight">
-                        Blendet frühere Jahre aus.
-                    </p>
-                </div>
-
-                <!-- Coverage Selection -->
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
-                        <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">90 %</span>
-                    </div>
-                    <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
-                    <p id="desc-coverage" class="text-[10px] text-slate-500 dark:text-slate-500 leading-tight">
-                        Mindestanteil valider Daten im gewählten Zeitraum.
-                    </p>
-                </div>
-
-                <!-- Station Moves Selection -->
-                <div class="flex items-start gap-3 mt-2 px-1">
-                    <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
-                    <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
-                        <span id="lbl-moves-filter">Nur ortsfeste Stationen anzeigen</span>
-                        <span id="lbl-moves-ratio" class="text-[10px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Decadal Stats Summary (Spiegel-Style Aggregates) -->
-            <div class="glass-panel rounded-xl p-5 flex flex-col gap-4 flex-grow">
-                <h2 id="card-title-decades" class="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">
-                    Meldungen pro Jahrzehnt
-                </h2>
-                
-                <div id="decade-list-container" class="flex flex-col gap-3.5 mt-2">
-                    <!-- Decade list dynamically injected -->
-                </div>
-                
-                <div id="decades-methodology" class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
-                    <span class="font-semibold text-orange-500">Methodik:</span> Gezählt werden die summierten Tage mit Überschreitungen des Schwellenwerts an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Weather Map Grid -->
-        <section class="lg:col-span-3 flex flex-col gap-4">
+        <!-- Weather Map Grid (Full Width) -->
+        <section class="w-full flex flex-col gap-4">
             <div class="glass-panel rounded-xl p-5 flex flex-col h-full">
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
                     <div class="flex flex-col gap-2">
@@ -221,7 +162,7 @@
                     </div>
                     
                     <!-- Bubble Legend -->
-                    <div class="flex items-center gap-4 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/60 rounded-lg px-4 py-2 text-xs">
+                    <div class="flex items-center gap-4 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 border-slate-800/60 rounded-lg px-4 py-2 text-xs">
                         <span id="legend-lbl-days" class="text-slate-550 dark:text-slate-400 font-medium">Tage:</span>
                         <div id="legend-circles-container" class="flex items-center gap-2.5 font-semibold">
                             <!-- Injected dynamically via JS to match the map circles' physical visual scale exactly -->
@@ -259,7 +200,7 @@
                             
                             <div class="flex flex-col">
                                 <span id="lbl-active-year-val" class="font-extrabold text-lg text-orange-600 dark:text-orange-400 leading-none">2025</span>
-                                <span id="lbl-active-year-sub" class="text-[9px] text-slate-500 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Jahr / Year</span>
+                                <span id="lbl-active-year-sub" class="text-[9px] text-slate-550 dark:text-slate-550 uppercase tracking-wider font-semibold mt-0.5">Jahr / Year</span>
                             </div>
                         </div>
                         
@@ -273,7 +214,7 @@
                         <!-- Speed Regulator dropdown -->
                         <div class="flex items-center gap-1.5 self-end sm:self-auto">
                             <span id="speed-lbl" class="text-[10px] text-slate-500 font-medium">Tempo / Speed:</span>
-                            <select id="select-speed" onchange="setAnimationSpeed(this.value)" class="text-[10px] bg-slate-200 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-orange-500 cursor-pointer font-semibold">
+                            <select id="select-speed" onchange="setAnimationSpeed(this.value)" class="text-[10px] bg-slate-200 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-orange-500 cursor-pointer font-semibold">
                                 <option value="250" selected>Normal (0.25s)</option>
                                 <option value="100">Schnell / Fast (0.1s)</option>
                                 <option value="500">Langsam / Slow (0.5s)</option>
@@ -290,12 +231,57 @@
                         </svg>
                         
                         <!-- Mini details overlay card -->
-                        <div class="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-950/95 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-3 text-[10px] shadow-lg backdrop-blur-md z-20 flex flex-col gap-0.5 min-w-[110px] hover:scale-105 transition duration-150">
-                            <span class="font-extrabold text-[8px] text-slate-500 dark:text-slate-500 uppercase tracking-widest" id="single-map-meta-title">Jahresübersicht</span>
+                        <div class="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-955/95 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-3 text-[10px] shadow-lg backdrop-blur-md z-20 flex flex-col gap-0.5 min-w-[110px] hover:scale-105 transition duration-150">
+                            <span class="font-extrabold text-[8px] text-slate-500 dark:text-slate-550 uppercase tracking-widest" id="single-map-meta-title">Jahresübersicht</span>
                             <span class="font-black text-base text-orange-600 dark:text-orange-400 mt-0.5" id="single-map-meta-year">2025</span>
                             <span class="font-bold text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-1 border-t border-slate-200 dark:border-slate-800 pt-1" id="single-map-meta-total">0 Tage gesamt</span>
                         </div>
                     </div>
+                </div>
+            </div>
+               <!-- Controls Section (Full Width) -->
+        <section class="w-full glass-panel rounded-xl p-5 flex flex-col gap-4">
+            <div class="border-b border-slate-200 dark:border-slate-800 pb-2">
+                <h2 id="card-title-filter" class="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-semibold">
+                    Parameter-Filter
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Temperature Selection -->
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="lbl-temp-threshold" class="font-semibold text-slate-500 dark:text-slate-400">Min. Temp. (°C):</span>
+                        <span id="temp-threshold-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">35 °C</span>
+                    </div>
+                    <input id="slider-temp-threshold" type="range" min="30" max="40" value="35" step="1" oninput="setTemperatureThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                </div>
+
+                <!-- Start Year Selection -->
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="lbl-start-year" class="font-semibold text-slate-500 dark:text-slate-400">Start-Jahr:</span>
+                        <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">1961</span>
+                    </div>
+                    <input id="slider-start-year" type="range" min="1961" max="2020" value="1961" step="1" oninput="updateStartYear(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                </div>
+
+                <!-- Coverage Selection -->
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
+                        <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">90 %</span>
+                    </div>
+                    <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                </div>
+
+                <!-- Station Moves Selection -->
+                <div class="flex items-start gap-2.5 pt-1.5">
+                    <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                    <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
+                        <span id="lbl-moves-filter">Nur ortsfeste Stationen</span>
+                        <span id="lbl-moves-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
+                    </label>
                 </div>
             </div>
         </section>
@@ -363,6 +349,34 @@
             </a>
         </div>
     </footer>
+
+    <!-- Decades Modal (Shown on Demand) -->
+    <div id="decades-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300" onclick="closeDecadesModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 flex flex-col gap-4 transform transition-all duration-150 scale-95 opacity-0" id="decades-modal-card">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 id="card-title-decades" class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-350">
+                    Meldungen pro Jahrzehnt
+                </h3>
+                <button onclick="closeDecadesModal()" class="text-slate-400 hover:text-slate-650 dark:text-slate-500 dark:hover:text-slate-350 transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="decade-list-container" class="flex flex-col gap-3 max-h-[350px] overflow-y-auto pr-1">
+                <!-- Injected dynamically -->
+            </div>
+            
+            <div id="decades-methodology" class="pt-3 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
+                <!-- Methodology dynamically injected -->
+            </div>
+        </div>
+    </div>
 
     <!-- Main JS Application script -->
     <script src="app.js?v=8"></script>
