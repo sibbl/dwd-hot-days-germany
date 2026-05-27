@@ -575,7 +575,7 @@ function renderMapsGrid(filteredStations) {
                 <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
                 <span class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1 rounded border border-orange-500/10">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
             </div>
-            <svg width="100%" height="130" viewBox="0 0 110 140" class="w-full">
+            <svg viewBox="0 0 110 140" class="w-full h-auto">
                 ${statesPathsSvg}
                 ${circlesSvg}
             </svg>
@@ -602,11 +602,10 @@ function updateDashboard() {
     const y = baseStations.length;
     const x = baseStations.filter(s => !checkMovesForPeriod(s, currentStartYear, maxYearGlobal)).length;
     
-    const labelElement = document.getElementById('lbl-moves-filter');
-    if (labelElement) {
-        const baseText = i18n[currentLang]['lbl-moves-filter'];
+    const ratioElement = document.getElementById('lbl-moves-ratio');
+    if (ratioElement) {
         const ofWord = currentLang === 'de' ? 'von' : 'of';
-        labelElement.textContent = `${baseText} (${x} ${ofWord} ${y})`;
+        ratioElement.textContent = `(${x} ${ofWord} ${y})`;
     }
     
     // Update legend circles with visual sizes matching the maps
