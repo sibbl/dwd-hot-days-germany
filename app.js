@@ -358,13 +358,20 @@ async function loadData() {
         bbox = calculateBBox(geojson);
         console.log("Data loaded successfully!", weatherData.length, "stations, BBox:", bbox);
         
+        // Load state from URL hash
+        loadStateFromURLHash();
+        syncUIControls();
+        
         // Initial render
         updateDashboard();
         
-        // Select first station in list by default
+        // Select station from URL or first station by default
         const activeStations = getFilteredStations();
         if (activeStations.length > 0) {
-            selectStation(activeStations[0].station_id);
+            const defaultStationId = activeStations.some(s => s.station_id === selectedStationId)
+                ? selectedStationId
+                : activeStations[0].station_id;
+            selectStation(defaultStationId);
         }
         
     } catch (err) {
@@ -611,6 +618,9 @@ function updateDashboard() {
     // Update legend circles with visual sizes matching the maps
     updateLegend();
     setTimeout(updateLegend, 50);
+    
+    // Update the URL hash to capture full parameter states
+    updateURLHash();
 }
 
 // Parameters modifications
@@ -736,6 +746,7 @@ function selectStation(sid) {
     }
     
     renderStationWorkspace(sid);
+    updateURLHash(); // Update URL hash dynamically when a new station is selected
 }
 
 // Draw Inspector panels
@@ -1278,10 +1289,87 @@ function updateLegend() {
     }).join('');
 }
 
+// Update the URL hash to reflect the current visualization parameter states
+function updateURLHash() {
+    const params = new URLSearchParams();
+    params.set('temp', currentTempThreshold);
+    params.set('start', currentStartYear);
+    params.set('coverage', Math.round(currentCoverageThreshold * 100));
+    params.set('moves', currentMovesFilter);
+    if (selectedStationId) {
+        params.set('station', selectedStationId);
+    }
+    
+    const hashString = '#' + params.toString();
+    if (window.location.hash !== hashString) {
+        // Update URL silently without triggering hashchange event loop
+        history.replaceState(null, null, hashString);
+    }
+}
+
+// Load parameters from the URL hash into active state variables
+function loadStateFromURLHash() {
+    const hash = window.location.hash.substring(1);
+    if (!hash) return;
+    
+    const params = new URLSearchParams(hash);
+    
+    if (params.has('temp')) {
+        const val = parseInt(params.get('temp'));
+        if (val >= 30 && val <= 40) currentTempThreshold = val;
+    }
+    if (params.has('start')) {
+        const val = parseInt(params.get('start'));
+        if (val >= 1961 && val <= 2020) currentStartYear = val;
+    }
+    if (params.has('coverage')) {
+        const val = parseInt(params.get('coverage'));
+        if (val >= 50 && val <= 100) currentCoverageThreshold = val / 100;
+    }
+    if (params.has('moves')) {
+        const val = params.get('moves');
+        if (val === 'all' || val === 'unmoved') currentMovesFilter = val;
+    }
+    if (params.has('station')) {
+        selectedStationId = params.get('station');
+    }
+}
+
+// Sync DOM elements to match loaded state variables
+function syncUIControls() {
+    const tempSlider = document.getElementById('slider-temp-threshold');
+    const tempVal = document.getElementById('temp-threshold-val');
+    if (tempSlider) tempSlider.value = currentTempThreshold;
+    if (tempVal) tempVal.textContent = `${currentTempThreshold} °C`;
+    
+    const startSlider = document.getElementById('slider-start-year');
+    const startVal = document.getElementById('start-year-val');
+    if (startSlider) startSlider.value = currentStartYear;
+    if (startVal) startVal.textContent = currentStartYear;
+    
+    const covSlider = document.getElementById('slider-coverage');
+    const covVal = document.getElementById('coverage-val');
+    if (covSlider) covSlider.value = Math.round(currentCoverageThreshold * 100);
+    if (covVal) covVal.textContent = `${Math.round(currentCoverageThreshold * 100)} %`;
+    
+    const movesCheck = document.getElementById('check-moves-unmoved');
+    if (movesCheck) movesCheck.checked = (currentMovesFilter === 'unmoved');
+}
+
 // Start application when page loads
 window.addEventListener('DOMContentLoaded', loadData);
 
 // Listen for window resize to dynamically update the legend circle sizes
 window.addEventListener('resize', () => {
     updateLegend();
+});
+
+// Listen for browser Back/Forward navigation to sync the UI
+window.addEventListener('hashchange', () => {
+    loadStateFromURLHash();
+    syncUIControls();
+    updateDashboard();
+    if (selectedStationId) {
+        selectStation(selectedStationId);
+    }
 });
