@@ -9,6 +9,7 @@ let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
 let selectedStationId = null;
+let currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 1 to 12 representing Jan to Dec
 
 let currentViewMode = 'grid'; // 'grid' or 'single'
 let currentActiveYear = 2025; // Active year for the single map view
@@ -35,6 +36,16 @@ const i18n = {
         'lbl-coverage': "Daten-Vollständigkeit:",
         'desc-coverage': "Mindestanteil valider Daten im gewählten Zeitraum.",
         'lbl-moves-filter': "Nur ortsfeste Stationen anzeigen",
+        'lbl-months': "Monate:",
+        'btn-month-all': "Alle",
+        'btn-month-summer': "Mai–Sep",
+        'btn-month-none': "Keine",
+        'month-names': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        'month-names-long': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+        'all-months': "Alle Monate",
+        'no-months': "Keine Monate",
+        'summer-months': "Mai–Sep",
+        'n-months': "{n} Monate",
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
         'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Überschreitungen des Schwellenwerts an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
@@ -107,6 +118,16 @@ const i18n = {
         'lbl-coverage': "Data Completeness:",
         'desc-coverage': "Minimum percentage of valid data in the selected period.",
         'lbl-moves-filter': "Only show unmoved stations",
+        'lbl-months': "Months:",
+        'btn-month-all': "All",
+        'btn-month-summer': "May–Sep",
+        'btn-month-none': "None",
+        'month-names': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        'month-names-long': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        'all-months': "All Months",
+        'no-months': "No Months",
+        'summer-months': "May–Sep",
+        'n-months': "{n} Months",
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
         'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent the accumulated days exceeding the threshold across all selected stations within each decade.",
@@ -188,15 +209,40 @@ function setLanguage(lang) {
     document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'];
     document.getElementById('stat-lbl-stations').textContent = i18n[lang]['stat-lbl-stations'];
     document.getElementById('stat-lbl-reports').textContent = i18n[lang]['stat-lbl-reports'];
-    document.getElementById('stat-lbl-hottest').textContent = i18n[lang]['stat-lbl-hottest'];
+    const lblHottest = document.getElementById('stat-lbl-hottest');
+    if (lblHottest) lblHottest.textContent = i18n[lang]['stat-lbl-hottest'];
     
-    document.getElementById('card-title-filter').textContent = i18n[lang]['card-title-filter'];
+    const lblCardTitleFilter = document.getElementById('card-title-filter');
+    if (lblCardTitleFilter) lblCardTitleFilter.textContent = i18n[lang]['card-title-filter'];
+    
     document.getElementById('lbl-temp-threshold').textContent = i18n[lang]['lbl-temp-threshold'];
     document.getElementById('lbl-start-year').textContent = i18n[lang]['lbl-start-year'];
-    document.getElementById('desc-start-year').textContent = i18n[lang]['desc-start-year'];
+    
+    const lblDescStartYear = document.getElementById('desc-start-year');
+    if (lblDescStartYear) lblDescStartYear.textContent = i18n[lang]['desc-start-year'];
+    
     document.getElementById('lbl-coverage').textContent = i18n[lang]['lbl-coverage'];
-    document.getElementById('desc-coverage').textContent = i18n[lang]['desc-coverage'];
+    
+    const lblDescCoverage = document.getElementById('desc-coverage');
+    if (lblDescCoverage) lblDescCoverage.textContent = i18n[lang]['desc-coverage'];
+    
     document.getElementById('lbl-moves-filter').textContent = i18n[lang]['lbl-moves-filter'];
+    
+    // Translate monthly selector elements
+    const lblMonths = document.getElementById('lbl-months');
+    if (lblMonths) lblMonths.textContent = i18n[lang]['lbl-months'];
+    
+    const btnMonthAll = document.getElementById('btn-month-all');
+    if (btnMonthAll) btnMonthAll.textContent = i18n[lang]['btn-month-all'];
+    
+    const btnMonthSummer = document.getElementById('btn-month-summer');
+    if (btnMonthSummer) btnMonthSummer.textContent = i18n[lang]['btn-month-summer'];
+    
+    const btnMonthNone = document.getElementById('btn-month-none');
+    if (btnMonthNone) btnMonthNone.textContent = i18n[lang]['btn-month-none'];
+    
+    renderMonthDropdownItems();
+    updateMonthButtonLabel();
     
     document.getElementById('card-title-decades').textContent = i18n[lang]['card-title-decades'];
     document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
@@ -428,15 +474,63 @@ async function loadData() {
     }
 }
 
-// Helper: Calculate data coverage for a station only over the selected sub-period
+// Helper: Get the count of hot days for a station in a specific year, filtered by selected months
+function getDaysCountForYear(station, year) {
+    const yrData = station.annual_data[year];
+    if (!yrData) return 0;
+    
+    // Fast path: if all 12 months are selected, return precalculated annual total
+    if (currentMonths.length === 12) {
+        return yrData[`t${currentTempThreshold}`] || 0;
+    }
+    
+    if (!yrData.m_data) {
+        return 0;
+    }
+    
+    let sum = 0;
+    currentMonths.forEach(m => {
+        const mData = yrData.m_data[String(m)];
+        if (mData) {
+            sum += mData[`t${currentTempThreshold}`] || 0;
+        }
+    });
+    return sum;
+}
+
+// Helper: Calculate data coverage for a station only over the selected sub-period and months
 function calculateCoverageForPeriod(station, startYear, endYear) {
     let validDays = 0;
     let totalDays = 0;
     for (let yr = startYear; yr <= endYear; yr++) {
         const yrData = station.annual_data[yr];
-        validDays += yrData ? (yrData.valid_days || 0) : 0;
         const isLeap = (yr % 4 === 0 && (yr % 100 !== 0 || yr % 400 === 0));
-        totalDays += isLeap ? 366 : 365;
+        
+        let selectedYearDays = 0;
+        let selectedValidDays = 0;
+        
+        currentMonths.forEach(m => {
+            let mDays = 31;
+            if (m === 2) {
+                mDays = isLeap ? 29 : 28;
+            } else if ([4, 6, 9, 11].includes(m)) {
+                mDays = 30;
+            }
+            selectedYearDays += mDays;
+            
+            if (yrData) {
+                if (yrData.m_valid && yrData.m_valid[m - 1] !== undefined) {
+                    selectedValidDays += yrData.m_valid[m - 1];
+                } else if (yrData.valid_days !== undefined) {
+                    // Fallback scaling if monthly details are missing
+                    const totalYearDays = isLeap ? 366 : 365;
+                    selectedValidDays += (yrData.valid_days) * (mDays / totalYearDays);
+                }
+            }
+        });
+        
+        validDays += selectedValidDays;
+        totalDays += selectedYearDays;
     }
     return totalDays > 0 ? (validDays / totalDays) : 0;
 }
@@ -494,7 +588,7 @@ function renderDecadalStats(filteredStations) {
             const yr = parseInt(yearStr);
             if (yr < currentStartYear) return;
             
-            const count = data[`t${currentTempThreshold}`] || 0;
+            const count = getDaysCountForYear(s, yr);
             
             if (yr >= 1961 && yr <= 1970) decadeTotals['1961–1970'] += count;
             else if (yr >= 1971 && yr <= 1980) decadeTotals['1971–1980'] += count;
@@ -558,7 +652,7 @@ function updateGlobalStats(filteredStations, decadeTotals) {
             const yr = parseInt(yrStr);
             if (yr < currentStartYear) return;
             
-            const count = data[`t${currentTempThreshold}`] || 0;
+            const count = getDaysCountForYear(s, yr);
             totalReports += count;
             yearTotals[yr] = (yearTotals[yr] || 0) + count;
         });
@@ -626,8 +720,7 @@ function renderMapsGrid(filteredStations) {
             let totalYearDays = 0;
             
             filteredStations.forEach(s => {
-                const yrData = s.annual_data[yr];
-                const days = yrData ? (yrData[`t${currentTempThreshold}`] || 0) : 0;
+                const days = getDaysCountForYear(s, yr);
                 totalYearDays += days;
                 
                 const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
@@ -754,6 +847,136 @@ function toggleMovesFilter(isChecked) {
     currentMovesFilter = isChecked ? 'unmoved' : 'all';
     updateDashboard();
 }
+
+// Month Selection Dropdown Logic
+function toggleMonthDropdown(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const panel = document.getElementById('month-dropdown-panel');
+    if (!panel) return;
+    
+    if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        panel.getBoundingClientRect(); // trigger reflow
+        panel.classList.remove('scale-95', 'opacity-0');
+        panel.classList.add('scale-100', 'opacity-100');
+    } else {
+        closeMonthDropdown();
+    }
+}
+
+function closeMonthDropdown() {
+    const panel = document.getElementById('month-dropdown-panel');
+    if (!panel || panel.classList.contains('hidden')) return;
+    
+    panel.classList.remove('scale-100', 'opacity-100');
+    panel.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        panel.classList.add('hidden');
+    }, 150);
+}
+
+function selectMonths(type) {
+    if (type === 'all') {
+        currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    } else if (type === 'summer') {
+        currentMonths = [5, 6, 7, 8, 9];
+    } else if (type === 'none') {
+        currentMonths = [];
+    }
+    
+    for (let m = 1; m <= 12; m++) {
+        const checkbox = document.getElementById(`check-month-${m}`);
+        if (checkbox) {
+            checkbox.checked = currentMonths.includes(m);
+        }
+    }
+    
+    updateMonthButtonLabel();
+    updateDashboard();
+    
+    if (selectedStationId) {
+        renderStationWorkspace(selectedStationId);
+    }
+}
+
+function onMonthCheckboxChange(checkbox) {
+    const val = parseInt(checkbox.value);
+    if (checkbox.checked) {
+        if (!currentMonths.includes(val)) {
+            currentMonths.push(val);
+        }
+    } else {
+        currentMonths = currentMonths.filter(m => m !== val);
+    }
+    currentMonths.sort((a, b) => a - b);
+    
+    updateMonthButtonLabel();
+    updateDashboard();
+    
+    if (selectedStationId) {
+        renderStationWorkspace(selectedStationId);
+    }
+}
+
+function updateMonthButtonLabel() {
+    const btnLabel = document.getElementById('btn-month-val');
+    if (!btnLabel) return;
+    
+    const lang = currentLang;
+    if (currentMonths.length === 12) {
+        btnLabel.textContent = i18n[lang]['all-months'];
+    } else if (currentMonths.length === 0) {
+        btnLabel.textContent = i18n[lang]['no-months'];
+    } else if (currentMonths.length === 5 && currentMonths.every((v, i) => v === [5, 6, 7, 8, 9][i])) {
+        btnLabel.textContent = i18n[lang]['summer-months'];
+    } else {
+        if (currentMonths.length <= 3) {
+            const monthsShort = i18n[lang]['month-names'];
+            btnLabel.textContent = currentMonths.map(m => monthsShort[m - 1]).join(', ');
+        } else {
+            btnLabel.textContent = i18n[lang]['n-months'].replace('{n}', currentMonths.length);
+        }
+    }
+}
+
+function renderMonthDropdownItems() {
+    const container = document.getElementById('month-checkboxes-container');
+    if (!container) return;
+    
+    const lang = currentLang;
+    const monthsShort = i18n[lang]['month-names'];
+    const monthsLong = i18n[lang]['month-names-long'];
+    
+    container.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        const isChecked = currentMonths.includes(m);
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-1.5';
+        div.innerHTML = `
+            <input type="checkbox" id="check-month-${m}" value="${m}" ${isChecked ? 'checked' : ''} 
+                   onchange="onMonthCheckboxChange(this)"
+                   class="w-3.5 h-3.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+            <label for="check-month-${m}" class="cursor-pointer select-none text-slate-600 dark:text-slate-350 hover:text-slate-800 dark:hover:text-white" title="${monthsLong[m - 1]}">
+                ${monthsShort[m - 1]}
+            </label>
+        `;
+        container.appendChild(div);
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const panel = document.getElementById('month-dropdown-panel');
+    const button = document.getElementById('btn-month-dropdown');
+    if (panel && button) {
+        if (!panel.contains(event.target) && !button.contains(event.target)) {
+            closeMonthDropdown();
+        }
+    }
+});
 
 // Station Inspector Implementation
 function renderInspectorStationList(filteredStations) {
@@ -1071,8 +1294,7 @@ function renderStationTrendChart(sid) {
     const counts = [];
     for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
         years.push(yr);
-        const yrData = s.annual_data[yr];
-        counts.push(yrData ? (yrData[`t${currentTempThreshold}`] || 0) : 0);
+        counts.push(getDaysCountForYear(s, yr));
     }
     
     const maxVal = Math.max(...counts, 5);
@@ -1323,6 +1545,9 @@ function updateURLHash() {
     if (currentSearchQuery) {
         params.set('search', currentSearchQuery);
     }
+    if (currentMonths.length < 12) {
+        params.set('months', currentMonths.join(','));
+    }
     
     const hashString = '#' + params.toString();
     if (window.location.hash !== hashString) {
@@ -1374,10 +1599,23 @@ function loadStateFromURLHash() {
     if (params.has('search')) {
         currentSearchQuery = params.get('search');
     }
+    if (params.has('months')) {
+        const val = params.get('months');
+        if (val) {
+            currentMonths = val.split(',').map(Number).filter(m => m >= 1 && m <= 12);
+        } else {
+            currentMonths = [];
+        }
+    } else {
+        currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    }
 }
 
 // Sync DOM elements to match loaded state variables
 function syncUIControls() {
+    renderMonthDropdownItems();
+    updateMonthButtonLabel();
+    
     const tempSlider = document.getElementById('slider-temp-threshold');
     const tempVal = document.getElementById('temp-threshold-val');
     if (tempSlider) tempSlider.value = currentTempThreshold;
@@ -1481,8 +1719,7 @@ function renderSingleMap(filteredStations) {
     let totalYearDays = 0;
     
     filteredStations.forEach(s => {
-        const yrData = s.annual_data[currentActiveYear];
-        const days = yrData ? (yrData[`t${currentTempThreshold}`] || 0) : 0;
+        const days = getDaysCountForYear(s, currentActiveYear);
         totalYearDays += days;
         
         const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);

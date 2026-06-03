@@ -398,6 +398,7 @@ def main():
                 
         # 8. Annual aggregation of warm days
         df_span['YEAR'] = df_span['DATE'].dt.year
+        df_span['MONTH'] = df_span['DATE'].dt.month
         annual_stats = {}
         
         for yr, group in df_span.groupby('YEAR'):
@@ -408,6 +409,27 @@ def main():
             }
             for temp_t in range(30, 41):
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
+                
+            # Aggregate monthly stats
+            m_valid = [0] * 12
+            m_data = {}
+            
+            for mnth, m_group in group.groupby('MONTH'):
+                idx = int(mnth) - 1
+                if 0 <= idx < 12:
+                    m_valid[idx] = len(m_group)
+                    # Check if there is any day >= 30°C in this month
+                    if (m_group['TXK'] >= 30.0).any():
+                        m_stats = {}
+                        for temp_t in range(30, 41):
+                            count = int((m_group['TXK'] >= float(temp_t)).sum())
+                            if count > 0:
+                                m_stats[f't{temp_t}'] = count
+                        if m_stats:
+                            m_data[str(mnth)] = m_stats
+            
+            stats['m_valid'] = m_valid
+            stats['m_data'] = m_data
                 
             annual_stats[str(yr)] = stats
             
