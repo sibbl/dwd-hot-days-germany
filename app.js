@@ -3,7 +3,7 @@ let weatherData = [];
 let geojson = null;
 let bbox = null;
 
-let currentLang = 'de'; // 'de' or 'en'
+let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
 let currentTempThreshold = 35; // 30, 33, or 35
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
@@ -18,7 +18,8 @@ let animationSpeed = 250; // ms per year in animation
 let currentSearchQuery = ''; // Search query for filtering stations
 
 const minYearGlobal = 1961;
-const maxYearGlobal = 2025;
+let maxYearGlobal = 2025; // Dynamically updated on load
+let maxDaysInMonthsOfLastYear = Array(12).fill(0); // Max observed valid days per month in the last year
 
 // Translation dictionary
 const i18n = {
@@ -204,9 +205,9 @@ function setLanguage(lang) {
     }
     
     // Translate static elements using direct dictionary lookup
-    document.title = i18n[lang]['doc-title'];
+    document.title = i18n[lang]['doc-title'].replace('2025', maxYearGlobal);
     document.getElementById('header-title').textContent = i18n[lang]['header-title'];
-    document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'];
+    document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'].replace('2025', maxYearGlobal);
     document.getElementById('stat-lbl-stations').textContent = i18n[lang]['stat-lbl-stations'];
     document.getElementById('stat-lbl-reports').textContent = i18n[lang]['stat-lbl-reports'];
     const lblHottest = document.getElementById('stat-lbl-hottest');
@@ -248,7 +249,7 @@ function setLanguage(lang) {
     document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
     document.getElementById('decades-methodology').innerHTML = i18n[lang]['decades-methodology'];
     
-    document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–2025)`;
+    document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${maxYearGlobal})`;
     document.getElementById('card-subtitle-grid').textContent = i18n[lang]['card-subtitle-grid'];
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
@@ -446,10 +447,39 @@ async function loadData() {
         geojson = await geojsonRes.json();
         
         bbox = calculateBBox(geojson);
-        console.log("Data loaded successfully!", weatherData.length, "stations, BBox:", bbox);
+        
+        // Dynamically compute the maximum year available in the weather data
+        let maxYear = 2025;
+        weatherData.forEach(s => {
+            if (s.annual_data) {
+                Object.keys(s.annual_data).forEach(yrStr => {
+                    const yr = parseInt(yrStr);
+                    if (yr > maxYear) maxYear = yr;
+                });
+            }
+        });
+        maxYearGlobal = maxYear;
+        currentActiveYear = maxYearGlobal;
+        
+        // Calculate max days observed in each month of the max year to handle incomplete current year
+        maxDaysInMonthsOfLastYear = Array(12).fill(0);
+        weatherData.forEach(s => {
+            const yrData = s.annual_data[maxYearGlobal];
+            if (yrData && yrData.m_valid) {
+                for (let m = 0; m < 12; m++) {
+                    const v = yrData.m_valid[m] || 0;
+                    if (v > maxDaysInMonthsOfLastYear[m]) {
+                        maxDaysInMonthsOfLastYear[m] = v;
+                    }
+                }
+            }
+        });
+        
+        console.log("Data loaded successfully!", weatherData.length, "stations, Max Year:", maxYearGlobal, "BBox:", bbox);
         
         // Load state from URL hash
         loadStateFromURLHash();
+        setLanguage(currentLang);
         syncUIControls();
         
         // Initial render
@@ -516,6 +546,17 @@ function calculateCoverageForPeriod(station, startYear, endYear) {
             } else if ([4, 6, 9, 11].includes(m)) {
                 mDays = 30;
             }
+            
+            // Adjust denominator for the max year to avoid penalizing incomplete/future months
+            if (yr === maxYearGlobal) {
+                const maxObserved = maxDaysInMonthsOfLastYear[m - 1];
+                if (maxObserved === 0) {
+                    // Future month in the current ongoing year, exclude it from calculations
+                    return;
+                }
+                mDays = maxObserved;
+            }
+            
             selectedYearDays += mDays;
             
             if (yrData) {
@@ -573,6 +614,7 @@ function getFilteredStations() {
 
 // Calculate decadal reports and display them
 function renderDecadalStats(filteredStations) {
+    const currentDecadeLabel = `2021–${maxYearGlobal}`;
     const decadeTotals = {
         '1961–1970': 0,
         '1971–1980': 0,
@@ -580,7 +622,7 @@ function renderDecadalStats(filteredStations) {
         '1991–2000': 0,
         '2001–2010': 0,
         '2011–2020': 0,
-        '2021–2025': 0
+        [currentDecadeLabel]: 0
     };
     
     filteredStations.forEach(s => {
@@ -596,7 +638,7 @@ function renderDecadalStats(filteredStations) {
             else if (yr >= 1991 && yr <= 2000) decadeTotals['1991–2000'] += count;
             else if (yr >= 2001 && yr <= 2010) decadeTotals['2001–2010'] += count;
             else if (yr >= 2011 && yr <= 2020) decadeTotals['2011–2020'] += count;
-            else if (yr >= 2021 && yr <= 2025) decadeTotals['2021–2025'] += count;
+            else if (yr >= 2021 && yr <= maxYearGlobal) decadeTotals[currentDecadeLabel] += count;
         });
     });
     
@@ -697,7 +739,7 @@ function renderMapsGrid(filteredStations) {
         [1991, 2000],
         [2001, 2010],
         [2011, 2020],
-        [2021, 2025]
+        [2021, maxYearGlobal]
     ];
     
     decades.forEach(dec => {
@@ -764,9 +806,9 @@ function updateDashboard() {
     const subtitleElement = document.getElementById('card-subtitle-grid');
     if (titleElement) {
         if (currentViewMode === 'grid') {
-            titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–2025)`;
+            titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–${maxYearGlobal})`;
         } else {
-            titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–2025)`;
+            titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${maxYearGlobal})`;
         }
     }
     if (subtitleElement) {
@@ -1002,7 +1044,7 @@ function renderInspectorStationList(filteredStations) {
             s.metadata.geography.forEach(g => {
                 const epochStart = g.start || '19000101';
                 const epochEnd = g.end || '99991231';
-                if (epochStart <= '20251231' && epochEnd >= startStr) {
+                if (epochStart <= maxYearGlobal + '1231' && epochEnd >= startStr) {
                     const lat = g.lat, lon = g.lon;
                     if (!coordsHistory.some(d => Math.abs(d.lat - lat) < 0.0001 && Math.abs(d.lon - lon) < 0.0001)) {
                         coordsHistory.push({ lat, lon });
@@ -1105,7 +1147,7 @@ function renderStationWorkspace(sid) {
     const activeGeogs = s.metadata.geography.filter(g => {
         const epochStart = g.start || '19000101';
         const epochEnd = g.end || '99991231';
-        return (epochStart <= '20251231' && epochEnd >= startStr);
+        return (epochStart <= maxYearGlobal + '1231' && epochEnd >= startStr);
     });
     
     const distinctCoords = [];
@@ -1127,7 +1169,7 @@ function renderStationWorkspace(sid) {
     }
     
     const chartTitle = t['lbl-chart-trend'].replace('{temp}', currentTempThreshold);
-    const chartSubtitle = t['lbl-chart-sub'].replace('{start}', currentStartYear);
+    const chartSubtitle = t['lbl-chart-sub'].replace('{start}', currentStartYear).replace('2025', maxYearGlobal);
     
     workspace.innerHTML = `
         <!-- Left details column -->
@@ -1671,12 +1713,18 @@ function syncUIControls() {
     const singleSlider = document.getElementById('slider-single-year');
     if (singleSlider) {
         singleSlider.min = currentStartYear;
+        singleSlider.max = maxYearGlobal;
         singleSlider.value = currentActiveYear;
     }
     
     const sliderMinYearLbl = document.getElementById('slider-min-year-lbl');
     if (sliderMinYearLbl) {
         sliderMinYearLbl.textContent = currentStartYear;
+    }
+    
+    const sliderMaxYearLbl = document.getElementById('slider-max-year-lbl');
+    if (sliderMaxYearLbl) {
+        sliderMaxYearLbl.textContent = maxYearGlobal;
     }
 }
 

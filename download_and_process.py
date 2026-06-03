@@ -174,14 +174,16 @@ def main():
     all_stations = parse_stations_description(desc_content)
     print(f"Total DWD stations found in metadata: {len(all_stations)}")
     
-    # 3. Identify candidate stations spanning 1961-01-01 to 2025-12-31
-    # Candidate criteria: start date <= 19610101 and end date >= 20251231 (or active)
+    # 3. Identify candidate stations spanning 1961-01-01 to target end date
+    # Candidate criteria: start date <= 19610101 and end date >= (current_year - 1)1231 (or active)
+    current_year = datetime.now().year
+    target_end_date_str = f"{current_year - 1}1231"
     candidates = []
     for s in all_stations:
-        if s['start_date'] <= '19610101' and s['end_date'] >= '20251231':
+        if s['start_date'] <= '19610101' and s['end_date'] >= target_end_date_str:
             candidates.append(s)
             
-    print(f"Selected candidates spanning 1961 to 2025/2026: {len(candidates)}")
+    print(f"Selected candidates spanning 1961 to {current_year}: {len(candidates)}")
     
     # 4. Fetch directory listings to map station IDs to zip files
     hist_links = get_directory_file_list(URL_HIST_DIR)
@@ -207,13 +209,20 @@ def main():
     # Process each candidate
     processed_stations = []
     
-    # Let's count days in our target span: 1961-01-01 to 2025-12-31
+    # Let's count days in our target span: 1961-01-01 to end of the current year
     start_span = '1961-01-01'
-    end_span = '2025-12-31'
-    span_dates = pd.date_range(start=start_span, end=end_span)
-    total_span_days = len(span_dates)
+    end_span = f"{current_year}-12-31"
     
-    print(f"Target analysis span: {start_span} to {end_span} ({total_span_days} days)")
+    # We calculate the coverage denominator up to yesterday to avoid penalizing active stations for future days of the ongoing year
+    from datetime import timedelta
+    yesterday = datetime.now() - timedelta(days=1)
+    elapsed_end = yesterday.strftime('%Y-%m-%d')
+    
+    elapsed_dates = pd.date_range(start=start_span, end=elapsed_end)
+    total_elapsed_days = len(elapsed_dates)
+    
+    print(f"Target analysis span: {start_span} to {end_span}")
+    print(f"Coverage comparison period: {start_span} to {elapsed_end} ({total_elapsed_days} days)")
     
     for idx, s in enumerate(candidates):
         sid = s['station_id']
@@ -297,14 +306,18 @@ def main():
         df = df.dropna(subset=['DATE'])
         df = df.sort_values('DATE').drop_duplicates(subset=['MESS_DATUM'])
         
-        # Filter for the target span 1961-01-01 to 2025-12-31
+        # Filter for the target span 1961-01-01 to end of year
         mask = (df['DATE'] >= start_span) & (df['DATE'] <= end_span)
         df_span = df[mask]
         
         valid_days = len(df_span)
-        overall_coverage = valid_days / total_span_days
         
-        print(f"  Coverage in 1961-2025: {valid_days}/{total_span_days} ({overall_coverage * 100:.2f}%)")
+        # Calculate coverage using elapsed days only (so we don't penalize current year's missing future days)
+        mask_elapsed = (df['DATE'] >= start_span) & (df['DATE'] <= elapsed_end)
+        valid_elapsed_days = len(df[mask_elapsed])
+        overall_coverage = valid_elapsed_days / total_elapsed_days
+        
+        print(f"  Coverage in 1961-{current_year}: {valid_elapsed_days}/{total_elapsed_days} ({overall_coverage * 100:.2f}%)")
         
         # We will keep the station if it has at least 50% coverage, allowing client-side filtering
         if overall_coverage < 0.50:
