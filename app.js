@@ -859,7 +859,7 @@ function updateDashboard() {
     const ratioElement = document.getElementById('lbl-moves-ratio');
     if (ratioElement) {
         const ofWord = currentLang === 'de' ? 'von' : 'of';
-        ratioElement.textContent = `(${x} ${ofWord} ${y})`;
+        ratioElement.textContent = `${x} ${ofWord} ${y}`;
     }
     
     // Update legend circles with visual sizes matching the maps
