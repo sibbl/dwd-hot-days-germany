@@ -189,6 +189,22 @@ const i18n = {
     }
 };
 
+// Helper to get formatted end year label, appending month name if incomplete
+function getEndYearLabel(lang) {
+    if (maxDaysInMonthsOfLastYear[11] === 0) {
+        let lastMonthIdx = 0; // 0-indexed
+        for (let m = 11; m >= 0; m--) {
+            if (maxDaysInMonthsOfLastYear[m] > 0) {
+                lastMonthIdx = m;
+                break;
+            }
+        }
+        const monthName = i18n[lang]['month-names-long'][lastMonthIdx];
+        return `${monthName} ${maxYearGlobal}`;
+    }
+    return maxYearGlobal.toString();
+}
+
 // Translate static HTML strings
 function setLanguage(lang) {
     currentLang = lang;
@@ -205,9 +221,10 @@ function setLanguage(lang) {
     }
     
     // Translate static elements using direct dictionary lookup
-    document.title = i18n[lang]['doc-title'].replace('2025', maxYearGlobal);
+    const endYearLabel = getEndYearLabel(lang);
+    document.title = i18n[lang]['doc-title'].replace('2025', endYearLabel);
     document.getElementById('header-title').textContent = i18n[lang]['header-title'];
-    document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'].replace('2025', maxYearGlobal);
+    document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'].replace('2025', endYearLabel);
     document.getElementById('stat-lbl-stations').textContent = i18n[lang]['stat-lbl-stations'];
     document.getElementById('stat-lbl-reports').textContent = i18n[lang]['stat-lbl-reports'];
     const lblHottest = document.getElementById('stat-lbl-hottest');
@@ -249,7 +266,7 @@ function setLanguage(lang) {
     document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
     document.getElementById('decades-methodology').innerHTML = i18n[lang]['decades-methodology'];
     
-    document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${maxYearGlobal})`;
+    document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
     document.getElementById('card-subtitle-grid').textContent = i18n[lang]['card-subtitle-grid'];
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
@@ -805,10 +822,11 @@ function updateDashboard() {
     const titleElement = document.getElementById('card-title-grid');
     const subtitleElement = document.getElementById('card-subtitle-grid');
     if (titleElement) {
+        const endYearLabel = getEndYearLabel(currentLang);
         if (currentViewMode === 'grid') {
-            titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–${maxYearGlobal})`;
+            titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
         } else {
-            titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${maxYearGlobal})`;
+            titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${endYearLabel})`;
         }
     }
     if (subtitleElement) {
@@ -1169,7 +1187,7 @@ function renderStationWorkspace(sid) {
     }
     
     const chartTitle = t['lbl-chart-trend'].replace('{temp}', currentTempThreshold);
-    const chartSubtitle = t['lbl-chart-sub'].replace('{start}', currentStartYear).replace('2025', maxYearGlobal);
+    const chartSubtitle = t['lbl-chart-sub'].replace('{start}', currentStartYear).replace('2025', getEndYearLabel(currentLang));
     
     workspace.innerHTML = `
         <!-- Left details column -->

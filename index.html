@@ -175,7 +175,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                         <!-- Temperature Selection -->
                         <div class="flex flex-col gap-2">
-                            <div class="flex justify-between items-center text-xs">
+                            <div class="flex justify-between items-end text-xs lg:h-10">
                                 <span id="lbl-temp-threshold" class="font-semibold text-slate-500 dark:text-slate-400">Min. Temp. (°C):</span>
                                 <span id="temp-threshold-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">35 °C</span>
                             </div>
@@ -184,7 +184,7 @@
 
                         <!-- Start Year Selection -->
                         <div class="flex flex-col gap-2">
-                            <div class="flex justify-between items-center text-xs">
+                            <div class="flex justify-between items-end text-xs lg:h-10">
                                 <span id="lbl-start-year" class="font-semibold text-slate-500 dark:text-slate-400">Start-Jahr:</span>
                                 <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">1961</span>
                             </div>
@@ -193,7 +193,7 @@
 
                         <!-- Coverage Selection -->
                         <div class="flex flex-col gap-2">
-                            <div class="flex justify-between items-center text-xs">
+                            <div class="flex justify-between items-end text-xs lg:h-10">
                                 <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
                                 <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">90 %</span>
                             </div>
@@ -202,7 +202,7 @@
 
                         <!-- Month Selection (Custom Dropdown) -->
                         <div class="flex flex-col gap-2 relative">
-                            <div class="flex justify-between items-center text-xs">
+                            <div class="flex justify-between items-end text-xs lg:h-10">
                                 <span id="lbl-months" class="font-semibold text-slate-500 dark:text-slate-400">Monate:</span>
                             </div>
                             <div class="relative w-full">
@@ -237,12 +237,17 @@
                         </div>
 
                         <!-- Station Moves Selection -->
-                        <div class="flex items-start gap-2.5 pt-6">
-                            <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
-                            <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
-                                <span id="lbl-moves-filter">Nur ortsfeste Stationen</span>
-                                <span id="lbl-moves-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
-                            </label>
+                        <div class="flex flex-col gap-2">
+                            <div class="text-xs lg:h-10 hidden lg:flex items-end">
+                                <span class="invisible">&nbsp;</span>
+                            </div>
+                            <div class="flex items-start gap-2.5 pt-1">
+                                <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                                <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
+                                    <span id="lbl-moves-filter">Nur ortsfeste Stationen</span>
+                                    <span id="lbl-moves-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -411,6 +416,6 @@
     </div>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=16"></script>
 </body>
 </html>
