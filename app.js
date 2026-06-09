@@ -36,7 +36,8 @@ const i18n = {
         'desc-start-year': "Blendet frühere Jahre aus.",
         'lbl-coverage': "Daten-Vollständigkeit:",
         'desc-coverage': "Mindestanteil valider Daten im gewählten Zeitraum.",
-        'lbl-moves-filter': "Nur ortsfeste Stationen anzeigen",
+        'lbl-moves-header': "Standortverlauf:",
+        'lbl-moves-filter': "Nur ortsfeste Stationen",
         'lbl-months': "Monate:",
         'btn-month-all': "Alle",
         'btn-month-summer': "Mai–Sep",
@@ -118,7 +119,8 @@ const i18n = {
         'desc-start-year': "Hides previous years.",
         'lbl-coverage': "Data Completeness:",
         'desc-coverage': "Minimum percentage of valid data in the selected period.",
-        'lbl-moves-filter': "Only show unmoved stations",
+        'lbl-moves-header': "Location History:",
+        'lbl-moves-filter': "Only unmoved stations",
         'lbl-months': "Months:",
         'btn-month-all': "All",
         'btn-month-summer': "May–Sep",
@@ -244,6 +246,8 @@ function setLanguage(lang) {
     const lblDescCoverage = document.getElementById('desc-coverage');
     if (lblDescCoverage) lblDescCoverage.textContent = i18n[lang]['desc-coverage'];
     
+    const lblMovesHeader = document.getElementById('lbl-moves-header');
+    if (lblMovesHeader) lblMovesHeader.textContent = i18n[lang]['lbl-moves-header'];
     document.getElementById('lbl-moves-filter').textContent = i18n[lang]['lbl-moves-filter'];
     
     // Translate monthly selector elements
@@ -859,7 +863,7 @@ function updateDashboard() {
     const ratioElement = document.getElementById('lbl-moves-ratio');
     if (ratioElement) {
         const ofWord = currentLang === 'de' ? 'von' : 'of';
-        ratioElement.textContent = `${x} ${ofWord} ${y}`;
+        ratioElement.textContent = `(${x} ${ofWord} ${y})`;
     }
     
     // Update legend circles with visual sizes matching the maps
