@@ -490,7 +490,7 @@ const METRIC_CONFIG = {
     }
 };
 
-const HEAT_BUBBLE_RADII = [1.4, 2.2, 3.0, 3.8, 4.6];
+const HEAT_BUBBLE_RADII = [0.7, 1.1, 1.5, 1.9, 2.3];
 
 function getMetricConfig() {
     return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
@@ -1675,9 +1675,11 @@ function updateLegend() {
     const container = document.getElementById('legend-circles-container');
     if (!container) return;
 
-    // Measure the actual width of a rendered map SVG to calculate scaling factor
-    let scale = 0.9; // Sensible default scale for legend when grid is hidden
-    const mapSvg = document.querySelector('#map-grid-container svg');
+    // Measure the visible map SVG so legend circles match the current view.
+    let scale = 0.9;
+    const mapSvg = document.querySelector(
+        currentViewMode === 'single' ? '#single-map-svg' : '#map-grid-container svg'
+    );
     if (mapSvg) {
         const rect = mapSvg.getBoundingClientRect();
         if (rect.width > 0) {
@@ -1699,11 +1701,9 @@ function updateLegend() {
 
     container.innerHTML = groups.map(g => {
         const style = getHeatStyle(g.minDays);
-        // Base SVG canvas size in CSS pixels:
-        // We use a 20x20 px container so the circle has plenty of room (max base radius 8.0 scaled is usually ~6-9px, so diameter is 12-18px)
-        const size = 20;
-        const center = size / 2;
         const physicalRadius = style.r * scale;
+        const size = Math.max(20, Math.ceil((physicalRadius + 1) * 2));
+        const center = size / 2;
 
         return `
             <span class="flex items-center gap-1">
@@ -1750,7 +1750,7 @@ function loadStateFromURLHash() {
     const hash = window.location.hash.substring(1);
     
     // Set default responsive view mode if view parameter is missing
-    currentViewMode = window.innerWidth < 1024 ? 'single' : 'grid';
+    currentViewMode = 'grid';
     currentActiveYear = maxYearGlobal;
     currentSearchQuery = '';
     currentMetric = 'max';
