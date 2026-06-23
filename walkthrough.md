@@ -23,11 +23,11 @@ Date: 2026-06-23
 - Legend bubble sizes match the currently visible map SVG scale in both Raster and Einzelkarte.
 - Night-minimum mode switched successfully:
   - URL hash became `metric=min`.
-  - Threshold slider switched to `17`-`27`.
-  - Default threshold is `20 °C`, matching the scientific tropical-night definition.
+  - Threshold slider switched to `18`-`28`.
+  - Default threshold is `22 °C`; `20 °C` remains the tropical-night definition.
   - Labels now describe nightly minimum temperature, with tropical-night wording reserved for thresholds of at least `20 °C`.
-  - Night-mode circles use the `n17`-`n27` generated data keys.
+  - Night-mode circles use the `n18`-`n28` generated data keys.
   - Nonzero night markers render with the blue `#0284c7` palette.
-- Night threshold at `17 °C` updated the hash and legend buckets.
+- Night threshold at `18 °C` updated the hash and legend buckets.
 - Single-map view rendered in night-minimum mode with threshold-specific total wording.
 - Mobile viewport check at roughly 390 px wide showed visible metric controls and no horizontal overflow in the checked controls.

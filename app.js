@@ -5,8 +5,8 @@ let bbox = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
 let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
-let currentTempThreshold = 35; // 30-40 for max, 20-30 for min
-let lastThresholdByMetric = { max: 35, min: 20 };
+let currentTempThreshold = 35; // 30-40 for max, 18-28 for min
+let lastThresholdByMetric = { max: 35, min: 22 };
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
@@ -60,7 +60,7 @@ const i18n = {
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
-        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert 20 °C entspricht der Tropennacht-Definition.",
+        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert ist 22 °C; ab 20 °C spricht man von Tropennächten.",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
         'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
@@ -154,7 +154,7 @@ const i18n = {
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above the threshold across all selected stations within each decade.",
-        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The 20 °C default matches the tropical-night definition.",
+        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The default is 22 °C; 20 °C and above is the tropical-night definition.",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
         'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
@@ -458,7 +458,6 @@ const HEAT_SCALES = {
 };
 
 const NIGHT_SCALES = {
-    17: [20, 40, 60, 80, 100],
     18: [15, 30, 45, 60, 75],
     19: [10, 20, 35, 50, 65],
     20: [5, 15, 30, 45, 60],
@@ -468,7 +467,8 @@ const NIGHT_SCALES = {
     24: [2, 6, 12, 18, 24],
     25: [1, 4, 8, 12, 16],
     26: [1, 3, 6, 9, 12],
-    27: [1, 2, 4, 6, 8]
+    27: [1, 2, 4, 6, 8],
+    28: [1, 2, 3, 4, 5]
 };
 
 const METRIC_CONFIG = {
@@ -482,9 +482,9 @@ const METRIC_CONFIG = {
     },
     min: {
         keyPrefix: 'n',
-        minThreshold: 17,
-        maxThreshold: 27,
-        defaultThreshold: 20,
+        minThreshold: 18,
+        maxThreshold: 28,
+        defaultThreshold: 22,
         scales: NIGHT_SCALES,
         fill: '#0284c7'
     }
