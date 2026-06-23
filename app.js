@@ -490,7 +490,7 @@ const METRIC_CONFIG = {
     }
 };
 
-const GRID_BUBBLE_RADII = [0.9, 1.4, 2.0, 2.6, 3.0];
+const GRID_BUBBLE_RADII = [1.8, 1.9, 2.2, 2.6, 3.0];
 const SINGLE_BUBBLE_SCALE_FALLBACK = 0.62;
 const SINGLE_BUBBLE_SCALE_SAFETY = 0.98;
 
