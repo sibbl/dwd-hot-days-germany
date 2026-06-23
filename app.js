@@ -427,17 +427,19 @@ const HEAT_SCALES = {
     40: [1, 2, 3, 4, 5]
 };
 
+const HEAT_BUBBLE_RADII = [1.4, 2.2, 3.0, 3.8, 4.6];
+
 // Get heat bubble styling (radius, opacity, color)
 function getHeatStyle(days) {
     if (days === 0) return { r: 0.5, opacity: 0.05, fill: '#475569' }; // extremely faint gray dot
     
     const scale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
     
-    if (days >= scale[0] && days < scale[1]) return { r: 2.2, opacity: 0.40, fill: '#ea580c' }; // single orange-red color, varying size & opacity
-    if (days >= scale[1] && days < scale[2]) return { r: 3.4, opacity: 0.65, fill: '#ea580c' };
-    if (days >= scale[2] && days < scale[3]) return { r: 4.6, opacity: 0.85, fill: '#ea580c' };
-    if (days >= scale[3] && days < scale[4]) return { r: 5.8, opacity: 0.95, fill: '#ea580c' };
-    return { r: 7.0, opacity: 1.0, fill: '#ea580c' }; // scale[4] or more
+    if (days >= scale[0] && days < scale[1]) return { r: HEAT_BUBBLE_RADII[0], opacity: 0.40, fill: '#ea580c' }; // single orange-red color, varying size & opacity
+    if (days >= scale[1] && days < scale[2]) return { r: HEAT_BUBBLE_RADII[1], opacity: 0.65, fill: '#ea580c' };
+    if (days >= scale[2] && days < scale[3]) return { r: HEAT_BUBBLE_RADII[2], opacity: 0.85, fill: '#ea580c' };
+    if (days >= scale[3] && days < scale[4]) return { r: HEAT_BUBBLE_RADII[3], opacity: 0.95, fill: '#ea580c' };
+    return { r: HEAT_BUBBLE_RADII[4], opacity: 1.0, fill: '#ea580c' }; // scale[4] or more
 }
 
 // Translate raw DWD equipment models to English
