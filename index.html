@@ -172,7 +172,22 @@
 
                 <!-- Parameter Control Panel (Horizontal Toolbar Bar) -->
                 <div class="bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-xl p-4 mb-4 mt-1">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+                        <!-- Metric Selection -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-end text-xs lg:h-10">
+                                <span id="lbl-metric" class="font-semibold text-slate-500 dark:text-slate-400">Messwert:</span>
+                            </div>
+                            <div class="flex w-full bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-850 rounded-lg p-0.5 overflow-hidden">
+                                <button id="btn-metric-max" onclick="setMetric('max')" class="flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm">
+                                    Maximum
+                                </button>
+                                <button id="btn-metric-min" onclick="setMetric('min')" class="flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
+                                    Nächte
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Temperature Selection -->
                         <div class="flex flex-col gap-2">
                             <div class="flex justify-between items-end text-xs lg:h-10">
@@ -361,7 +376,7 @@
                     <!-- Loaded dynamically when a station is clicked -->
                     <div id="inspector-empty-state" class="col-span-full flex flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-20">
                         <svg class="w-16 h-16 stroke-current opacity-30 mb-4" fill="none" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <p id="inspector-select-prompt" class="text-sm font-semibold">Wählen Sie links eine Station aus, um die Standort-Verlegungen & Gerätedaten zu laden.</p>
+                        <p id="inspector-select-prompt" class="text-sm font-semibold">Wählen Sie eine Station aus, um die Standort-Verlegungen & Gerätedaten zu laden.</p>
                     </div>
                 </div>
 
@@ -416,6 +431,6 @@
     </div>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=28"></script>
 </body>
 </html>

@@ -4,7 +4,9 @@ let geojson = null;
 let bbox = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
-let currentTempThreshold = 35; // 30, 33, or 35
+let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
+let currentTempThreshold = 35; // 30-40 for max, 18-28 for min
+let lastThresholdByMetric = { max: 35, min: 22 };
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
@@ -25,13 +27,20 @@ let maxDaysInMonthsOfLastYear = Array(12).fill(0); // Max observed valid days pe
 const i18n = {
     de: {
         'doc-title': "DWD Extrem Heiße Tage in Deutschland (1961–2025)",
+        'doc-title-min': "DWD Warme Nächte in Deutschland (1961–2025)",
         'header-title': "Immer mehr extrem heiße Tage",
+        'header-title-min': "Warme und tropische Nächte",
         'header-subtitle': "Eine interaktive Rekonstruktion & Erweiterung der DWD-Wetterstations-Daten (1961–2025)",
+        'header-subtitle-min': "Eine interaktive Rekonstruktion der DWD-Tagesminimum-Daten (1961–2025)",
         'stat-lbl-stations': "Stationen",
         'stat-lbl-reports': "Gesamtmeldungen",
         'stat-lbl-hottest': "Heißestes Jahr",
         'card-title-filter': "Parameter-Filter",
-        'lbl-temp-threshold': "Min. Temperatur-Schwellenwert:",
+        'lbl-metric': "Messwert:",
+        'metric-max': "Tagesmaximum",
+        'metric-min': "Nächtliches Minimum",
+        'lbl-temp-threshold-max': "Min. Tagesmaximum:",
+        'lbl-temp-threshold-min': "Min. nächtliches Minimum:",
         'lbl-start-year': "Start-Jahr des Zeitraums:",
         'desc-start-year': "Blendet frühere Jahre aus.",
         'lbl-coverage': "Daten-Vollständigkeit:",
@@ -50,18 +59,21 @@ const i18n = {
         'n-months': "{n} Monate",
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
-        'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Überschreitungen des Schwellenwerts an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert ist 22 °C; ab 20 °C spricht man von Tropennächten.",
         'card-title-grid': "Deutschlandkarten-Raster",
-        'card-subtitle-grid': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.",
+        'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
+        'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
         'card-title-single': "Klimawandel-Animation",
-        'card-subtitle-single': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
+        'card-subtitle-single-max': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
+        'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung warmer Nächte über Jahrzehnte hinweg zu animieren.",
         'legend-lbl-days': "Tage:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
         'inspector-subtitle': "Suchen Sie eine Wetterstation, um deren exakte Umzüge, Namensänderungen und Temperatur-Trends zu inspizieren.",
         'inspector-lbl-stations': "Stationen",
         'input-station-search-placeholder': "Station suchen (z.B. Berlin, Alfhausen)...",
-        'inspector-select-prompt': "Wählen Sie links eine Station aus, um die Standort-Verlegungen & Gerätedaten zu laden.",
+        'inspector-select-prompt': "Wählen Sie eine Station aus, um die Standort-Verlegungen & Gerätedaten zu laden.",
         
         // Dynamic Inspector terms
         'type-station': "Wetterstation",
@@ -69,7 +81,8 @@ const i18n = {
         'lbl-elevation': "Stationshöhe",
         'lbl-geo-pos': "Geografische Lage",
         'lbl-coverage-ins': "Datenvollständigkeit",
-        'lbl-chart-trend': "Jährlicher Hitze-Trend (Schwellenwert &ge; {temp} °C)",
+        'lbl-chart-trend-max': "Jährlicher Hitze-Trend (Tagesmaximum &ge; {temp} °C)",
+        'lbl-chart-trend-min': "Jährlicher Nächte-Trend (Tagesminimum &ge; {temp} °C)",
         'lbl-chart-sub': "Balkendiagramm {start}–2025",
         'lbl-names-timeline': "Namensänderungen",
         'lbl-owners-timeline': "Betreiber / Inhaber",
@@ -108,13 +121,20 @@ const i18n = {
     },
     en: {
         'doc-title': "DWD Extremely Hot Days in Germany (1961–2025)",
+        'doc-title-min': "DWD Warm Nights in Germany (1961–2025)",
         'header-title': "More and More Extremely Hot Days",
+        'header-title-min': "Warm and Tropical Nights",
         'header-subtitle': "An interactive reconstruction & extension of DWD weather station data (1961–2025)",
+        'header-subtitle-min': "An interactive reconstruction of DWD daily minimum temperature data (1961–2025)",
         'stat-lbl-stations': "Stations",
         'stat-lbl-reports': "Total Reports",
         'stat-lbl-hottest': "Hottest Year",
         'card-title-filter': "Parameter Filters",
-        'lbl-temp-threshold': "Min. Temperature Threshold:",
+        'lbl-metric': "Measurement:",
+        'metric-max': "Daily maximum",
+        'metric-min': "Night minimum",
+        'lbl-temp-threshold-max': "Min. daily maximum:",
+        'lbl-temp-threshold-min': "Min. nightly minimum:",
         'lbl-start-year': "Start Year of Timeframe:",
         'desc-start-year': "Hides previous years.",
         'lbl-coverage': "Data Completeness:",
@@ -133,18 +153,21 @@ const i18n = {
         'n-months': "{n} Months",
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
-        'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent the accumulated days exceeding the threshold across all selected stations within each decade.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above the threshold across all selected stations within each decade.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The default is 22 °C; 20 °C and above is the tropical-night definition.",
         'card-title-grid': "Germany Weather Map Grid",
-        'card-subtitle-grid': "Each dot represents a weather station. Bubble size & color denote the count of days exceeding the threshold.",
+        'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
+        'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
         'card-title-single': "Climate Change Animation",
-        'card-subtitle-single': "Use the play button to animate the rise of extremely hot days across decades.",
+        'card-subtitle-single-max': "Use the play button to animate the rise of extremely hot days across decades.",
+        'card-subtitle-single-min': "Use the play button to animate the development of warm nights across decades.",
         'legend-lbl-days': "Days:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
         'inspector-subtitle': "Search for a weather station to inspect its relocations, name modifications, and local temperature trends.",
         'inspector-lbl-stations': "Stations",
         'input-station-search-placeholder': "Search station (e.g. Berlin, Hamburg, Alfhausen)...",
-        'inspector-select-prompt': "Select a weather station from the sidebar to inspect relocation timelines & device history.",
+        'inspector-select-prompt': "Select a weather station to inspect relocation timelines & device history.",
         
         // Dynamic Inspector terms
         'type-station': "Weather Station",
@@ -152,7 +175,8 @@ const i18n = {
         'lbl-elevation': "Elevation",
         'lbl-geo-pos': "Geographical Position",
         'lbl-coverage-ins': "Data Coverage",
-        'lbl-chart-trend': "Annual Heat Trend (Threshold &ge; {temp} °C)",
+        'lbl-chart-trend-max': "Annual Heat Trend (Daily Maximum &ge; {temp} °C)",
+        'lbl-chart-trend-min': "Annual Night Trend (Daily Minimum &ge; {temp} °C)",
         'lbl-chart-sub': "Bar Chart {start}–2025",
         'lbl-names-timeline': "Name Changes",
         'lbl-owners-timeline': "Operators / Owners",
@@ -224,9 +248,12 @@ function setLanguage(lang) {
     
     // Translate static elements using direct dictionary lookup
     const endYearLabel = getEndYearLabel(lang);
-    document.title = i18n[lang]['doc-title'].replace('2025', endYearLabel);
-    document.getElementById('header-title').textContent = i18n[lang]['header-title'];
-    document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'].replace('2025', endYearLabel);
+    const docTitleKey = currentMetric === 'min' ? 'doc-title-min' : 'doc-title';
+    const headerTitleKey = currentMetric === 'min' ? 'header-title-min' : 'header-title';
+    const headerSubtitleKey = currentMetric === 'min' ? 'header-subtitle-min' : 'header-subtitle';
+    document.title = i18n[lang][docTitleKey].replace('2025', endYearLabel);
+    document.getElementById('header-title').textContent = i18n[lang][headerTitleKey];
+    document.getElementById('header-subtitle').textContent = i18n[lang][headerSubtitleKey].replace('2025', endYearLabel);
     document.getElementById('stat-lbl-stations').textContent = i18n[lang]['stat-lbl-stations'];
     document.getElementById('stat-lbl-reports').textContent = i18n[lang]['stat-lbl-reports'];
     const lblHottest = document.getElementById('stat-lbl-hottest');
@@ -235,7 +262,10 @@ function setLanguage(lang) {
     const lblCardTitleFilter = document.getElementById('card-title-filter');
     if (lblCardTitleFilter) lblCardTitleFilter.textContent = i18n[lang]['card-title-filter'];
     
-    document.getElementById('lbl-temp-threshold').textContent = i18n[lang]['lbl-temp-threshold'];
+    document.getElementById('lbl-metric').textContent = i18n[lang]['lbl-metric'];
+    document.getElementById('btn-metric-max').textContent = i18n[lang]['metric-max'];
+    document.getElementById('btn-metric-min').textContent = i18n[lang]['metric-min'];
+    document.getElementById('lbl-temp-threshold').textContent = i18n[lang][`lbl-temp-threshold-${currentMetric}`];
     document.getElementById('lbl-start-year').textContent = i18n[lang]['lbl-start-year'];
     
     const lblDescStartYear = document.getElementById('desc-start-year');
@@ -268,10 +298,10 @@ function setLanguage(lang) {
     
     document.getElementById('card-title-decades').textContent = i18n[lang]['card-title-decades'];
     document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
-    document.getElementById('decades-methodology').innerHTML = i18n[lang]['decades-methodology'];
+    document.getElementById('decades-methodology').innerHTML = i18n[lang][`decades-methodology-${currentMetric}`];
     
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
-    document.getElementById('card-subtitle-grid').textContent = i18n[lang]['card-subtitle-grid'];
+    document.getElementById('card-subtitle-grid').textContent = i18n[lang][`card-subtitle-grid-${currentMetric}`];
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
     document.getElementById('inspector-title').textContent = i18n[lang]['inspector-title'];
@@ -427,17 +457,172 @@ const HEAT_SCALES = {
     40: [1, 2, 3, 4, 5]
 };
 
+const NIGHT_SCALES = {
+    18: [15, 30, 45, 60, 75],
+    19: [10, 20, 35, 50, 65],
+    20: [5, 15, 30, 45, 60],
+    21: [5, 15, 30, 45, 60],
+    22: [3, 10, 20, 30, 40],
+    23: [3, 8, 15, 24, 32],
+    24: [2, 6, 12, 18, 24],
+    25: [1, 4, 8, 12, 16],
+    26: [1, 3, 6, 9, 12],
+    27: [1, 2, 4, 6, 8],
+    28: [1, 2, 3, 4, 5]
+};
+
+const METRIC_CONFIG = {
+    max: {
+        keyPrefix: 't',
+        minThreshold: 30,
+        maxThreshold: 40,
+        defaultThreshold: 35,
+        scales: HEAT_SCALES,
+        fill: '#ea580c'
+    },
+    min: {
+        keyPrefix: 'n',
+        minThreshold: 18,
+        maxThreshold: 28,
+        defaultThreshold: 22,
+        scales: NIGHT_SCALES,
+        fill: '#0284c7'
+    }
+};
+
+const GRID_BUBBLE_RADII = [1.8, 1.9, 2.2, 2.6, 3.0];
+const SINGLE_BUBBLE_SCALE_FALLBACK = 0.62;
+const SINGLE_BUBBLE_SCALE_SAFETY = 0.98;
+
+function getMetricConfig() {
+    return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
+}
+
+function getModeAccent() {
+    if (currentMetric === 'min') {
+        return {
+            bg: 'bg-sky-600',
+            bgHover: 'hover:bg-sky-500',
+            bgSoft: 'bg-sky-500/10',
+            bgSoftHover: 'hover:bg-sky-500/20',
+            borderSoft: 'border-sky-500/20',
+            borderHover: 'hover:border-sky-500/50',
+            focusBorder: 'focus:border-sky-500',
+            focusRing: 'focus:ring-sky-500',
+            text: 'text-sky-700',
+            textDark: 'dark:text-sky-300',
+            textSoft: 'text-sky-600',
+            textSoftDark: 'dark:text-sky-400',
+            shadow: 'shadow-sky-500/20',
+            accent: 'accent-sky-500',
+            barGradient: 'bg-gradient-to-r from-sky-400 to-blue-700',
+            ringStroke: '#0284c7',
+            hoverStroke: 'hover:stroke-sky-500 dark:hover:stroke-sky-300'
+        };
+    }
+
+    return {
+        bg: 'bg-orange-600',
+        bgHover: 'hover:bg-orange-500',
+        bgSoft: 'bg-orange-500/10',
+        bgSoftHover: 'hover:bg-orange-500/20',
+        borderSoft: 'border-orange-500/20',
+        borderHover: 'hover:border-orange-500/50',
+        focusBorder: 'focus:border-orange-500',
+        focusRing: 'focus:ring-orange-500',
+        text: 'text-orange-600',
+        textDark: 'dark:text-orange-400',
+        textSoft: 'text-orange-600',
+        textSoftDark: 'dark:text-orange-400',
+        shadow: 'shadow-orange-500/20',
+        accent: 'accent-orange-500',
+        barGradient: 'bg-gradient-to-r from-orange-500 to-red-600',
+        ringStroke: '#ea580c',
+        hoverStroke: 'hover:stroke-orange-500 dark:hover:stroke-orange-400'
+    };
+}
+
+function getMetricDataKey() {
+    return `${getMetricConfig().keyPrefix}${currentTempThreshold}`;
+}
+
+function getMetricScale() {
+    const config = getMetricConfig();
+    return config.scales[currentTempThreshold] || Object.values(config.scales)[0];
+}
+
+function getMonthlyValidDays(yearData, month) {
+    if (!yearData) return undefined;
+    const idx = month - 1;
+    if (currentMetric === 'min' && yearData.m_valid_min && yearData.m_valid_min[idx] !== undefined) {
+        return yearData.m_valid_min[idx];
+    }
+    if (yearData.m_valid_max && yearData.m_valid_max[idx] !== undefined) {
+        return yearData.m_valid_max[idx];
+    }
+    if (yearData.m_valid && yearData.m_valid[idx] !== undefined) {
+        return yearData.m_valid[idx];
+    }
+    return undefined;
+}
+
+function refreshMaxDaysInMonthsOfLastYear() {
+    maxDaysInMonthsOfLastYear = Array(12).fill(0);
+    weatherData.forEach(s => {
+        const yrData = s.annual_data[maxYearGlobal];
+        if (yrData) {
+            for (let m = 1; m <= 12; m++) {
+                const v = getMonthlyValidDays(yrData, m) || 0;
+                if (v > maxDaysInMonthsOfLastYear[m - 1]) {
+                    maxDaysInMonthsOfLastYear[m - 1] = v;
+                }
+            }
+        }
+    });
+}
+
 // Get heat bubble styling (radius, opacity, color)
-function getHeatStyle(days) {
+function estimateRasterSvgWidth() {
+    const reference = document.getElementById('map-single-view') || document.getElementById('map-grid-container');
+    const containerWidth = reference ? reference.getBoundingClientRect().width : 0;
+    if (!containerWidth) return 0;
+
+    const columns = window.innerWidth >= 1024 ? 10 : (window.innerWidth >= 640 ? 5 : 2);
+    const gapWidth = 16;
+    const gridRightPadding = 8;
+    const cardHorizontalPadding = 25;
+    const cardWidth = (containerWidth - gridRightPadding - gapWidth * (columns - 1)) / columns;
+    return Math.max(40, cardWidth - cardHorizontalPadding);
+}
+
+function getSingleBubbleScale() {
+    const singleMapSvg = document.getElementById('single-map-svg');
+    const singleWidth = singleMapSvg ? singleMapSvg.getBoundingClientRect().width : 0;
+    const rasterWidth = estimateRasterSvgWidth();
+    if (!singleWidth || !rasterWidth) return SINGLE_BUBBLE_SCALE_FALLBACK;
+
+    return Math.min(1, Math.max(0.15, (rasterWidth / singleWidth) * SINGLE_BUBBLE_SCALE_SAFETY));
+}
+
+function getBubbleRadii(viewMode = currentViewMode) {
+    if (viewMode !== 'single') return GRID_BUBBLE_RADII;
+
+    const scale = getSingleBubbleScale();
+    return GRID_BUBBLE_RADII.map(r => Number((r * scale).toFixed(3)));
+}
+
+function getHeatStyle(days, viewMode = currentViewMode) {
     if (days === 0) return { r: 0.5, opacity: 0.05, fill: '#475569' }; // extremely faint gray dot
     
-    const scale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
+    const scale = getMetricScale();
+    const fill = getMetricConfig().fill;
+    const radii = getBubbleRadii(viewMode);
     
-    if (days >= scale[0] && days < scale[1]) return { r: 2.2, opacity: 0.40, fill: '#ea580c' }; // single orange-red color, varying size & opacity
-    if (days >= scale[1] && days < scale[2]) return { r: 3.4, opacity: 0.65, fill: '#ea580c' };
-    if (days >= scale[2] && days < scale[3]) return { r: 4.6, opacity: 0.85, fill: '#ea580c' };
-    if (days >= scale[3] && days < scale[4]) return { r: 5.8, opacity: 0.95, fill: '#ea580c' };
-    return { r: 7.0, opacity: 1.0, fill: '#ea580c' }; // scale[4] or more
+    if (days >= scale[0] && days < scale[1]) return { r: radii[0], opacity: 0.40, fill }; // single color, varying size & opacity
+    if (days >= scale[1] && days < scale[2]) return { r: radii[1], opacity: 0.65, fill };
+    if (days >= scale[2] && days < scale[3]) return { r: radii[2], opacity: 0.85, fill };
+    if (days >= scale[3] && days < scale[4]) return { r: radii[3], opacity: 0.95, fill };
+    return { r: radii[4], opacity: 1.0, fill }; // scale[4] or more
 }
 
 // Translate raw DWD equipment models to English
@@ -482,24 +667,11 @@ async function loadData() {
         maxYearGlobal = maxYear;
         currentActiveYear = maxYearGlobal;
         
-        // Calculate max days observed in each month of the max year to handle incomplete current year
-        maxDaysInMonthsOfLastYear = Array(12).fill(0);
-        weatherData.forEach(s => {
-            const yrData = s.annual_data[maxYearGlobal];
-            if (yrData && yrData.m_valid) {
-                for (let m = 0; m < 12; m++) {
-                    const v = yrData.m_valid[m] || 0;
-                    if (v > maxDaysInMonthsOfLastYear[m]) {
-                        maxDaysInMonthsOfLastYear[m] = v;
-                    }
-                }
-            }
-        });
-        
         console.log("Data loaded successfully!", weatherData.length, "stations, Max Year:", maxYearGlobal, "BBox:", bbox);
         
         // Load state from URL hash
         loadStateFromURLHash();
+        refreshMaxDaysInMonthsOfLastYear();
         setLanguage(currentLang);
         syncUIControls();
         
@@ -510,7 +682,7 @@ async function loadData() {
         if (selectedStationId) {
             const activeStations = getFilteredStations();
             if (activeStations.some(s => s.station_id === selectedStationId)) {
-                selectStation(selectedStationId);
+                selectStation(selectedStationId, { force: true });
             }
         }
         
@@ -532,7 +704,7 @@ function getDaysCountForYear(station, year) {
     
     // Fast path: if all 12 months are selected, return precalculated annual total
     if (currentMonths.length === 12) {
-        return yrData[`t${currentTempThreshold}`] || 0;
+        return yrData[getMetricDataKey()] || 0;
     }
     
     if (!yrData.m_data) {
@@ -543,7 +715,7 @@ function getDaysCountForYear(station, year) {
     currentMonths.forEach(m => {
         const mData = yrData.m_data[String(m)];
         if (mData) {
-            sum += mData[`t${currentTempThreshold}`] || 0;
+            sum += mData[getMetricDataKey()] || 0;
         }
     });
     return sum;
@@ -581,8 +753,9 @@ function calculateCoverageForPeriod(station, startYear, endYear) {
             selectedYearDays += mDays;
             
             if (yrData) {
-                if (yrData.m_valid && yrData.m_valid[m - 1] !== undefined) {
-                    selectedValidDays += yrData.m_valid[m - 1];
+                const monthlyValid = getMonthlyValidDays(yrData, m);
+                if (monthlyValid !== undefined) {
+                    selectedValidDays += monthlyValid;
                 } else if (yrData.valid_days !== undefined) {
                     // Fallback scaling if monthly details are missing
                     const totalYearDays = isLeap ? 366 : 365;
@@ -667,6 +840,7 @@ function renderDecadalStats(filteredStations) {
     
     const container = document.getElementById('decade-list-container');
     container.innerHTML = '';
+    const accent = getModeAccent();
     
     Object.entries(decadeTotals).forEach(([decadeName, total]) => {
         const decadeEnd = parseInt(decadeName.substring(5, 9));
@@ -675,7 +849,7 @@ function renderDecadalStats(filteredStations) {
         const pct = (total / maxDecadeVal) * 100;
         
         let referenceLabel = '';
-        if (currentStartYear === 1961 && currentCoverageThreshold === 0.80 && currentTempThreshold === 35) {
+        if (currentMetric === 'max' && currentStartYear === 1961 && currentCoverageThreshold === 0.80 && currentTempThreshold === 35) {
             const refMap = {
                 '1961–1970': 122, '1971–1980': 158, '1981–1990': 328,
                 '1991–2000': 672, '2001–2010': 1321, '2011–2020': 2488
@@ -691,10 +865,10 @@ function renderDecadalStats(filteredStations) {
         row.innerHTML = `
             <div class="flex justify-between items-center text-xs">
                 <span class="font-bold text-slate-500 dark:text-slate-300">${decadeName}</span>
-                <span class="font-extrabold text-orange-600 dark:text-orange-400">${total.toLocaleString()}<span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">${referenceLabel}</span></span>
+                <span class="font-extrabold ${accent.textSoft} ${accent.textSoftDark}">${total.toLocaleString()}<span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">${referenceLabel}</span></span>
             </div>
             <div class="w-full bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-full h-3 overflow-hidden">
-                <div class="bg-gradient-to-r from-orange-500 to-red-600 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                <div class="${accent.barGradient} h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
             </div>
         `;
         container.appendChild(row);
@@ -705,7 +879,12 @@ function renderDecadalStats(filteredStations) {
 
 // Update Global Stats Panel
 function updateGlobalStats(filteredStations, decadeTotals) {
-    document.getElementById('stat-stations-count').textContent = filteredStations.length;
+    const accent = getModeAccent();
+    const stationsCount = document.getElementById('stat-stations-count');
+    if (stationsCount) {
+        stationsCount.textContent = filteredStations.length;
+        stationsCount.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} text-sm`;
+    }
     
     let totalReports = 0;
     let yearTotals = {};
@@ -721,7 +900,11 @@ function updateGlobalStats(filteredStations, decadeTotals) {
         });
     });
     
-    document.getElementById('stat-total-reports').textContent = totalReports.toLocaleString();
+    const statTotalReports = document.getElementById('stat-total-reports');
+    if (statTotalReports) {
+        statTotalReports.textContent = totalReports.toLocaleString();
+        statTotalReports.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} text-sm`;
+    }
     
     let hottestYear = 'N/A';
     let maxYearCount = -1;
@@ -787,7 +970,7 @@ function renderMapsGrid(filteredStations) {
                 totalYearDays += days;
                 
                 const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
-                const style = getHeatStyle(days);
+                const style = getHeatStyle(days, 'grid');
                 
                 circlesSvg += `
                     <circle cx="${x}" cy="${y}" r="${style.r}" 
@@ -802,11 +985,12 @@ function renderMapsGrid(filteredStations) {
             const card = document.createElement('div');
             card.id = `map-card-${yr}`;
             card.className = `glass-panel rounded-lg p-2.5 flex flex-col items-center justify-between border border-slate-200 dark:border-slate-850 cursor-pointer hover:border-slate-500 hover:scale-[1.03] transition-all duration-200`;
+            const accent = getModeAccent();
             
             card.innerHTML = `
                 <div class="flex justify-between items-center w-full mb-1 text-[10px]">
                     <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
-                    <span class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1 rounded border border-orange-500/10">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
+                    <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
                 </div>
                 <svg viewBox="0 0 110 140" class="w-full h-auto">
                     ${statesPathsSvg}
@@ -835,9 +1019,9 @@ function updateDashboard() {
     }
     if (subtitleElement) {
         if (currentViewMode === 'grid') {
-            subtitleElement.textContent = i18n[currentLang]['card-subtitle-grid'];
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-grid-${currentMetric}`];
         } else {
-            subtitleElement.textContent = i18n[currentLang]['card-subtitle-single'];
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
         }
     }
     
@@ -877,6 +1061,7 @@ function updateDashboard() {
 // Parameters modifications
 function setTemperatureThreshold(temp) {
     currentTempThreshold = parseInt(temp);
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
     
     const valDisplay = document.getElementById('temp-threshold-val');
     if (valDisplay) {
@@ -893,6 +1078,22 @@ function setTemperatureThreshold(temp) {
     if (selectedStationId) {
         renderStationWorkspace(selectedStationId);
     }
+}
+
+function setMetric(metric) {
+    if (!METRIC_CONFIG[metric] || currentMetric === metric) return;
+
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
+    currentMetric = metric;
+
+    const config = getMetricConfig();
+    const savedThreshold = lastThresholdByMetric[currentMetric] || config.defaultThreshold;
+    currentTempThreshold = Math.min(config.maxThreshold, Math.max(config.minThreshold, savedThreshold));
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
+
+    refreshMaxDaysInMonthsOfLastYear();
+    setLanguage(currentLang);
+    syncUIControls();
 }
 
 function updateStartYear(val) {
@@ -1013,6 +1214,7 @@ function renderMonthDropdownItems() {
     const lang = currentLang;
     const monthsShort = i18n[lang]['month-names'];
     const monthsLong = i18n[lang]['month-names-long'];
+    const accent = getModeAccent();
     
     container.innerHTML = '';
     for (let m = 1; m <= 12; m++) {
@@ -1022,7 +1224,7 @@ function renderMonthDropdownItems() {
         div.innerHTML = `
             <input type="checkbox" id="check-month-${m}" value="${m}" ${isChecked ? 'checked' : ''} 
                    onchange="onMonthCheckboxChange(this)"
-                   class="w-3.5 h-3.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                   class="w-3.5 h-3.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}">
             <label for="check-month-${m}" class="cursor-pointer select-none text-slate-600 dark:text-slate-350 hover:text-slate-800 dark:hover:text-white" title="${monthsLong[m - 1]}">
                 ${monthsShort[m - 1]}
             </label>
@@ -1081,7 +1283,8 @@ function renderInspectorStationList(filteredStations) {
             }
         }
         
-        item.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${s.station_id === selectedStationId ? 'bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800'}`;
+        const accent = getModeAccent();
+        item.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${s.station_id === selectedStationId ? `${accent.bg} text-white font-semibold shadow-sm ${accent.shadow}` : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800'}`;
         item.setAttribute('onclick', `selectStation('${s.station_id}')`);
         
         item.innerHTML = `
@@ -1117,11 +1320,16 @@ function filterStationList(query, skipHashUpdate = false) {
     }
 }
 
-function selectStation(sid) {
+function selectStation(sid, options = {}) {
+    if (sid && selectedStationId === sid && !options.force) {
+        selectStation(null);
+        return;
+    }
+
     if (selectedStationId) {
         const oldItem = document.getElementById(`inspector-item-${selectedStationId}`);
         if (oldItem) {
-            oldItem.className = oldItem.className.replace('bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20', 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800');
+            oldItem.className = 'flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800';
         }
     }
     
@@ -1136,6 +1344,9 @@ function selectStation(sid) {
                 </div>
             `;
         }
+        if (currentViewMode === 'single') {
+            renderSingleMap(getFilteredStations());
+        }
         updateURLHash();
         return;
     }
@@ -1144,10 +1355,14 @@ function selectStation(sid) {
     
     const newItem = document.getElementById(`inspector-item-${sid}`);
     if (newItem) {
-        newItem.className = newItem.className.replace('text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800', 'bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20');
+        const accent = getModeAccent();
+        newItem.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${accent.bg} text-white font-semibold shadow-sm ${accent.shadow}`;
     }
     
     renderStationWorkspace(sid);
+    if (currentViewMode === 'single') {
+        renderSingleMap(getFilteredStations());
+    }
     updateURLHash(); // Update URL hash dynamically when a new station is selected
 }
 
@@ -1190,7 +1405,7 @@ function renderStationWorkspace(sid) {
         }
     }
     
-    const chartTitle = t['lbl-chart-trend'].replace('{temp}', currentTempThreshold);
+    const chartTitle = t[`lbl-chart-trend-${currentMetric}`].replace('{temp}', currentTempThreshold);
     const chartSubtitle = t['lbl-chart-sub'].replace('{start}', currentStartYear).replace('2025', getEndYearLabel(currentLang));
     
     workspace.innerHTML = `
@@ -1398,6 +1613,16 @@ function renderStationTrendChart(sid) {
     const textFill = isDark ? "#94a3b8" : "#64748b";
     const annotBg = isDark ? "#0f172a" : "#f1f5f9";
     const annotBorder = isDark ? "#1e293b" : "#cbd5e1";
+    const trendStroke = currentMetric === 'min' ? '#0284c7' : '#f43f5e';
+    const trendShadow = currentMetric === 'min' ? '#0ea5e9' : '#f43f5e';
+    const annotationFill = slope >= 0
+        ? (currentMetric === 'min' ? (isDark ? '#7dd3fc' : '#0369a1') : (isDark ? '#fda4af' : '#b91c1c'))
+        : textFill;
+    const warmGradTop = currentMetric === 'min' ? '#38bdf8' : '#f97316';
+    const warmGradBottom = currentMetric === 'min' ? '#0284c7' : '#ea580c';
+    const extremeGradTop = currentMetric === 'min' ? '#2563eb' : '#ef4444';
+    const extremeGradBottom = currentMetric === 'min' ? '#1e3a8a' : '#991b1b';
+    const hoverFillClass = currentMetric === 'min' ? 'hover:fill-cyan-300' : 'hover:fill-amber-400';
     
     // 2. Y-Axis Ticks
     let yGridSvg = '';
@@ -1443,7 +1668,7 @@ function renderStationTrendChart(sid) {
             <g class="cursor-pointer group">
                 <rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(h, 0.5)}" 
                       fill="${fill}" rx="1" ry="1" 
-                      class="transition-all duration-300 hover:fill-amber-400">
+                      class="transition-all duration-300 ${hoverFillClass}">
                     <title>${years[i]}: ${val} ${t['lbl-day-unit']}</title>
                 </rect>
             </g>
@@ -1500,15 +1725,15 @@ function renderStationTrendChart(sid) {
                     <stop offset="100%" stop-color="${isDark ? '#334155' : '#94a3b8'}" stop-opacity="0.3"/>
                 </linearGradient>
                 <linearGradient id="bar-heat-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.9"/>
-                    <stop offset="100%" stop-color="#ea580c" stop-opacity="0.4"/>
+                    <stop offset="0%" stop-color="${warmGradTop}" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="${warmGradBottom}" stop-opacity="0.4"/>
                 </linearGradient>
                 <linearGradient id="bar-extreme-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.95"/>
-                    <stop offset="100%" stop-color="#991b1b" stop-opacity="0.5"/>
+                    <stop offset="0%" stop-color="${extremeGradTop}" stop-opacity="0.95"/>
+                    <stop offset="100%" stop-color="${extremeGradBottom}" stop-opacity="0.5"/>
                 </linearGradient>
                 <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-                    <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#f43f5e" flood-opacity="0.3" />
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="${trendShadow}" flood-opacity="0.3" />
                 </filter>
             </defs>
             
@@ -1519,11 +1744,11 @@ function renderStationTrendChart(sid) {
             ${barsSvg}
             ${movePinsSvg}
             
-            <path d="${trendPath}" fill="none" stroke="#f43f5e" stroke-width="2" filter="url(#shadow)" stroke-linecap="round" />
+            <path d="${trendPath}" fill="none" stroke="${trendStroke}" stroke-width="2" filter="url(#shadow)" stroke-linecap="round" />
             
             <g>
                 <rect x="${padding.left + 12}" y="${padding.top + 2}" width="220" height="20" rx="3" fill="${annotBg}" fill-opacity="0.9" stroke="${annotBorder}" stroke-width="0.5" />
-                <text x="${padding.left + 18}" y="${padding.top + 14}" fill="${slope >= 0 ? (isDark ? '#fda4af' : '#b91c1c') : textFill}" font-size="8" font-weight="bold">
+                <text x="${padding.left + 18}" y="${padding.top + 14}" fill="${annotationFill}" font-size="8" font-weight="bold">
                     ${annotationText}
                 </text>
             </g>
@@ -1551,9 +1776,11 @@ function updateLegend() {
     const container = document.getElementById('legend-circles-container');
     if (!container) return;
 
-    // Measure the actual width of a rendered map SVG to calculate scaling factor
-    let scale = 0.9; // Sensible default scale for legend when grid is hidden
-    const mapSvg = document.querySelector('#map-grid-container svg');
+    // Measure the visible map SVG so legend circles match the current view.
+    let scale = 0.9;
+    const mapSvg = document.querySelector(
+        currentViewMode === 'single' ? '#single-map-svg' : '#map-grid-container svg'
+    );
     if (mapSvg) {
         const rect = mapSvg.getBoundingClientRect();
         if (rect.width > 0) {
@@ -1564,7 +1791,7 @@ function updateLegend() {
     const isDark = document.documentElement.classList.contains('dark');
     const strokeColor = isDark ? '#05070c' : '#ffffff';
 
-    const activeScale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
+    const activeScale = getMetricScale();
     const groups = [
         { label: `${activeScale[0]}`, minDays: activeScale[0] },
         { label: `${activeScale[1]}`, minDays: activeScale[1] },
@@ -1574,12 +1801,10 @@ function updateLegend() {
     ];
 
     container.innerHTML = groups.map(g => {
-        const style = getHeatStyle(g.minDays);
-        // Base SVG canvas size in CSS pixels:
-        // We use a 20x20 px container so the circle has plenty of room (max base radius 8.0 scaled is usually ~6-9px, so diameter is 12-18px)
-        const size = 20;
-        const center = size / 2;
+        const style = getHeatStyle(g.minDays, currentViewMode);
         const physicalRadius = style.r * scale;
+        const size = Math.max(20, Math.ceil((physicalRadius + 1) * 2));
+        const center = size / 2;
 
         return `
             <span class="flex items-center gap-1">
@@ -1597,6 +1822,7 @@ function updateLegend() {
 // Update the URL hash to reflect the current visualization parameter states
 function updateURLHash() {
     const params = new URLSearchParams();
+    params.set('metric', currentMetric);
     params.set('temp', currentTempThreshold);
     params.set('start', currentStartYear);
     params.set('coverage', Math.round(currentCoverageThreshold * 100));
@@ -1625,18 +1851,34 @@ function loadStateFromURLHash() {
     const hash = window.location.hash.substring(1);
     
     // Set default responsive view mode if view parameter is missing
-    currentViewMode = window.innerWidth < 1024 ? 'single' : 'grid';
+    currentViewMode = 'grid';
     currentActiveYear = maxYearGlobal;
     currentSearchQuery = '';
+    currentMetric = 'max';
+    currentTempThreshold = METRIC_CONFIG.max.defaultThreshold;
+    lastThresholdByMetric = { max: METRIC_CONFIG.max.defaultThreshold, min: METRIC_CONFIG.min.defaultThreshold };
     
     if (!hash) return;
     
     const params = new URLSearchParams(hash);
+
+    if (params.has('metric')) {
+        const val = params.get('metric');
+        if (val === 'max' || val === 'min') currentMetric = val;
+    }
     
     if (params.has('temp')) {
         const val = parseInt(params.get('temp'));
-        if (val >= 30 && val <= 40) currentTempThreshold = val;
+        const config = getMetricConfig();
+        if (val >= config.minThreshold && val <= config.maxThreshold) {
+            currentTempThreshold = val;
+        } else {
+            currentTempThreshold = config.defaultThreshold;
+        }
+    } else {
+        currentTempThreshold = getMetricConfig().defaultThreshold;
     }
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
     if (params.has('start')) {
         const val = parseInt(params.get('start'));
         if (val >= 1961 && val <= 2020) currentStartYear = val;
@@ -1679,38 +1921,115 @@ function loadStateFromURLHash() {
 function syncUIControls() {
     renderMonthDropdownItems();
     updateMonthButtonLabel();
+    const accent = getModeAccent();
+
+    const lblMetric = document.getElementById('lbl-metric');
+    if (lblMetric) lblMetric.textContent = i18n[currentLang]['lbl-metric'];
+
+    const lblTempThreshold = document.getElementById('lbl-temp-threshold');
+    if (lblTempThreshold) lblTempThreshold.textContent = i18n[currentLang][`lbl-temp-threshold-${currentMetric}`];
+
+    const btnMetricMax = document.getElementById('btn-metric-max');
+    const btnMetricMin = document.getElementById('btn-metric-min');
+    if (btnMetricMax && btnMetricMin) {
+        btnMetricMax.textContent = i18n[currentLang]['metric-max'];
+        btnMetricMin.textContent = i18n[currentLang]['metric-min'];
+
+        const activeMaxClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
+        const activeMinClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-sky-600 text-white shadow-sm';
+        const inactiveClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+        btnMetricMax.className = currentMetric === 'max' ? activeMaxClass : inactiveClass;
+        btnMetricMin.className = currentMetric === 'min' ? activeMinClass : inactiveClass;
+    }
     
     const tempSlider = document.getElementById('slider-temp-threshold');
     const tempVal = document.getElementById('temp-threshold-val');
-    if (tempSlider) tempSlider.value = currentTempThreshold;
-    if (tempVal) tempVal.textContent = `${currentTempThreshold} °C`;
+    const config = getMetricConfig();
+    if (tempSlider) {
+        tempSlider.min = config.minThreshold;
+        tempSlider.max = config.maxThreshold;
+        tempSlider.value = currentTempThreshold;
+        tempSlider.className = `w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${currentMetric === 'min' ? 'accent-sky-500' : 'accent-orange-500'}`;
+    }
+    if (tempVal) {
+        tempVal.textContent = `${currentTempThreshold} °C`;
+        tempVal.className = currentMetric === 'min'
+            ? 'font-bold text-sky-700 dark:text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20 shrink-0'
+            : 'font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shrink-0';
+    }
     
     const startSlider = document.getElementById('slider-start-year');
     const startVal = document.getElementById('start-year-val');
-    if (startSlider) startSlider.value = currentStartYear;
-    if (startVal) startVal.textContent = currentStartYear;
+    if (startSlider) {
+        startSlider.value = currentStartYear;
+        startSlider.className = `w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${accent.accent}`;
+    }
+    if (startVal) {
+        startVal.textContent = currentStartYear;
+        startVal.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-2 py-0.5 rounded border ${accent.borderSoft} shrink-0`;
+    }
     
     const covSlider = document.getElementById('slider-coverage');
     const covVal = document.getElementById('coverage-val');
-    if (covSlider) covSlider.value = Math.round(currentCoverageThreshold * 100);
-    if (covVal) covVal.textContent = `${Math.round(currentCoverageThreshold * 100)} %`;
+    if (covSlider) {
+        covSlider.value = Math.round(currentCoverageThreshold * 100);
+        covSlider.className = `w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${accent.accent}`;
+    }
+    if (covVal) {
+        covVal.textContent = `${Math.round(currentCoverageThreshold * 100)} %`;
+        covVal.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-2 py-0.5 rounded border ${accent.borderSoft} shrink-0`;
+    }
     
     const movesCheck = document.getElementById('check-moves-unmoved');
-    if (movesCheck) movesCheck.checked = (currentMovesFilter === 'unmoved');
+    if (movesCheck) {
+        movesCheck.checked = (currentMovesFilter === 'unmoved');
+        movesCheck.className = `w-4 h-4 mt-0.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}`;
+    }
 
     const searchInput = document.getElementById('input-station-search');
-    if (searchInput) searchInput.value = currentSearchQuery;
+    if (searchInput) {
+        searchInput.value = currentSearchQuery;
+        searchInput.className = `w-full text-[11px] bg-slate-200/40 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none ${accent.focusBorder} transition duration-150`;
+    }
+
+    const monthDropdown = document.getElementById('btn-month-dropdown');
+    if (monthDropdown) {
+        monthDropdown.className = `w-full text-xs font-semibold bg-slate-200 dark:bg-slate-900 border border-slate-350 dark:border-slate-800 rounded-lg px-3 py-2 text-left text-slate-700 dark:text-slate-350 flex justify-between items-center cursor-pointer ${accent.borderHover} transition duration-150`;
+    }
+    const btnMonthAll = document.getElementById('btn-month-all');
+    if (btnMonthAll) {
+        btnMonthAll.className = `text-[10px] font-extrabold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} ${accent.bgSoftHover} px-2 py-1 rounded transition duration-150`;
+    }
+    const btnMonthSummer = document.getElementById('btn-month-summer');
+    if (btnMonthSummer) {
+        btnMonthSummer.className = `text-[10px] font-extrabold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} ${accent.bgSoftHover} px-2 py-1 rounded transition duration-150`;
+    }
+
+    const decadesButton = document.getElementById('btn-show-decades');
+    if (decadesButton) {
+        decadesButton.className = `flex flex-col bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-900/60 dark:hover:bg-slate-900 border border-slate-300/80 dark:border-slate-800 hover:${accent.borderSoft} dark:hover:${accent.borderSoft} rounded-lg px-2.5 py-1 text-center min-w-[85px] sm:min-w-[95px] transition duration-150 active:scale-95 group`;
+        const label = document.getElementById('btn-lbl-decades');
+        if (label) {
+            label.className = `text-[9px] text-slate-500 dark:text-slate-550 font-semibold uppercase tracking-wider group-hover:${accent.textSoft.replace('text-', 'text-')} transition duration-150`;
+        }
+        const icon = decadesButton.querySelector('svg');
+        if (icon) {
+            icon.className = `w-3 h-3 ${currentMetric === 'min' ? 'text-sky-500' : 'text-orange-500'}`;
+        }
+    }
 
     // Visual switch buttons sync
     const btnGrid = document.getElementById('btn-view-grid');
     const btnSingle = document.getElementById('btn-view-single');
     if (btnGrid && btnSingle) {
+        const activeViewClass = `px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 ${accent.bg} text-white shadow-sm`;
+        const inactiveViewClass = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
         if (currentViewMode === 'grid') {
-            btnGrid.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
-            btnSingle.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+            btnGrid.className = activeViewClass;
+            btnSingle.className = inactiveViewClass;
         } else {
-            btnSingle.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
-            btnGrid.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+            btnSingle.className = activeViewClass;
+            btnGrid.className = inactiveViewClass;
         }
     }
     
@@ -1737,6 +2056,7 @@ function syncUIControls() {
         singleSlider.min = currentStartYear;
         singleSlider.max = maxYearGlobal;
         singleSlider.value = currentActiveYear;
+        singleSlider.className = `flex-grow h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${accent.accent}`;
     }
     
     const sliderMinYearLbl = document.getElementById('slider-min-year-lbl');
@@ -1748,6 +2068,20 @@ function syncUIControls() {
     if (sliderMaxYearLbl) {
         sliderMaxYearLbl.textContent = maxYearGlobal;
     }
+
+    const speedSelect = document.getElementById('select-speed');
+    if (speedSelect) {
+        speedSelect.className = `text-[10px] bg-slate-200 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none ${accent.focusBorder} cursor-pointer font-semibold`;
+    }
+
+    updatePlayButtonAccent();
+}
+
+function updatePlayButtonAccent() {
+    const playBtn = document.getElementById('btn-play-pause');
+    if (!playBtn || animationIntervalId) return;
+    const accent = getModeAccent();
+    playBtn.className = `flex items-center justify-center w-9 h-9 rounded-full ${accent.bg} ${accent.bgHover} text-white font-bold transition duration-150 shadow-md ${accent.shadow} active:scale-95`;
 }
 
 // Set the active visualization view mode ('grid' or 'single')
@@ -1779,6 +2113,7 @@ function renderSingleMap(filteredStations) {
     
     const isDark = document.documentElement.classList.contains('dark');
     const stroke = isDark ? "rgba(148, 163, 184, 0.3)" : "rgba(71, 85, 105, 0.25)";
+    const accent = getModeAccent();
     
     const statesPathsSvg = geojson.features.map(f => {
         const d = geomToPath(f.geometry, 110, 140, bbox);
@@ -1793,20 +2128,24 @@ function renderSingleMap(filteredStations) {
         totalYearDays += days;
         
         const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
-        const style = getHeatStyle(days);
+        const style = getHeatStyle(days, 'single');
+        const hitRadius = Math.max(style.r + 1.1, 3.2);
         
         const isSelected = s.station_id === selectedStationId;
         const selectionRing = isSelected 
-            ? `<circle cx="${x}" cy="${y}" r="${style.r + 2.0}" fill="none" stroke="#ea580c" stroke-dasharray="1,1" stroke-width="0.6"/>` 
+            ? `<circle cx="${x}" cy="${y}" r="${style.r + 2.0}" fill="none" stroke="${accent.ringStroke}" stroke-dasharray="1,1" stroke-width="0.6"/>`
             : '';
             
         circlesSvg += `
             <g class="cursor-pointer" onclick="selectStation('${s.station_id}')">
+                <circle cx="${x}" cy="${y}" r="${hitRadius}" fill="transparent" stroke="none" pointer-events="all">
+                    <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
+                </circle>
                 ${selectionRing}
                 <circle cx="${x}" cy="${y}" r="${style.r}" 
                         fill="${style.fill}" fill-opacity="${style.opacity}" 
                         stroke="${isDark ? '#05070c' : '#ffffff'}" stroke-width="0.3"
-                        class="hover:stroke-orange-500 dark:hover:stroke-orange-400 hover:stroke-[0.8] transition-all duration-150">
+                        class="${accent.hoverStroke} hover:stroke-[0.8] transition-all duration-150">
                     <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
                 </circle>
             </g>
@@ -1817,20 +2156,42 @@ function renderSingleMap(filteredStations) {
     
     // Update active labels
     const activeYearDisplay = document.getElementById('lbl-active-year-val');
-    if (activeYearDisplay) activeYearDisplay.textContent = currentActiveYear;
+    if (activeYearDisplay) {
+        activeYearDisplay.textContent = currentActiveYear;
+        activeYearDisplay.className = `font-extrabold text-lg ${accent.textSoft} ${accent.textSoftDark} leading-none`;
+    }
     
     
     
     const metaYear = document.getElementById('single-map-meta-year');
-    if (metaYear) metaYear.textContent = currentActiveYear;
+    if (metaYear) {
+        metaYear.textContent = currentActiveYear;
+        metaYear.className = `font-black text-base ${accent.textSoft} ${accent.textSoftDark} mt-0.5`;
+    }
     
     const metaTotal = document.getElementById('single-map-meta-total');
     if (metaTotal) {
         let totalWord;
         if (currentLang === 'de') {
-            totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
+            if (currentMetric === 'min') {
+                if (currentTempThreshold >= 20) {
+                    totalWord = totalYearDays === 1 ? 'Tropennacht gesamt' : 'Tropennächte gesamt';
+                } else {
+                    totalWord = totalYearDays === 1 ? 'Nacht gesamt' : 'Nächte gesamt';
+                }
+            } else {
+                totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
+            }
         } else {
-            totalWord = totalYearDays === 1 ? 'day total' : 'days total';
+            if (currentMetric === 'min') {
+                if (currentTempThreshold >= 20) {
+                    totalWord = totalYearDays === 1 ? 'tropical night total' : 'tropical nights total';
+                } else {
+                    totalWord = totalYearDays === 1 ? 'night total' : 'nights total';
+                }
+            } else {
+                totalWord = totalYearDays === 1 ? 'day total' : 'days total';
+            }
         }
         metaTotal.textContent = `${totalYearDays} ${totalWord}`;
     }
@@ -1848,17 +2209,13 @@ function togglePlayAnimation() {
         animationIntervalId = null;
         if (svgPlay) svgPlay.classList.remove('hidden');
         if (svgPause) svgPause.classList.add('hidden');
-        if (playBtn) {
-            playBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
-            playBtn.classList.add('bg-orange-600', 'hover:bg-orange-500');
-        }
+        updatePlayButtonAccent();
     } else {
         // Play
         if (svgPlay) svgPlay.classList.add('hidden');
         if (svgPause) svgPause.classList.remove('hidden');
         if (playBtn) {
-            playBtn.classList.remove('bg-orange-600', 'hover:bg-orange-500');
-            playBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+            playBtn.className = 'flex items-center justify-center w-9 h-9 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold transition duration-150 shadow-md shadow-red-500/20 active:scale-95';
         }
         
         animationIntervalId = setInterval(() => {
@@ -1907,10 +2264,11 @@ window.addEventListener('resize', () => {
 // Listen for browser Back/Forward navigation to sync the UI
 window.addEventListener('hashchange', () => {
     loadStateFromURLHash();
+    refreshMaxDaysInMonthsOfLastYear();
     syncUIControls();
     updateDashboard();
     if (selectedStationId) {
-        selectStation(selectedStationId);
+        selectStation(selectedStationId, { force: true });
     } else {
         selectStation(null);
     }

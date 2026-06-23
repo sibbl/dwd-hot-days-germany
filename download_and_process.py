@@ -5,7 +5,6 @@ import json
 import math
 import zipfile
 import urllib.request
-import requests
 import pandas as pd
 from datetime import datetime
 
@@ -40,9 +39,8 @@ def haversine(lat1, lon1, lat2, lon2):
 def get_directory_file_list(url):
     """Fetches the HTML of a DWD CDC directory and finds all zip file links."""
     print(f"Fetching directory listing: {url}")
-    r = requests.get(url)
-    r.raise_for_status()
-    html = r.text
+    with urllib.request.urlopen(url, timeout=30) as response:
+        html = response.read().decode('utf-8')
     # Extract links like href="tageswerte_KL_00078_...zip"
     links = re.findall(r'href="([^"]+\.zip)"', html)
     return links
@@ -54,10 +52,11 @@ def download_file(url, dest_path):
     
     print(f"Downloading: {url} -> {dest_path}")
     try:
-        r = requests.get(url, stream=True, timeout=30)
-        r.raise_for_status()
-        with open(dest_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
+        with urllib.request.urlopen(url, timeout=30) as response, open(dest_path, 'wb') as f:
+            while True:
+                chunk = response.read(8192)
+                if not chunk:
+                    break
                 f.write(chunk)
         return True
     except Exception as e:
@@ -264,23 +263,34 @@ def main():
                         try:
                             datum_idx = headers.index('MESS_DATUM')
                             txk_idx = headers.index('TXK')
+                            tnk_idx = headers.index('TNK')
                         except ValueError:
-                            print(f"    Missing MESS_DATUM or TXK headers in {zip_path}")
+                            print(f"    Missing MESS_DATUM, TXK or TNK headers in {zip_path}")
                             return records
                             
                         for line in lines[1:]:
                             parts = [p.strip() for p in line.split(';')]
-                            if len(parts) <= max(datum_idx, txk_idx):
+                            if len(parts) <= max(datum_idx, txk_idx, tnk_idx):
                                 continue
                             date_str = parts[datum_idx]
                             txk_val = parts[txk_idx]
+                            tnk_val = parts[tnk_idx]
                             try:
-                                temp = float(txk_val)
-                                # -999.0 is the missing indicator
-                                if temp != -999.0:
-                                    records.append((date_str, temp))
+                                max_temp = float(txk_val)
                             except ValueError:
-                                pass
+                                max_temp = None
+                            try:
+                                min_temp = float(tnk_val)
+                            except ValueError:
+                                min_temp = None
+
+                            # -999.0 is the missing indicator
+                            if max_temp == -999.0:
+                                max_temp = None
+                            if min_temp == -999.0:
+                                min_temp = None
+                            if max_temp is not None or min_temp is not None:
+                                records.append((date_str, max_temp, min_temp))
             return records
             
         # Read from historical and recent
@@ -291,30 +301,34 @@ def main():
             
         # Combine and deduplicate by date
         combined_dict = {}
-        for date_str, temp in hist_records:
-            combined_dict[date_str] = temp
-        for date_str, temp in recent_records:
-            combined_dict[date_str] = temp
+        for date_str, max_temp, min_temp in hist_records:
+            combined_dict[date_str] = (max_temp, min_temp)
+        for date_str, max_temp, min_temp in recent_records:
+            combined_dict[date_str] = (max_temp, min_temp)
             
         if not combined_dict:
             print(f"  Warning: No valid records found for station {sid}. Skipping.")
             continue
             
         # Convert to Pandas for convenient analysis
-        df = pd.DataFrame(list(combined_dict.items()), columns=['MESS_DATUM', 'TXK'])
+        df = pd.DataFrame([
+            {'MESS_DATUM': date_str, 'TXK': temps[0], 'TNK': temps[1]}
+            for date_str, temps in combined_dict.items()
+        ])
         df['DATE'] = pd.to_datetime(df['MESS_DATUM'], format='%Y%m%d', errors='coerce')
         df = df.dropna(subset=['DATE'])
         df = df.sort_values('DATE').drop_duplicates(subset=['MESS_DATUM'])
         
         # Filter for the target span 1961-01-01 to end of year
         mask = (df['DATE'] >= start_span) & (df['DATE'] <= end_span)
-        df_span = df[mask]
+        df_span = df.loc[mask].copy()
         
-        valid_days = len(df_span)
+        valid_days = int(df_span['TXK'].notna().sum())
+        valid_night_days = int(df_span['TNK'].notna().sum())
         
         # Calculate coverage using elapsed days only (so we don't penalize current year's missing future days)
         mask_elapsed = (df['DATE'] >= start_span) & (df['DATE'] <= elapsed_end)
-        valid_elapsed_days = len(df[mask_elapsed])
+        valid_elapsed_days = int(df[mask_elapsed]['TXK'].notna().sum())
         overall_coverage = valid_elapsed_days / total_elapsed_days
         
         print(f"  Coverage in 1961-{current_year}: {valid_elapsed_days}/{total_elapsed_days} ({overall_coverage * 100:.2f}%)")
@@ -415,33 +429,44 @@ def main():
         annual_stats = {}
         
         for yr, group in df_span.groupby('YEAR'):
-            valid_yr_days = len(group)
+            valid_yr_days = int(group['TXK'].notna().sum())
+            valid_yr_nights = int(group['TNK'].notna().sum())
             
             stats = {
-                'valid_days': valid_yr_days
+                'valid_days': valid_yr_days,
+                'valid_days_max': valid_yr_days,
+                'valid_days_min': valid_yr_nights
             }
             for temp_t in range(30, 41):
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
+            for temp_t in range(18, 29):
+                stats[f'n{temp_t}'] = int((group['TNK'] >= float(temp_t)).sum())
                 
             # Aggregate monthly stats
             m_valid = [0] * 12
+            m_valid_min = [0] * 12
             m_data = {}
             
             for mnth, m_group in group.groupby('MONTH'):
                 idx = int(mnth) - 1
                 if 0 <= idx < 12:
-                    m_valid[idx] = len(m_group)
-                    # Check if there is any day >= 30°C in this month
-                    if (m_group['TXK'] >= 30.0).any():
-                        m_stats = {}
-                        for temp_t in range(30, 41):
-                            count = int((m_group['TXK'] >= float(temp_t)).sum())
-                            if count > 0:
-                                m_stats[f't{temp_t}'] = count
-                        if m_stats:
-                            m_data[str(mnth)] = m_stats
+                    m_valid[idx] = int(m_group['TXK'].notna().sum())
+                    m_valid_min[idx] = int(m_group['TNK'].notna().sum())
+                    m_stats = {}
+                    for temp_t in range(30, 41):
+                        count = int((m_group['TXK'] >= float(temp_t)).sum())
+                        if count > 0:
+                            m_stats[f't{temp_t}'] = count
+                    for temp_t in range(18, 29):
+                        count = int((m_group['TNK'] >= float(temp_t)).sum())
+                        if count > 0:
+                            m_stats[f'n{temp_t}'] = count
+                    if m_stats:
+                        m_data[str(mnth)] = m_stats
             
             stats['m_valid'] = m_valid
+            stats['m_valid_max'] = m_valid
+            stats['m_valid_min'] = m_valid_min
             stats['m_data'] = m_data
                 
             annual_stats[str(yr)] = stats
@@ -455,6 +480,7 @@ def main():
             'active': (s['end_date'] >= '20260501'),
             'overall_coverage': round(overall_coverage, 4),
             'valid_span_days': valid_days,
+            'valid_span_nights': valid_night_days,
             'current_location': {
                 'lat': s['lat'],
                 'lon': s['lon'],
