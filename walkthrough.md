@@ -30,7 +30,7 @@ Date: 2026-06-23
   - Labels now describe nightly minimum temperature, with tropical-night wording reserved for thresholds of at least `20 °C`.
   - Night-mode circles use the `n18`-`n28` generated data keys.
   - Nonzero night markers render with the blue `#0284c7` palette.
-  - Night-mode metric and threshold controls use blue trigger styling.
+  - Night-mode metric, filter, timeline, station-selection, and decade-chart controls use blue trigger styling.
 - Night threshold at `18 °C` updated the hash and legend buckets.
 - Single-map view rendered in night-minimum mode with threshold-specific total wording.
 - Mobile viewport check at roughly 390 px wide showed visible metric controls and no horizontal overflow in the checked controls.

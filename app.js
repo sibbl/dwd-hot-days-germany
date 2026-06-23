@@ -60,7 +60,7 @@ const i18n = {
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
-        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert ist 22 °C; ab 20 °C spricht man von Tropennächten.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert ist 22 °C; ab 20 °C spricht man von Tropennächten.",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
         'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
@@ -154,7 +154,7 @@ const i18n = {
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above the threshold across all selected stations within each decade.",
-        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The default is 22 °C; 20 °C and above is the tropical-night definition.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The default is 22 °C; 20 °C and above is the tropical-night definition.",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
         'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
@@ -497,6 +497,50 @@ function getMetricConfig() {
     return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
 }
 
+function getModeAccent() {
+    if (currentMetric === 'min') {
+        return {
+            bg: 'bg-sky-600',
+            bgHover: 'hover:bg-sky-500',
+            bgSoft: 'bg-sky-500/10',
+            bgSoftHover: 'hover:bg-sky-500/20',
+            borderSoft: 'border-sky-500/20',
+            borderHover: 'hover:border-sky-500/50',
+            focusBorder: 'focus:border-sky-500',
+            focusRing: 'focus:ring-sky-500',
+            text: 'text-sky-700',
+            textDark: 'dark:text-sky-300',
+            textSoft: 'text-sky-600',
+            textSoftDark: 'dark:text-sky-400',
+            shadow: 'shadow-sky-500/20',
+            accent: 'accent-sky-500',
+            barGradient: 'bg-gradient-to-r from-sky-400 to-blue-700',
+            ringStroke: '#0284c7',
+            hoverStroke: 'hover:stroke-sky-500 dark:hover:stroke-sky-300'
+        };
+    }
+
+    return {
+        bg: 'bg-orange-600',
+        bgHover: 'hover:bg-orange-500',
+        bgSoft: 'bg-orange-500/10',
+        bgSoftHover: 'hover:bg-orange-500/20',
+        borderSoft: 'border-orange-500/20',
+        borderHover: 'hover:border-orange-500/50',
+        focusBorder: 'focus:border-orange-500',
+        focusRing: 'focus:ring-orange-500',
+        text: 'text-orange-600',
+        textDark: 'dark:text-orange-400',
+        textSoft: 'text-orange-600',
+        textSoftDark: 'dark:text-orange-400',
+        shadow: 'shadow-orange-500/20',
+        accent: 'accent-orange-500',
+        barGradient: 'bg-gradient-to-r from-orange-500 to-red-600',
+        ringStroke: '#ea580c',
+        hoverStroke: 'hover:stroke-orange-500 dark:hover:stroke-orange-400'
+    };
+}
+
 function getMetricDataKey() {
     return `${getMetricConfig().keyPrefix}${currentTempThreshold}`;
 }
@@ -770,6 +814,7 @@ function renderDecadalStats(filteredStations) {
     
     const container = document.getElementById('decade-list-container');
     container.innerHTML = '';
+    const accent = getModeAccent();
     
     Object.entries(decadeTotals).forEach(([decadeName, total]) => {
         const decadeEnd = parseInt(decadeName.substring(5, 9));
@@ -794,10 +839,10 @@ function renderDecadalStats(filteredStations) {
         row.innerHTML = `
             <div class="flex justify-between items-center text-xs">
                 <span class="font-bold text-slate-500 dark:text-slate-300">${decadeName}</span>
-                <span class="font-extrabold text-orange-600 dark:text-orange-400">${total.toLocaleString()}<span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">${referenceLabel}</span></span>
+                <span class="font-extrabold ${accent.textSoft} ${accent.textSoftDark}">${total.toLocaleString()}<span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">${referenceLabel}</span></span>
             </div>
             <div class="w-full bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-full h-3 overflow-hidden">
-                <div class="bg-gradient-to-r from-orange-500 to-red-600 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                <div class="${accent.barGradient} h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
             </div>
         `;
         container.appendChild(row);
@@ -808,7 +853,12 @@ function renderDecadalStats(filteredStations) {
 
 // Update Global Stats Panel
 function updateGlobalStats(filteredStations, decadeTotals) {
-    document.getElementById('stat-stations-count').textContent = filteredStations.length;
+    const accent = getModeAccent();
+    const stationsCount = document.getElementById('stat-stations-count');
+    if (stationsCount) {
+        stationsCount.textContent = filteredStations.length;
+        stationsCount.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} text-sm`;
+    }
     
     let totalReports = 0;
     let yearTotals = {};
@@ -824,7 +874,11 @@ function updateGlobalStats(filteredStations, decadeTotals) {
         });
     });
     
-    document.getElementById('stat-total-reports').textContent = totalReports.toLocaleString();
+    const statTotalReports = document.getElementById('stat-total-reports');
+    if (statTotalReports) {
+        statTotalReports.textContent = totalReports.toLocaleString();
+        statTotalReports.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} text-sm`;
+    }
     
     let hottestYear = 'N/A';
     let maxYearCount = -1;
@@ -905,11 +959,12 @@ function renderMapsGrid(filteredStations) {
             const card = document.createElement('div');
             card.id = `map-card-${yr}`;
             card.className = `glass-panel rounded-lg p-2.5 flex flex-col items-center justify-between border border-slate-200 dark:border-slate-850 cursor-pointer hover:border-slate-500 hover:scale-[1.03] transition-all duration-200`;
+            const accent = getModeAccent();
             
             card.innerHTML = `
                 <div class="flex justify-between items-center w-full mb-1 text-[10px]">
                     <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
-                    <span class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1 rounded border border-orange-500/10">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
+                    <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
                 </div>
                 <svg viewBox="0 0 110 140" class="w-full h-auto">
                     ${statesPathsSvg}
@@ -1133,6 +1188,7 @@ function renderMonthDropdownItems() {
     const lang = currentLang;
     const monthsShort = i18n[lang]['month-names'];
     const monthsLong = i18n[lang]['month-names-long'];
+    const accent = getModeAccent();
     
     container.innerHTML = '';
     for (let m = 1; m <= 12; m++) {
@@ -1142,7 +1198,7 @@ function renderMonthDropdownItems() {
         div.innerHTML = `
             <input type="checkbox" id="check-month-${m}" value="${m}" ${isChecked ? 'checked' : ''} 
                    onchange="onMonthCheckboxChange(this)"
-                   class="w-3.5 h-3.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                   class="w-3.5 h-3.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}">
             <label for="check-month-${m}" class="cursor-pointer select-none text-slate-600 dark:text-slate-350 hover:text-slate-800 dark:hover:text-white" title="${monthsLong[m - 1]}">
                 ${monthsShort[m - 1]}
             </label>
@@ -1201,7 +1257,8 @@ function renderInspectorStationList(filteredStations) {
             }
         }
         
-        item.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${s.station_id === selectedStationId ? 'bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800'}`;
+        const accent = getModeAccent();
+        item.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${s.station_id === selectedStationId ? `${accent.bg} text-white font-semibold shadow-sm ${accent.shadow}` : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800'}`;
         item.setAttribute('onclick', `selectStation('${s.station_id}')`);
         
         item.innerHTML = `
@@ -1246,7 +1303,7 @@ function selectStation(sid, options = {}) {
     if (selectedStationId) {
         const oldItem = document.getElementById(`inspector-item-${selectedStationId}`);
         if (oldItem) {
-            oldItem.className = oldItem.className.replace('bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20', 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800');
+            oldItem.className = 'flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800';
         }
     }
     
@@ -1272,7 +1329,8 @@ function selectStation(sid, options = {}) {
     
     const newItem = document.getElementById(`inspector-item-${sid}`);
     if (newItem) {
-        newItem.className = newItem.className.replace('text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-900 border border-transparent hover:border-slate-300 dark:hover:border-slate-800', 'bg-orange-600 text-white font-semibold shadow-sm shadow-orange-500/20');
+        const accent = getModeAccent();
+        newItem.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${accent.bg} text-white font-semibold shadow-sm ${accent.shadow}`;
     }
     
     renderStationWorkspace(sid);
@@ -1837,6 +1895,7 @@ function loadStateFromURLHash() {
 function syncUIControls() {
     renderMonthDropdownItems();
     updateMonthButtonLabel();
+    const accent = getModeAccent();
 
     const lblMetric = document.getElementById('lbl-metric');
     if (lblMetric) lblMetric.textContent = i18n[currentLang]['lbl-metric'];
@@ -1875,30 +1934,76 @@ function syncUIControls() {
     
     const startSlider = document.getElementById('slider-start-year');
     const startVal = document.getElementById('start-year-val');
-    if (startSlider) startSlider.value = currentStartYear;
-    if (startVal) startVal.textContent = currentStartYear;
+    if (startSlider) {
+        startSlider.value = currentStartYear;
+        startSlider.className = `w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${accent.accent}`;
+    }
+    if (startVal) {
+        startVal.textContent = currentStartYear;
+        startVal.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-2 py-0.5 rounded border ${accent.borderSoft} shrink-0`;
+    }
     
     const covSlider = document.getElementById('slider-coverage');
     const covVal = document.getElementById('coverage-val');
-    if (covSlider) covSlider.value = Math.round(currentCoverageThreshold * 100);
-    if (covVal) covVal.textContent = `${Math.round(currentCoverageThreshold * 100)} %`;
+    if (covSlider) {
+        covSlider.value = Math.round(currentCoverageThreshold * 100);
+        covSlider.className = `w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${accent.accent}`;
+    }
+    if (covVal) {
+        covVal.textContent = `${Math.round(currentCoverageThreshold * 100)} %`;
+        covVal.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-2 py-0.5 rounded border ${accent.borderSoft} shrink-0`;
+    }
     
     const movesCheck = document.getElementById('check-moves-unmoved');
-    if (movesCheck) movesCheck.checked = (currentMovesFilter === 'unmoved');
+    if (movesCheck) {
+        movesCheck.checked = (currentMovesFilter === 'unmoved');
+        movesCheck.className = `w-4 h-4 mt-0.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}`;
+    }
 
     const searchInput = document.getElementById('input-station-search');
-    if (searchInput) searchInput.value = currentSearchQuery;
+    if (searchInput) {
+        searchInput.value = currentSearchQuery;
+        searchInput.className = `w-full text-[11px] bg-slate-200/40 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none ${accent.focusBorder} transition duration-150`;
+    }
+
+    const monthDropdown = document.getElementById('btn-month-dropdown');
+    if (monthDropdown) {
+        monthDropdown.className = `w-full text-xs font-semibold bg-slate-200 dark:bg-slate-900 border border-slate-350 dark:border-slate-800 rounded-lg px-3 py-2 text-left text-slate-700 dark:text-slate-350 flex justify-between items-center cursor-pointer ${accent.borderHover} transition duration-150`;
+    }
+    const btnMonthAll = document.getElementById('btn-month-all');
+    if (btnMonthAll) {
+        btnMonthAll.className = `text-[10px] font-extrabold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} ${accent.bgSoftHover} px-2 py-1 rounded transition duration-150`;
+    }
+    const btnMonthSummer = document.getElementById('btn-month-summer');
+    if (btnMonthSummer) {
+        btnMonthSummer.className = `text-[10px] font-extrabold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} ${accent.bgSoftHover} px-2 py-1 rounded transition duration-150`;
+    }
+
+    const decadesButton = document.getElementById('btn-show-decades');
+    if (decadesButton) {
+        decadesButton.className = `flex flex-col bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-900/60 dark:hover:bg-slate-900 border border-slate-300/80 dark:border-slate-800 hover:${accent.borderSoft} dark:hover:${accent.borderSoft} rounded-lg px-2.5 py-1 text-center min-w-[85px] sm:min-w-[95px] transition duration-150 active:scale-95 group`;
+        const label = document.getElementById('btn-lbl-decades');
+        if (label) {
+            label.className = `text-[9px] text-slate-500 dark:text-slate-550 font-semibold uppercase tracking-wider group-hover:${accent.textSoft.replace('text-', 'text-')} transition duration-150`;
+        }
+        const icon = decadesButton.querySelector('svg');
+        if (icon) {
+            icon.className = `w-3 h-3 ${currentMetric === 'min' ? 'text-sky-500' : 'text-orange-500'}`;
+        }
+    }
 
     // Visual switch buttons sync
     const btnGrid = document.getElementById('btn-view-grid');
     const btnSingle = document.getElementById('btn-view-single');
     if (btnGrid && btnSingle) {
+        const activeViewClass = `px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 ${accent.bg} text-white shadow-sm`;
+        const inactiveViewClass = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
         if (currentViewMode === 'grid') {
-            btnGrid.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
-            btnSingle.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+            btnGrid.className = activeViewClass;
+            btnSingle.className = inactiveViewClass;
         } else {
-            btnSingle.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
-            btnGrid.className = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+            btnSingle.className = activeViewClass;
+            btnGrid.className = inactiveViewClass;
         }
     }
     
@@ -1925,6 +2030,7 @@ function syncUIControls() {
         singleSlider.min = currentStartYear;
         singleSlider.max = maxYearGlobal;
         singleSlider.value = currentActiveYear;
+        singleSlider.className = `flex-grow h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${accent.accent}`;
     }
     
     const sliderMinYearLbl = document.getElementById('slider-min-year-lbl');
@@ -1936,6 +2042,20 @@ function syncUIControls() {
     if (sliderMaxYearLbl) {
         sliderMaxYearLbl.textContent = maxYearGlobal;
     }
+
+    const speedSelect = document.getElementById('select-speed');
+    if (speedSelect) {
+        speedSelect.className = `text-[10px] bg-slate-200 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none ${accent.focusBorder} cursor-pointer font-semibold`;
+    }
+
+    updatePlayButtonAccent();
+}
+
+function updatePlayButtonAccent() {
+    const playBtn = document.getElementById('btn-play-pause');
+    if (!playBtn || animationIntervalId) return;
+    const accent = getModeAccent();
+    playBtn.className = `flex items-center justify-center w-9 h-9 rounded-full ${accent.bg} ${accent.bgHover} text-white font-bold transition duration-150 shadow-md ${accent.shadow} active:scale-95`;
 }
 
 // Set the active visualization view mode ('grid' or 'single')
@@ -1967,6 +2087,7 @@ function renderSingleMap(filteredStations) {
     
     const isDark = document.documentElement.classList.contains('dark');
     const stroke = isDark ? "rgba(148, 163, 184, 0.3)" : "rgba(71, 85, 105, 0.25)";
+    const accent = getModeAccent();
     
     const statesPathsSvg = geojson.features.map(f => {
         const d = geomToPath(f.geometry, 110, 140, bbox);
@@ -1986,7 +2107,7 @@ function renderSingleMap(filteredStations) {
         
         const isSelected = s.station_id === selectedStationId;
         const selectionRing = isSelected 
-            ? `<circle cx="${x}" cy="${y}" r="${style.r + 2.0}" fill="none" stroke="#ea580c" stroke-dasharray="1,1" stroke-width="0.6"/>` 
+            ? `<circle cx="${x}" cy="${y}" r="${style.r + 2.0}" fill="none" stroke="${accent.ringStroke}" stroke-dasharray="1,1" stroke-width="0.6"/>`
             : '';
             
         circlesSvg += `
@@ -1998,7 +2119,7 @@ function renderSingleMap(filteredStations) {
                 <circle cx="${x}" cy="${y}" r="${style.r}" 
                         fill="${style.fill}" fill-opacity="${style.opacity}" 
                         stroke="${isDark ? '#05070c' : '#ffffff'}" stroke-width="0.3"
-                        class="hover:stroke-orange-500 dark:hover:stroke-orange-400 hover:stroke-[0.8] transition-all duration-150">
+                        class="${accent.hoverStroke} hover:stroke-[0.8] transition-all duration-150">
                     <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
                 </circle>
             </g>
@@ -2009,12 +2130,18 @@ function renderSingleMap(filteredStations) {
     
     // Update active labels
     const activeYearDisplay = document.getElementById('lbl-active-year-val');
-    if (activeYearDisplay) activeYearDisplay.textContent = currentActiveYear;
+    if (activeYearDisplay) {
+        activeYearDisplay.textContent = currentActiveYear;
+        activeYearDisplay.className = `font-extrabold text-lg ${accent.textSoft} ${accent.textSoftDark} leading-none`;
+    }
     
     
     
     const metaYear = document.getElementById('single-map-meta-year');
-    if (metaYear) metaYear.textContent = currentActiveYear;
+    if (metaYear) {
+        metaYear.textContent = currentActiveYear;
+        metaYear.className = `font-black text-base ${accent.textSoft} ${accent.textSoftDark} mt-0.5`;
+    }
     
     const metaTotal = document.getElementById('single-map-meta-total');
     if (metaTotal) {
@@ -2056,17 +2183,13 @@ function togglePlayAnimation() {
         animationIntervalId = null;
         if (svgPlay) svgPlay.classList.remove('hidden');
         if (svgPause) svgPause.classList.add('hidden');
-        if (playBtn) {
-            playBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
-            playBtn.classList.add('bg-orange-600', 'hover:bg-orange-500');
-        }
+        updatePlayButtonAccent();
     } else {
         // Play
         if (svgPlay) svgPlay.classList.add('hidden');
         if (svgPause) svgPause.classList.remove('hidden');
         if (playBtn) {
-            playBtn.classList.remove('bg-orange-600', 'hover:bg-orange-500');
-            playBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+            playBtn.className = 'flex items-center justify-center w-9 h-9 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold transition duration-150 shadow-md shadow-red-500/20 active:scale-95';
         }
         
         animationIntervalId = setInterval(() => {
