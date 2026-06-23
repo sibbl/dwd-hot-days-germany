@@ -4,7 +4,9 @@ let geojson = null;
 let bbox = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
-let currentTempThreshold = 35; // 30, 33, or 35
+let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
+let currentTempThreshold = 35; // 30-40 for max, 20-30 for min
+let lastThresholdByMetric = { max: 35, min: 20 };
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
@@ -25,13 +27,20 @@ let maxDaysInMonthsOfLastYear = Array(12).fill(0); // Max observed valid days pe
 const i18n = {
     de: {
         'doc-title': "DWD Extrem Heiße Tage in Deutschland (1961–2025)",
+        'doc-title-min': "DWD Tropennächte in Deutschland (1961–2025)",
         'header-title': "Immer mehr extrem heiße Tage",
+        'header-title-min': "Immer mehr Tropennächte",
         'header-subtitle': "Eine interaktive Rekonstruktion & Erweiterung der DWD-Wetterstations-Daten (1961–2025)",
+        'header-subtitle-min': "Eine interaktive Rekonstruktion der DWD-Tagesminimum-Daten für Tropennächte (1961–2025)",
         'stat-lbl-stations': "Stationen",
         'stat-lbl-reports': "Gesamtmeldungen",
         'stat-lbl-hottest': "Heißestes Jahr",
         'card-title-filter': "Parameter-Filter",
-        'lbl-temp-threshold': "Min. Temperatur-Schwellenwert:",
+        'lbl-metric': "Messwert:",
+        'metric-max': "Tagesmaximum",
+        'metric-min': "Tropennächte",
+        'lbl-temp-threshold-max': "Min. Tagesmaximum:",
+        'lbl-temp-threshold-min': "Min. nächtliches Minimum:",
         'lbl-start-year': "Start-Jahr des Zeitraums:",
         'desc-start-year': "Blendet frühere Jahre aus.",
         'lbl-coverage': "Daten-Vollständigkeit:",
@@ -50,11 +59,14 @@ const i18n = {
         'n-months': "{n} Monate",
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
-        'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Überschreitungen des Schwellenwerts an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tropennächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'card-title-grid': "Deutschlandkarten-Raster",
-        'card-subtitle-grid': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.",
+        'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
+        'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tropennächte über dem Schwellenwert.",
         'card-title-single': "Klimawandel-Animation",
-        'card-subtitle-single': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
+        'card-subtitle-single-max': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
+        'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung tropischer Nächte über Jahrzehnte hinweg zu animieren.",
         'legend-lbl-days': "Tage:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
@@ -69,7 +81,8 @@ const i18n = {
         'lbl-elevation': "Stationshöhe",
         'lbl-geo-pos': "Geografische Lage",
         'lbl-coverage-ins': "Datenvollständigkeit",
-        'lbl-chart-trend': "Jährlicher Hitze-Trend (Schwellenwert &ge; {temp} °C)",
+        'lbl-chart-trend-max': "Jährlicher Hitze-Trend (Tagesmaximum &ge; {temp} °C)",
+        'lbl-chart-trend-min': "Jährlicher Tropennächte-Trend (Tagesminimum &ge; {temp} °C)",
         'lbl-chart-sub': "Balkendiagramm {start}–2025",
         'lbl-names-timeline': "Namensänderungen",
         'lbl-owners-timeline': "Betreiber / Inhaber",
@@ -108,13 +121,20 @@ const i18n = {
     },
     en: {
         'doc-title': "DWD Extremely Hot Days in Germany (1961–2025)",
+        'doc-title-min': "DWD Tropical Nights in Germany (1961–2025)",
         'header-title': "More and More Extremely Hot Days",
+        'header-title-min': "More and More Tropical Nights",
         'header-subtitle': "An interactive reconstruction & extension of DWD weather station data (1961–2025)",
+        'header-subtitle-min': "An interactive reconstruction of DWD daily minimum temperature data for tropical nights (1961–2025)",
         'stat-lbl-stations': "Stations",
         'stat-lbl-reports': "Total Reports",
         'stat-lbl-hottest': "Hottest Year",
         'card-title-filter': "Parameter Filters",
-        'lbl-temp-threshold': "Min. Temperature Threshold:",
+        'lbl-metric': "Measurement:",
+        'metric-max': "Daily maximum",
+        'metric-min': "Tropical nights",
+        'lbl-temp-threshold-max': "Min. daily maximum:",
+        'lbl-temp-threshold-min': "Min. nightly minimum:",
         'lbl-start-year': "Start Year of Timeframe:",
         'desc-start-year': "Hides previous years.",
         'lbl-coverage': "Data Completeness:",
@@ -133,11 +153,14 @@ const i18n = {
         'n-months': "{n} Months",
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
-        'decades-methodology': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent the accumulated days exceeding the threshold across all selected stations within each decade.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above the threshold across all selected stations within each decade.",
+        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated tropical nights with daily minimum temperature at or above the threshold across all selected stations within each decade.",
         'card-title-grid': "Germany Weather Map Grid",
-        'card-subtitle-grid': "Each dot represents a weather station. Bubble size & color denote the count of days exceeding the threshold.",
+        'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
+        'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of tropical nights exceeding the threshold.",
         'card-title-single': "Climate Change Animation",
-        'card-subtitle-single': "Use the play button to animate the rise of extremely hot days across decades.",
+        'card-subtitle-single-max': "Use the play button to animate the rise of extremely hot days across decades.",
+        'card-subtitle-single-min': "Use the play button to animate the development of tropical nights across decades.",
         'legend-lbl-days': "Days:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
@@ -152,7 +175,8 @@ const i18n = {
         'lbl-elevation': "Elevation",
         'lbl-geo-pos': "Geographical Position",
         'lbl-coverage-ins': "Data Coverage",
-        'lbl-chart-trend': "Annual Heat Trend (Threshold &ge; {temp} °C)",
+        'lbl-chart-trend-max': "Annual Heat Trend (Daily Maximum &ge; {temp} °C)",
+        'lbl-chart-trend-min': "Annual Tropical Nights Trend (Daily Minimum &ge; {temp} °C)",
         'lbl-chart-sub': "Bar Chart {start}–2025",
         'lbl-names-timeline': "Name Changes",
         'lbl-owners-timeline': "Operators / Owners",
@@ -224,9 +248,12 @@ function setLanguage(lang) {
     
     // Translate static elements using direct dictionary lookup
     const endYearLabel = getEndYearLabel(lang);
-    document.title = i18n[lang]['doc-title'].replace('2025', endYearLabel);
-    document.getElementById('header-title').textContent = i18n[lang]['header-title'];
-    document.getElementById('header-subtitle').textContent = i18n[lang]['header-subtitle'].replace('2025', endYearLabel);
+    const docTitleKey = currentMetric === 'min' ? 'doc-title-min' : 'doc-title';
+    const headerTitleKey = currentMetric === 'min' ? 'header-title-min' : 'header-title';
+    const headerSubtitleKey = currentMetric === 'min' ? 'header-subtitle-min' : 'header-subtitle';
+    document.title = i18n[lang][docTitleKey].replace('2025', endYearLabel);
+    document.getElementById('header-title').textContent = i18n[lang][headerTitleKey];
+    document.getElementById('header-subtitle').textContent = i18n[lang][headerSubtitleKey].replace('2025', endYearLabel);
     document.getElementById('stat-lbl-stations').textContent = i18n[lang]['stat-lbl-stations'];
     document.getElementById('stat-lbl-reports').textContent = i18n[lang]['stat-lbl-reports'];
     const lblHottest = document.getElementById('stat-lbl-hottest');
@@ -235,7 +262,10 @@ function setLanguage(lang) {
     const lblCardTitleFilter = document.getElementById('card-title-filter');
     if (lblCardTitleFilter) lblCardTitleFilter.textContent = i18n[lang]['card-title-filter'];
     
-    document.getElementById('lbl-temp-threshold').textContent = i18n[lang]['lbl-temp-threshold'];
+    document.getElementById('lbl-metric').textContent = i18n[lang]['lbl-metric'];
+    document.getElementById('btn-metric-max').textContent = i18n[lang]['metric-max'];
+    document.getElementById('btn-metric-min').textContent = i18n[lang]['metric-min'];
+    document.getElementById('lbl-temp-threshold').textContent = i18n[lang][`lbl-temp-threshold-${currentMetric}`];
     document.getElementById('lbl-start-year').textContent = i18n[lang]['lbl-start-year'];
     
     const lblDescStartYear = document.getElementById('desc-start-year');
@@ -268,10 +298,10 @@ function setLanguage(lang) {
     
     document.getElementById('card-title-decades').textContent = i18n[lang]['card-title-decades'];
     document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
-    document.getElementById('decades-methodology').innerHTML = i18n[lang]['decades-methodology'];
+    document.getElementById('decades-methodology').innerHTML = i18n[lang][`decades-methodology-${currentMetric}`];
     
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
-    document.getElementById('card-subtitle-grid').textContent = i18n[lang]['card-subtitle-grid'];
+    document.getElementById('card-subtitle-grid').textContent = i18n[lang][`card-subtitle-grid-${currentMetric}`];
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
     document.getElementById('inspector-title').textContent = i18n[lang]['inspector-title'];
@@ -427,19 +457,96 @@ const HEAT_SCALES = {
     40: [1, 2, 3, 4, 5]
 };
 
+const NIGHT_SCALES = {
+    20: [5, 15, 30, 45, 60],
+    21: [5, 15, 30, 45, 60],
+    22: [3, 10, 20, 30, 40],
+    23: [3, 8, 15, 24, 32],
+    24: [2, 6, 12, 18, 24],
+    25: [1, 4, 8, 12, 16],
+    26: [1, 3, 6, 9, 12],
+    27: [1, 2, 4, 6, 8],
+    28: [1, 2, 3, 4, 5],
+    29: [1, 2, 3, 4, 5],
+    30: [1, 2, 3, 4, 5]
+};
+
+const METRIC_CONFIG = {
+    max: {
+        keyPrefix: 't',
+        minThreshold: 30,
+        maxThreshold: 40,
+        defaultThreshold: 35,
+        scales: HEAT_SCALES,
+        fill: '#ea580c'
+    },
+    min: {
+        keyPrefix: 'n',
+        minThreshold: 20,
+        maxThreshold: 30,
+        defaultThreshold: 20,
+        scales: NIGHT_SCALES,
+        fill: '#db2777'
+    }
+};
+
 const HEAT_BUBBLE_RADII = [1.4, 2.2, 3.0, 3.8, 4.6];
+
+function getMetricConfig() {
+    return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
+}
+
+function getMetricDataKey() {
+    return `${getMetricConfig().keyPrefix}${currentTempThreshold}`;
+}
+
+function getMetricScale() {
+    const config = getMetricConfig();
+    return config.scales[currentTempThreshold] || Object.values(config.scales)[0];
+}
+
+function getMonthlyValidDays(yearData, month) {
+    if (!yearData) return undefined;
+    const idx = month - 1;
+    if (currentMetric === 'min' && yearData.m_valid_min && yearData.m_valid_min[idx] !== undefined) {
+        return yearData.m_valid_min[idx];
+    }
+    if (yearData.m_valid_max && yearData.m_valid_max[idx] !== undefined) {
+        return yearData.m_valid_max[idx];
+    }
+    if (yearData.m_valid && yearData.m_valid[idx] !== undefined) {
+        return yearData.m_valid[idx];
+    }
+    return undefined;
+}
+
+function refreshMaxDaysInMonthsOfLastYear() {
+    maxDaysInMonthsOfLastYear = Array(12).fill(0);
+    weatherData.forEach(s => {
+        const yrData = s.annual_data[maxYearGlobal];
+        if (yrData) {
+            for (let m = 1; m <= 12; m++) {
+                const v = getMonthlyValidDays(yrData, m) || 0;
+                if (v > maxDaysInMonthsOfLastYear[m - 1]) {
+                    maxDaysInMonthsOfLastYear[m - 1] = v;
+                }
+            }
+        }
+    });
+}
 
 // Get heat bubble styling (radius, opacity, color)
 function getHeatStyle(days) {
     if (days === 0) return { r: 0.5, opacity: 0.05, fill: '#475569' }; // extremely faint gray dot
     
-    const scale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
+    const scale = getMetricScale();
+    const fill = getMetricConfig().fill;
     
-    if (days >= scale[0] && days < scale[1]) return { r: HEAT_BUBBLE_RADII[0], opacity: 0.40, fill: '#ea580c' }; // single orange-red color, varying size & opacity
-    if (days >= scale[1] && days < scale[2]) return { r: HEAT_BUBBLE_RADII[1], opacity: 0.65, fill: '#ea580c' };
-    if (days >= scale[2] && days < scale[3]) return { r: HEAT_BUBBLE_RADII[2], opacity: 0.85, fill: '#ea580c' };
-    if (days >= scale[3] && days < scale[4]) return { r: HEAT_BUBBLE_RADII[3], opacity: 0.95, fill: '#ea580c' };
-    return { r: HEAT_BUBBLE_RADII[4], opacity: 1.0, fill: '#ea580c' }; // scale[4] or more
+    if (days >= scale[0] && days < scale[1]) return { r: HEAT_BUBBLE_RADII[0], opacity: 0.40, fill }; // single color, varying size & opacity
+    if (days >= scale[1] && days < scale[2]) return { r: HEAT_BUBBLE_RADII[1], opacity: 0.65, fill };
+    if (days >= scale[2] && days < scale[3]) return { r: HEAT_BUBBLE_RADII[2], opacity: 0.85, fill };
+    if (days >= scale[3] && days < scale[4]) return { r: HEAT_BUBBLE_RADII[3], opacity: 0.95, fill };
+    return { r: HEAT_BUBBLE_RADII[4], opacity: 1.0, fill }; // scale[4] or more
 }
 
 // Translate raw DWD equipment models to English
@@ -484,24 +591,11 @@ async function loadData() {
         maxYearGlobal = maxYear;
         currentActiveYear = maxYearGlobal;
         
-        // Calculate max days observed in each month of the max year to handle incomplete current year
-        maxDaysInMonthsOfLastYear = Array(12).fill(0);
-        weatherData.forEach(s => {
-            const yrData = s.annual_data[maxYearGlobal];
-            if (yrData && yrData.m_valid) {
-                for (let m = 0; m < 12; m++) {
-                    const v = yrData.m_valid[m] || 0;
-                    if (v > maxDaysInMonthsOfLastYear[m]) {
-                        maxDaysInMonthsOfLastYear[m] = v;
-                    }
-                }
-            }
-        });
-        
         console.log("Data loaded successfully!", weatherData.length, "stations, Max Year:", maxYearGlobal, "BBox:", bbox);
         
         // Load state from URL hash
         loadStateFromURLHash();
+        refreshMaxDaysInMonthsOfLastYear();
         setLanguage(currentLang);
         syncUIControls();
         
@@ -534,7 +628,7 @@ function getDaysCountForYear(station, year) {
     
     // Fast path: if all 12 months are selected, return precalculated annual total
     if (currentMonths.length === 12) {
-        return yrData[`t${currentTempThreshold}`] || 0;
+        return yrData[getMetricDataKey()] || 0;
     }
     
     if (!yrData.m_data) {
@@ -545,7 +639,7 @@ function getDaysCountForYear(station, year) {
     currentMonths.forEach(m => {
         const mData = yrData.m_data[String(m)];
         if (mData) {
-            sum += mData[`t${currentTempThreshold}`] || 0;
+            sum += mData[getMetricDataKey()] || 0;
         }
     });
     return sum;
@@ -583,8 +677,9 @@ function calculateCoverageForPeriod(station, startYear, endYear) {
             selectedYearDays += mDays;
             
             if (yrData) {
-                if (yrData.m_valid && yrData.m_valid[m - 1] !== undefined) {
-                    selectedValidDays += yrData.m_valid[m - 1];
+                const monthlyValid = getMonthlyValidDays(yrData, m);
+                if (monthlyValid !== undefined) {
+                    selectedValidDays += monthlyValid;
                 } else if (yrData.valid_days !== undefined) {
                     // Fallback scaling if monthly details are missing
                     const totalYearDays = isLeap ? 366 : 365;
@@ -677,7 +772,7 @@ function renderDecadalStats(filteredStations) {
         const pct = (total / maxDecadeVal) * 100;
         
         let referenceLabel = '';
-        if (currentStartYear === 1961 && currentCoverageThreshold === 0.80 && currentTempThreshold === 35) {
+        if (currentMetric === 'max' && currentStartYear === 1961 && currentCoverageThreshold === 0.80 && currentTempThreshold === 35) {
             const refMap = {
                 '1961–1970': 122, '1971–1980': 158, '1981–1990': 328,
                 '1991–2000': 672, '2001–2010': 1321, '2011–2020': 2488
@@ -837,9 +932,9 @@ function updateDashboard() {
     }
     if (subtitleElement) {
         if (currentViewMode === 'grid') {
-            subtitleElement.textContent = i18n[currentLang]['card-subtitle-grid'];
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-grid-${currentMetric}`];
         } else {
-            subtitleElement.textContent = i18n[currentLang]['card-subtitle-single'];
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
         }
     }
     
@@ -879,6 +974,7 @@ function updateDashboard() {
 // Parameters modifications
 function setTemperatureThreshold(temp) {
     currentTempThreshold = parseInt(temp);
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
     
     const valDisplay = document.getElementById('temp-threshold-val');
     if (valDisplay) {
@@ -895,6 +991,22 @@ function setTemperatureThreshold(temp) {
     if (selectedStationId) {
         renderStationWorkspace(selectedStationId);
     }
+}
+
+function setMetric(metric) {
+    if (!METRIC_CONFIG[metric] || currentMetric === metric) return;
+
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
+    currentMetric = metric;
+
+    const config = getMetricConfig();
+    const savedThreshold = lastThresholdByMetric[currentMetric] || config.defaultThreshold;
+    currentTempThreshold = Math.min(config.maxThreshold, Math.max(config.minThreshold, savedThreshold));
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
+
+    refreshMaxDaysInMonthsOfLastYear();
+    setLanguage(currentLang);
+    syncUIControls();
 }
 
 function updateStartYear(val) {
@@ -1192,7 +1304,7 @@ function renderStationWorkspace(sid) {
         }
     }
     
-    const chartTitle = t['lbl-chart-trend'].replace('{temp}', currentTempThreshold);
+    const chartTitle = t[`lbl-chart-trend-${currentMetric}`].replace('{temp}', currentTempThreshold);
     const chartSubtitle = t['lbl-chart-sub'].replace('{start}', currentStartYear).replace('2025', getEndYearLabel(currentLang));
     
     workspace.innerHTML = `
@@ -1566,7 +1678,7 @@ function updateLegend() {
     const isDark = document.documentElement.classList.contains('dark');
     const strokeColor = isDark ? '#05070c' : '#ffffff';
 
-    const activeScale = HEAT_SCALES[currentTempThreshold] || [1, 4, 8, 12, 16];
+    const activeScale = getMetricScale();
     const groups = [
         { label: `${activeScale[0]}`, minDays: activeScale[0] },
         { label: `${activeScale[1]}`, minDays: activeScale[1] },
@@ -1599,6 +1711,7 @@ function updateLegend() {
 // Update the URL hash to reflect the current visualization parameter states
 function updateURLHash() {
     const params = new URLSearchParams();
+    params.set('metric', currentMetric);
     params.set('temp', currentTempThreshold);
     params.set('start', currentStartYear);
     params.set('coverage', Math.round(currentCoverageThreshold * 100));
@@ -1630,15 +1743,31 @@ function loadStateFromURLHash() {
     currentViewMode = window.innerWidth < 1024 ? 'single' : 'grid';
     currentActiveYear = maxYearGlobal;
     currentSearchQuery = '';
+    currentMetric = 'max';
+    currentTempThreshold = METRIC_CONFIG.max.defaultThreshold;
+    lastThresholdByMetric = { max: METRIC_CONFIG.max.defaultThreshold, min: METRIC_CONFIG.min.defaultThreshold };
     
     if (!hash) return;
     
     const params = new URLSearchParams(hash);
+
+    if (params.has('metric')) {
+        const val = params.get('metric');
+        if (val === 'max' || val === 'min') currentMetric = val;
+    }
     
     if (params.has('temp')) {
         const val = parseInt(params.get('temp'));
-        if (val >= 30 && val <= 40) currentTempThreshold = val;
+        const config = getMetricConfig();
+        if (val >= config.minThreshold && val <= config.maxThreshold) {
+            currentTempThreshold = val;
+        } else {
+            currentTempThreshold = config.defaultThreshold;
+        }
+    } else {
+        currentTempThreshold = getMetricConfig().defaultThreshold;
     }
+    lastThresholdByMetric[currentMetric] = currentTempThreshold;
     if (params.has('start')) {
         const val = parseInt(params.get('start'));
         if (val >= 1961 && val <= 2020) currentStartYear = val;
@@ -1681,10 +1810,33 @@ function loadStateFromURLHash() {
 function syncUIControls() {
     renderMonthDropdownItems();
     updateMonthButtonLabel();
+
+    const lblMetric = document.getElementById('lbl-metric');
+    if (lblMetric) lblMetric.textContent = i18n[currentLang]['lbl-metric'];
+
+    const lblTempThreshold = document.getElementById('lbl-temp-threshold');
+    if (lblTempThreshold) lblTempThreshold.textContent = i18n[currentLang][`lbl-temp-threshold-${currentMetric}`];
+
+    const btnMetricMax = document.getElementById('btn-metric-max');
+    const btnMetricMin = document.getElementById('btn-metric-min');
+    if (btnMetricMax && btnMetricMin) {
+        btnMetricMax.textContent = i18n[currentLang]['metric-max'];
+        btnMetricMin.textContent = i18n[currentLang]['metric-min'];
+
+        const activeClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
+        const inactiveClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+        btnMetricMax.className = currentMetric === 'max' ? activeClass : inactiveClass;
+        btnMetricMin.className = currentMetric === 'min' ? activeClass : inactiveClass;
+    }
     
     const tempSlider = document.getElementById('slider-temp-threshold');
     const tempVal = document.getElementById('temp-threshold-val');
-    if (tempSlider) tempSlider.value = currentTempThreshold;
+    const config = getMetricConfig();
+    if (tempSlider) {
+        tempSlider.min = config.minThreshold;
+        tempSlider.max = config.maxThreshold;
+        tempSlider.value = currentTempThreshold;
+    }
     if (tempVal) tempVal.textContent = `${currentTempThreshold} °C`;
     
     const startSlider = document.getElementById('slider-start-year');
@@ -1830,9 +1982,17 @@ function renderSingleMap(filteredStations) {
     if (metaTotal) {
         let totalWord;
         if (currentLang === 'de') {
-            totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
+            if (currentMetric === 'min') {
+                totalWord = totalYearDays === 1 ? 'Tropennacht gesamt' : 'Tropennächte gesamt';
+            } else {
+                totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
+            }
         } else {
-            totalWord = totalYearDays === 1 ? 'day total' : 'days total';
+            if (currentMetric === 'min') {
+                totalWord = totalYearDays === 1 ? 'tropical night total' : 'tropical nights total';
+            } else {
+                totalWord = totalYearDays === 1 ? 'day total' : 'days total';
+            }
         }
         metaTotal.textContent = `${totalYearDays} ${totalWord}`;
     }
@@ -1909,6 +2069,7 @@ window.addEventListener('resize', () => {
 // Listen for browser Back/Forward navigation to sync the UI
 window.addEventListener('hashchange', () => {
     loadStateFromURLHash();
+    refreshMaxDaysInMonthsOfLastYear();
     syncUIControls();
     updateDashboard();
     if (selectedStationId) {
