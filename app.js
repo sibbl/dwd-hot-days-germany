@@ -1262,6 +1262,9 @@ function selectStation(sid) {
     }
     
     renderStationWorkspace(sid);
+    if (currentViewMode === 'single') {
+        renderSingleMap(getFilteredStations());
+    }
     updateURLHash(); // Update URL hash dynamically when a new station is selected
 }
 
@@ -1958,6 +1961,7 @@ function renderSingleMap(filteredStations) {
         
         const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
         const style = getHeatStyle(days);
+        const hitRadius = Math.max(style.r + 1.1, 3.2);
         
         const isSelected = s.station_id === selectedStationId;
         const selectionRing = isSelected 
@@ -1966,6 +1970,9 @@ function renderSingleMap(filteredStations) {
             
         circlesSvg += `
             <g class="cursor-pointer" onclick="selectStation('${s.station_id}')">
+                <circle cx="${x}" cy="${y}" r="${hitRadius}" fill="transparent" stroke="none" pointer-events="all">
+                    <title>${s.name}: ${days} ${i18n[currentLang]['lbl-day-unit']}</title>
+                </circle>
                 ${selectionRing}
                 <circle cx="${x}" cy="${y}" r="${style.r}" 
                         fill="${style.fill}" fill-opacity="${style.opacity}" 
