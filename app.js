@@ -59,8 +59,8 @@ const i18n = {
         'n-months': "{n} Monate",
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
-        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
-        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert ist 22 °C; ab 20 °C spricht man von Tropennächten.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
         'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
@@ -153,8 +153,8 @@ const i18n = {
         'n-months': "{n} Months",
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
-        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above the threshold across all selected stations within each decade.",
-        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The default is 22 °C; 20 °C and above is the tropical-night definition.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above {temp} °C across all selected stations within each decade.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above {temp} °C across all selected stations within each decade.",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
         'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
@@ -298,7 +298,7 @@ function setLanguage(lang) {
     
     document.getElementById('card-title-decades').textContent = i18n[lang]['card-title-decades'];
     document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
-    document.getElementById('decades-methodology').innerHTML = i18n[lang][`decades-methodology-${currentMetric}`];
+    document.getElementById('decades-methodology').innerHTML = i18n[lang][`decades-methodology-${currentMetric}`].replace('{temp}', currentTempThreshold);
     
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
     document.getElementById('card-subtitle-grid').textContent = i18n[lang][`card-subtitle-grid-${currentMetric}`];
@@ -808,7 +808,7 @@ function getFilteredStations() {
 
 // Calculate decadal reports and display them
 function renderDecadalStats(filteredStations) {
-    const currentDecadeLabel = `2021–${maxYearGlobal}`;
+    const currentDecadeLabel = `2021–${getEndYearLabel(currentLang)}`;
     const decadeTotals = {
         '1961–1970': 0,
         '1971–1980': 0,
