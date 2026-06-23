@@ -73,7 +73,7 @@ const i18n = {
         'inspector-subtitle': "Suchen Sie eine Wetterstation, um deren exakte Umzüge, Namensänderungen und Temperatur-Trends zu inspizieren.",
         'inspector-lbl-stations': "Stationen",
         'input-station-search-placeholder': "Station suchen (z.B. Berlin, Alfhausen)...",
-        'inspector-select-prompt': "Wählen Sie links eine Station aus, um die Standort-Verlegungen & Gerätedaten zu laden.",
+        'inspector-select-prompt': "Wählen Sie eine Station aus, um die Standort-Verlegungen & Gerätedaten zu laden.",
         
         // Dynamic Inspector terms
         'type-station': "Wetterstation",
@@ -167,7 +167,7 @@ const i18n = {
         'inspector-subtitle': "Search for a weather station to inspect its relocations, name modifications, and local temperature trends.",
         'inspector-lbl-stations': "Stations",
         'input-station-search-placeholder': "Search station (e.g. Berlin, Hamburg, Alfhausen)...",
-        'inspector-select-prompt': "Select a weather station from the sidebar to inspect relocation timelines & device history.",
+        'inspector-select-prompt': "Select a weather station to inspect relocation timelines & device history.",
         
         // Dynamic Inspector terms
         'type-station': "Weather Station",
@@ -490,8 +490,8 @@ const METRIC_CONFIG = {
     }
 };
 
-const GRID_BUBBLE_RADII = [0.7, 1.1, 1.5, 1.9, 2.3];
-const SINGLE_BUBBLE_RADII = [0.575, 0.9, 1.225, 1.55, 1.85];
+const GRID_BUBBLE_RADII = [0.9, 1.4, 2.0, 2.6, 3.0];
+const SINGLE_BUBBLE_RADII = [0.9, 1.4, 2.0, 2.6, 3.0];
 
 function getMetricConfig() {
     return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
@@ -612,7 +612,7 @@ async function loadData() {
         if (selectedStationId) {
             const activeStations = getFilteredStations();
             if (activeStations.some(s => s.station_id === selectedStationId)) {
-                selectStation(selectedStationId);
+                selectStation(selectedStationId, { force: true });
             }
         }
         
@@ -1237,7 +1237,12 @@ function filterStationList(query, skipHashUpdate = false) {
     }
 }
 
-function selectStation(sid) {
+function selectStation(sid, options = {}) {
+    if (sid && selectedStationId === sid && !options.force) {
+        selectStation(null);
+        return;
+    }
+
     if (selectedStationId) {
         const oldItem = document.getElementById(`inspector-item-${selectedStationId}`);
         if (oldItem) {
@@ -1255,6 +1260,9 @@ function selectStation(sid) {
                     <p id="inspector-select-prompt" class="text-sm font-semibold">${i18n[currentLang]['inspector-select-prompt']}</p>
                 </div>
             `;
+        }
+        if (currentViewMode === 'single') {
+            renderSingleMap(getFilteredStations());
         }
         updateURLHash();
         return;
@@ -1842,10 +1850,11 @@ function syncUIControls() {
         btnMetricMax.textContent = i18n[currentLang]['metric-max'];
         btnMetricMin.textContent = i18n[currentLang]['metric-min'];
 
-        const activeClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
+        const activeMaxClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm';
+        const activeMinClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-sky-600 text-white shadow-sm';
         const inactiveClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
-        btnMetricMax.className = currentMetric === 'max' ? activeClass : inactiveClass;
-        btnMetricMin.className = currentMetric === 'min' ? activeClass : inactiveClass;
+        btnMetricMax.className = currentMetric === 'max' ? activeMaxClass : inactiveClass;
+        btnMetricMin.className = currentMetric === 'min' ? activeMinClass : inactiveClass;
     }
     
     const tempSlider = document.getElementById('slider-temp-threshold');
@@ -1855,8 +1864,14 @@ function syncUIControls() {
         tempSlider.min = config.minThreshold;
         tempSlider.max = config.maxThreshold;
         tempSlider.value = currentTempThreshold;
+        tempSlider.className = `w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer ${currentMetric === 'min' ? 'accent-sky-500' : 'accent-orange-500'}`;
     }
-    if (tempVal) tempVal.textContent = `${currentTempThreshold} °C`;
+    if (tempVal) {
+        tempVal.textContent = `${currentTempThreshold} °C`;
+        tempVal.className = currentMetric === 'min'
+            ? 'font-bold text-sky-700 dark:text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20 shrink-0'
+            : 'font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shrink-0';
+    }
     
     const startSlider = document.getElementById('slider-start-year');
     const startVal = document.getElementById('start-year-val');
@@ -2104,7 +2119,7 @@ window.addEventListener('hashchange', () => {
     syncUIControls();
     updateDashboard();
     if (selectedStationId) {
-        selectStation(selectedStationId);
+        selectStation(selectedStationId, { force: true });
     } else {
         selectStation(null);
     }
