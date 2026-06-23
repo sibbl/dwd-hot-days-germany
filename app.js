@@ -490,7 +490,8 @@ const METRIC_CONFIG = {
     }
 };
 
-const HEAT_BUBBLE_RADII = [0.7, 1.1, 1.5, 1.9, 2.3];
+const GRID_BUBBLE_RADII = [1.4, 2.2, 3.0, 3.8, 4.6];
+const SINGLE_BUBBLE_RADII = [1.15, 1.8, 2.45, 3.1, 3.7];
 
 function getMetricConfig() {
     return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
@@ -536,17 +537,22 @@ function refreshMaxDaysInMonthsOfLastYear() {
 }
 
 // Get heat bubble styling (radius, opacity, color)
-function getHeatStyle(days) {
+function getBubbleRadii(viewMode = currentViewMode) {
+    return viewMode === 'single' ? SINGLE_BUBBLE_RADII : GRID_BUBBLE_RADII;
+}
+
+function getHeatStyle(days, viewMode = currentViewMode) {
     if (days === 0) return { r: 0.5, opacity: 0.05, fill: '#475569' }; // extremely faint gray dot
     
     const scale = getMetricScale();
     const fill = getMetricConfig().fill;
+    const radii = getBubbleRadii(viewMode);
     
-    if (days >= scale[0] && days < scale[1]) return { r: HEAT_BUBBLE_RADII[0], opacity: 0.40, fill }; // single color, varying size & opacity
-    if (days >= scale[1] && days < scale[2]) return { r: HEAT_BUBBLE_RADII[1], opacity: 0.65, fill };
-    if (days >= scale[2] && days < scale[3]) return { r: HEAT_BUBBLE_RADII[2], opacity: 0.85, fill };
-    if (days >= scale[3] && days < scale[4]) return { r: HEAT_BUBBLE_RADII[3], opacity: 0.95, fill };
-    return { r: HEAT_BUBBLE_RADII[4], opacity: 1.0, fill }; // scale[4] or more
+    if (days >= scale[0] && days < scale[1]) return { r: radii[0], opacity: 0.40, fill }; // single color, varying size & opacity
+    if (days >= scale[1] && days < scale[2]) return { r: radii[1], opacity: 0.65, fill };
+    if (days >= scale[2] && days < scale[3]) return { r: radii[2], opacity: 0.85, fill };
+    if (days >= scale[3] && days < scale[4]) return { r: radii[3], opacity: 0.95, fill };
+    return { r: radii[4], opacity: 1.0, fill }; // scale[4] or more
 }
 
 // Translate raw DWD equipment models to English
@@ -884,7 +890,7 @@ function renderMapsGrid(filteredStations) {
                 totalYearDays += days;
                 
                 const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
-                const style = getHeatStyle(days);
+                const style = getHeatStyle(days, 'grid');
                 
                 circlesSvg += `
                     <circle cx="${x}" cy="${y}" r="${style.r}" 
@@ -1703,7 +1709,7 @@ function updateLegend() {
     ];
 
     container.innerHTML = groups.map(g => {
-        const style = getHeatStyle(g.minDays);
+        const style = getHeatStyle(g.minDays, currentViewMode);
         const physicalRadius = style.r * scale;
         const size = Math.max(20, Math.ceil((physicalRadius + 1) * 2));
         const center = size / 2;
@@ -1960,7 +1966,7 @@ function renderSingleMap(filteredStations) {
         totalYearDays += days;
         
         const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
-        const style = getHeatStyle(days);
+        const style = getHeatStyle(days, 'single');
         const hitRadius = Math.max(style.r + 1.1, 3.2);
         
         const isSelected = s.station_id === selectedStationId;

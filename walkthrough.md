@@ -17,10 +17,12 @@ Date: 2026-06-23
 
 - Desktop hot-day view loaded without console errors.
 - Hot-day mode rendered 66 map cards and 12,342 station circles.
-- Maximum rendered non-zero bubble radius is now `2.3` SVG units.
+- Maximum theoretical Raster bubble radius is now `4.6` SVG units.
+- Maximum theoretical Einzelkarte bubble radius is now `3.7` SVG units.
 - Legend rendered 5 synchronized bubble entries.
 - Default view without URL state is Raster.
 - Legend bubble sizes match the currently visible map SVG scale in both Raster and Einzelkarte.
+- Single-map station markers include an invisible hit area so the reduced bubbles remain selectable, and selected stations redraw with a map ring.
 - Night-minimum mode switched successfully:
   - URL hash became `metric=min`.
   - Threshold slider switched to `18`-`28`.
