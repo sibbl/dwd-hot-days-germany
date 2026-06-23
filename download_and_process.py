@@ -439,7 +439,7 @@ def main():
             }
             for temp_t in range(30, 41):
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
-            for temp_t in range(20, 31):
+            for temp_t in range(17, 28):
                 stats[f'n{temp_t}'] = int((group['TNK'] >= float(temp_t)).sum())
                 
             # Aggregate monthly stats
@@ -457,7 +457,7 @@ def main():
                         count = int((m_group['TXK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f't{temp_t}'] = count
-                    for temp_t in range(20, 31):
+                    for temp_t in range(17, 28):
                         count = int((m_group['TNK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f'n{temp_t}'] = count

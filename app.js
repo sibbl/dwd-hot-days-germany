@@ -27,18 +27,18 @@ let maxDaysInMonthsOfLastYear = Array(12).fill(0); // Max observed valid days pe
 const i18n = {
     de: {
         'doc-title': "DWD Extrem Heiße Tage in Deutschland (1961–2025)",
-        'doc-title-min': "DWD Tropennächte in Deutschland (1961–2025)",
+        'doc-title-min': "DWD Warme Nächte in Deutschland (1961–2025)",
         'header-title': "Immer mehr extrem heiße Tage",
-        'header-title-min': "Immer mehr Tropennächte",
+        'header-title-min': "Warme und tropische Nächte",
         'header-subtitle': "Eine interaktive Rekonstruktion & Erweiterung der DWD-Wetterstations-Daten (1961–2025)",
-        'header-subtitle-min': "Eine interaktive Rekonstruktion der DWD-Tagesminimum-Daten für Tropennächte (1961–2025)",
+        'header-subtitle-min': "Eine interaktive Rekonstruktion der DWD-Tagesminimum-Daten (1961–2025)",
         'stat-lbl-stations': "Stationen",
         'stat-lbl-reports': "Gesamtmeldungen",
         'stat-lbl-hottest': "Heißestes Jahr",
         'card-title-filter': "Parameter-Filter",
         'lbl-metric': "Messwert:",
         'metric-max': "Tagesmaximum",
-        'metric-min': "Tropennächte",
+        'metric-min': "Nächtliches Minimum",
         'lbl-temp-threshold-max': "Min. Tagesmaximum:",
         'lbl-temp-threshold-min': "Min. nächtliches Minimum:",
         'lbl-start-year': "Start-Jahr des Zeitraums:",
@@ -60,13 +60,13 @@ const i18n = {
         'card-title-decades': "Meldungen pro Jahrzehnt",
         'btn-lbl-decades': "Jahrzehnte",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
-        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tropennächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab dem Schwellenwert an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts. Der Standardwert 20 °C entspricht der Tropennacht-Definition.",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
-        'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tropennächte über dem Schwellenwert.",
+        'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
         'card-title-single': "Klimawandel-Animation",
         'card-subtitle-single-max': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
-        'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung tropischer Nächte über Jahrzehnte hinweg zu animieren.",
+        'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung warmer Nächte über Jahrzehnte hinweg zu animieren.",
         'legend-lbl-days': "Tage:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
@@ -82,7 +82,7 @@ const i18n = {
         'lbl-geo-pos': "Geografische Lage",
         'lbl-coverage-ins': "Datenvollständigkeit",
         'lbl-chart-trend-max': "Jährlicher Hitze-Trend (Tagesmaximum &ge; {temp} °C)",
-        'lbl-chart-trend-min': "Jährlicher Tropennächte-Trend (Tagesminimum &ge; {temp} °C)",
+        'lbl-chart-trend-min': "Jährlicher Nächte-Trend (Tagesminimum &ge; {temp} °C)",
         'lbl-chart-sub': "Balkendiagramm {start}–2025",
         'lbl-names-timeline': "Namensänderungen",
         'lbl-owners-timeline': "Betreiber / Inhaber",
@@ -121,18 +121,18 @@ const i18n = {
     },
     en: {
         'doc-title': "DWD Extremely Hot Days in Germany (1961–2025)",
-        'doc-title-min': "DWD Tropical Nights in Germany (1961–2025)",
+        'doc-title-min': "DWD Warm Nights in Germany (1961–2025)",
         'header-title': "More and More Extremely Hot Days",
-        'header-title-min': "More and More Tropical Nights",
+        'header-title-min': "Warm and Tropical Nights",
         'header-subtitle': "An interactive reconstruction & extension of DWD weather station data (1961–2025)",
-        'header-subtitle-min': "An interactive reconstruction of DWD daily minimum temperature data for tropical nights (1961–2025)",
+        'header-subtitle-min': "An interactive reconstruction of DWD daily minimum temperature data (1961–2025)",
         'stat-lbl-stations': "Stations",
         'stat-lbl-reports': "Total Reports",
         'stat-lbl-hottest': "Hottest Year",
         'card-title-filter': "Parameter Filters",
         'lbl-metric': "Measurement:",
         'metric-max': "Daily maximum",
-        'metric-min': "Tropical nights",
+        'metric-min': "Night minimum",
         'lbl-temp-threshold-max': "Min. daily maximum:",
         'lbl-temp-threshold-min': "Min. nightly minimum:",
         'lbl-start-year': "Start Year of Timeframe:",
@@ -154,13 +154,13 @@ const i18n = {
         'card-title-decades': "Reports per Decade",
         'btn-lbl-decades': "Decades",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above the threshold across all selected stations within each decade.",
-        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated tropical nights with daily minimum temperature at or above the threshold across all selected stations within each decade.",
+        'decades-methodology-min': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above the threshold across all selected stations within each decade. The 20 °C default matches the tropical-night definition.",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
-        'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of tropical nights exceeding the threshold.",
+        'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
         'card-title-single': "Climate Change Animation",
         'card-subtitle-single-max': "Use the play button to animate the rise of extremely hot days across decades.",
-        'card-subtitle-single-min': "Use the play button to animate the development of tropical nights across decades.",
+        'card-subtitle-single-min': "Use the play button to animate the development of warm nights across decades.",
         'legend-lbl-days': "Days:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
@@ -176,7 +176,7 @@ const i18n = {
         'lbl-geo-pos': "Geographical Position",
         'lbl-coverage-ins': "Data Coverage",
         'lbl-chart-trend-max': "Annual Heat Trend (Daily Maximum &ge; {temp} °C)",
-        'lbl-chart-trend-min': "Annual Tropical Nights Trend (Daily Minimum &ge; {temp} °C)",
+        'lbl-chart-trend-min': "Annual Night Trend (Daily Minimum &ge; {temp} °C)",
         'lbl-chart-sub': "Bar Chart {start}–2025",
         'lbl-names-timeline': "Name Changes",
         'lbl-owners-timeline': "Operators / Owners",
@@ -458,6 +458,9 @@ const HEAT_SCALES = {
 };
 
 const NIGHT_SCALES = {
+    17: [20, 40, 60, 80, 100],
+    18: [15, 30, 45, 60, 75],
+    19: [10, 20, 35, 50, 65],
     20: [5, 15, 30, 45, 60],
     21: [5, 15, 30, 45, 60],
     22: [3, 10, 20, 30, 40],
@@ -465,10 +468,7 @@ const NIGHT_SCALES = {
     24: [2, 6, 12, 18, 24],
     25: [1, 4, 8, 12, 16],
     26: [1, 3, 6, 9, 12],
-    27: [1, 2, 4, 6, 8],
-    28: [1, 2, 3, 4, 5],
-    29: [1, 2, 3, 4, 5],
-    30: [1, 2, 3, 4, 5]
+    27: [1, 2, 4, 6, 8]
 };
 
 const METRIC_CONFIG = {
@@ -482,11 +482,11 @@ const METRIC_CONFIG = {
     },
     min: {
         keyPrefix: 'n',
-        minThreshold: 20,
-        maxThreshold: 30,
+        minThreshold: 17,
+        maxThreshold: 27,
         defaultThreshold: 20,
         scales: NIGHT_SCALES,
-        fill: '#db2777'
+        fill: '#0284c7'
     }
 };
 
@@ -1512,6 +1512,16 @@ function renderStationTrendChart(sid) {
     const textFill = isDark ? "#94a3b8" : "#64748b";
     const annotBg = isDark ? "#0f172a" : "#f1f5f9";
     const annotBorder = isDark ? "#1e293b" : "#cbd5e1";
+    const trendStroke = currentMetric === 'min' ? '#0284c7' : '#f43f5e';
+    const trendShadow = currentMetric === 'min' ? '#0ea5e9' : '#f43f5e';
+    const annotationFill = slope >= 0
+        ? (currentMetric === 'min' ? (isDark ? '#7dd3fc' : '#0369a1') : (isDark ? '#fda4af' : '#b91c1c'))
+        : textFill;
+    const warmGradTop = currentMetric === 'min' ? '#38bdf8' : '#f97316';
+    const warmGradBottom = currentMetric === 'min' ? '#0284c7' : '#ea580c';
+    const extremeGradTop = currentMetric === 'min' ? '#2563eb' : '#ef4444';
+    const extremeGradBottom = currentMetric === 'min' ? '#1e3a8a' : '#991b1b';
+    const hoverFillClass = currentMetric === 'min' ? 'hover:fill-cyan-300' : 'hover:fill-amber-400';
     
     // 2. Y-Axis Ticks
     let yGridSvg = '';
@@ -1557,7 +1567,7 @@ function renderStationTrendChart(sid) {
             <g class="cursor-pointer group">
                 <rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(h, 0.5)}" 
                       fill="${fill}" rx="1" ry="1" 
-                      class="transition-all duration-300 hover:fill-amber-400">
+                      class="transition-all duration-300 ${hoverFillClass}">
                     <title>${years[i]}: ${val} ${t['lbl-day-unit']}</title>
                 </rect>
             </g>
@@ -1614,15 +1624,15 @@ function renderStationTrendChart(sid) {
                     <stop offset="100%" stop-color="${isDark ? '#334155' : '#94a3b8'}" stop-opacity="0.3"/>
                 </linearGradient>
                 <linearGradient id="bar-heat-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.9"/>
-                    <stop offset="100%" stop-color="#ea580c" stop-opacity="0.4"/>
+                    <stop offset="0%" stop-color="${warmGradTop}" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="${warmGradBottom}" stop-opacity="0.4"/>
                 </linearGradient>
                 <linearGradient id="bar-extreme-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.95"/>
-                    <stop offset="100%" stop-color="#991b1b" stop-opacity="0.5"/>
+                    <stop offset="0%" stop-color="${extremeGradTop}" stop-opacity="0.95"/>
+                    <stop offset="100%" stop-color="${extremeGradBottom}" stop-opacity="0.5"/>
                 </linearGradient>
                 <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-                    <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#f43f5e" flood-opacity="0.3" />
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="${trendShadow}" flood-opacity="0.3" />
                 </filter>
             </defs>
             
@@ -1633,11 +1643,11 @@ function renderStationTrendChart(sid) {
             ${barsSvg}
             ${movePinsSvg}
             
-            <path d="${trendPath}" fill="none" stroke="#f43f5e" stroke-width="2" filter="url(#shadow)" stroke-linecap="round" />
+            <path d="${trendPath}" fill="none" stroke="${trendStroke}" stroke-width="2" filter="url(#shadow)" stroke-linecap="round" />
             
             <g>
                 <rect x="${padding.left + 12}" y="${padding.top + 2}" width="220" height="20" rx="3" fill="${annotBg}" fill-opacity="0.9" stroke="${annotBorder}" stroke-width="0.5" />
-                <text x="${padding.left + 18}" y="${padding.top + 14}" fill="${slope >= 0 ? (isDark ? '#fda4af' : '#b91c1c') : textFill}" font-size="8" font-weight="bold">
+                <text x="${padding.left + 18}" y="${padding.top + 14}" fill="${annotationFill}" font-size="8" font-weight="bold">
                     ${annotationText}
                 </text>
             </g>
@@ -1983,13 +1993,21 @@ function renderSingleMap(filteredStations) {
         let totalWord;
         if (currentLang === 'de') {
             if (currentMetric === 'min') {
-                totalWord = totalYearDays === 1 ? 'Tropennacht gesamt' : 'Tropennächte gesamt';
+                if (currentTempThreshold >= 20) {
+                    totalWord = totalYearDays === 1 ? 'Tropennacht gesamt' : 'Tropennächte gesamt';
+                } else {
+                    totalWord = totalYearDays === 1 ? 'Nacht gesamt' : 'Nächte gesamt';
+                }
             } else {
                 totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
             }
         } else {
             if (currentMetric === 'min') {
-                totalWord = totalYearDays === 1 ? 'tropical night total' : 'tropical nights total';
+                if (currentTempThreshold >= 20) {
+                    totalWord = totalYearDays === 1 ? 'tropical night total' : 'tropical nights total';
+                } else {
+                    totalWord = totalYearDays === 1 ? 'night total' : 'nights total';
+                }
             } else {
                 totalWord = totalYearDays === 1 ? 'day total' : 'days total';
             }

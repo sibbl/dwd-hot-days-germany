@@ -19,11 +19,13 @@ Date: 2026-06-23
 - Hot-day mode rendered 66 map cards and 12,342 station circles.
 - Maximum rendered non-zero bubble radius is now `4.6` SVG units.
 - Legend rendered 5 synchronized bubble entries.
-- Tropical-night mode switched successfully:
+- Night-minimum mode switched successfully:
   - URL hash became `metric=min`.
-  - Threshold slider switched to `20`-`30`.
-  - Labels changed to tropical-night wording.
-  - Night-mode circles use the `n20`-`n30` generated data keys.
-- Night threshold at `30 °C` updated the hash and legend buckets.
-- Single-map view rendered in tropical-night mode with night-specific total wording.
+  - Threshold slider switched to `17`-`27`.
+  - Default threshold is `20 °C`, matching the scientific tropical-night definition.
+  - Labels now describe nightly minimum temperature, with tropical-night wording reserved for thresholds of at least `20 °C`.
+  - Night-mode circles use the `n17`-`n27` generated data keys.
+  - Nonzero night markers render with the blue `#0284c7` palette.
+- Night threshold at `17 °C` updated the hash and legend buckets.
+- Single-map view rendered in night-minimum mode with threshold-specific total wording.
 - Mobile viewport check at roughly 390 px wide showed visible metric controls and no horizontal overflow in the checked controls.
