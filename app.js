@@ -808,7 +808,7 @@ function getFilteredStations() {
 
 // Calculate decadal reports and display them
 function renderDecadalStats(filteredStations) {
-    const currentDecadeLabel = `2021–${maxYearGlobal}`;
+    const currentDecadeLabel = `2021–${getEndYearLabel(currentLang)}`;
     const decadeTotals = {
         '1961–1970': 0,
         '1971–1980': 0,
