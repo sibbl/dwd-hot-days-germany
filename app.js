@@ -490,8 +490,8 @@ const METRIC_CONFIG = {
     }
 };
 
-const GRID_BUBBLE_RADII = [1.4, 2.2, 3.0, 3.8, 4.6];
-const SINGLE_BUBBLE_RADII = [1.15, 1.8, 2.45, 3.1, 3.7];
+const GRID_BUBBLE_RADII = [0.7, 1.1, 1.5, 1.9, 2.3];
+const SINGLE_BUBBLE_RADII = [0.575, 0.9, 1.225, 1.55, 1.85];
 
 function getMetricConfig() {
     return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
