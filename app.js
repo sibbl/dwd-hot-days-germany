@@ -491,7 +491,8 @@ const METRIC_CONFIG = {
 };
 
 const GRID_BUBBLE_RADII = [0.9, 1.4, 2.0, 2.6, 3.0];
-const SINGLE_BUBBLE_RADII = [0.9, 1.4, 2.0, 2.6, 3.0];
+const SINGLE_BUBBLE_SCALE_FALLBACK = 0.62;
+const SINGLE_BUBBLE_SCALE_SAFETY = 0.98;
 
 function getMetricConfig() {
     return METRIC_CONFIG[currentMetric] || METRIC_CONFIG.max;
@@ -581,8 +582,33 @@ function refreshMaxDaysInMonthsOfLastYear() {
 }
 
 // Get heat bubble styling (radius, opacity, color)
+function estimateRasterSvgWidth() {
+    const reference = document.getElementById('map-single-view') || document.getElementById('map-grid-container');
+    const containerWidth = reference ? reference.getBoundingClientRect().width : 0;
+    if (!containerWidth) return 0;
+
+    const columns = window.innerWidth >= 1024 ? 10 : (window.innerWidth >= 640 ? 5 : 2);
+    const gapWidth = 16;
+    const gridRightPadding = 8;
+    const cardHorizontalPadding = 25;
+    const cardWidth = (containerWidth - gridRightPadding - gapWidth * (columns - 1)) / columns;
+    return Math.max(40, cardWidth - cardHorizontalPadding);
+}
+
+function getSingleBubbleScale() {
+    const singleMapSvg = document.getElementById('single-map-svg');
+    const singleWidth = singleMapSvg ? singleMapSvg.getBoundingClientRect().width : 0;
+    const rasterWidth = estimateRasterSvgWidth();
+    if (!singleWidth || !rasterWidth) return SINGLE_BUBBLE_SCALE_FALLBACK;
+
+    return Math.min(1, Math.max(0.15, (rasterWidth / singleWidth) * SINGLE_BUBBLE_SCALE_SAFETY));
+}
+
 function getBubbleRadii(viewMode = currentViewMode) {
-    return viewMode === 'single' ? SINGLE_BUBBLE_RADII : GRID_BUBBLE_RADII;
+    if (viewMode !== 'single') return GRID_BUBBLE_RADII;
+
+    const scale = getSingleBubbleScale();
+    return GRID_BUBBLE_RADII.map(r => Number((r * scale).toFixed(3)));
 }
 
 function getHeatStyle(days, viewMode = currentViewMode) {

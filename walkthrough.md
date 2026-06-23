@@ -18,7 +18,7 @@ Date: 2026-06-23
 - Desktop hot-day view loaded without console errors.
 - Hot-day mode rendered 66 map cards and 12,342 station circles.
 - Maximum theoretical Raster bubble radius is now `3.0` SVG units.
-- Maximum theoretical Einzelkarte bubble radius is now `3.0` SVG units.
+- Einzelkarte bubble radii are scaled to match the physical screen size of Raster bubbles at the active viewport.
 - Legend rendered 5 synchronized bubble entries.
 - Default view without URL state is Raster.
 - Legend bubble sizes match the currently visible map SVG scale in both Raster and Einzelkarte.
