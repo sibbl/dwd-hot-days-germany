@@ -49,6 +49,7 @@ Date: 2026-06-24
 - `Jahressumme` renders as a visualization tab, hides the map-bubble legend, and clearly describes that it shows absolute annual sums across all station reports.
 - `Jahrzehnte` renders as a visualization tab, replaces the former header button and modal, hides the map-bubble legend, and shows 10-year totals as horizontal bars.
 - `Stationsschnitt` renders as a visualization tab, hides the map-bubble legend, and clearly describes that it normalizes yearly bars per reporting station.
+- `Stationsschnitt` now keeps the chart area focused on bars and the linear trend only; the former in-plot explanatory labels, arrows, peak marker, and floating trend label are removed.
 - `Saisonlänge` renders as a visualization tab, hides the map-bubble legend, and shows every decade from 1961 through the current partial decade using shortest/longest yearly Germany-wide threshold spans.
 - Night-minimum mode keeps the `22 °C` default and switches the annual chart controls/trend styling to the blue palette.
 - Visualization modes are now promoted to a top selector above the active view title:

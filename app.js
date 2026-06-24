@@ -110,10 +110,6 @@ const i18n = {
         'yearly-axis-label-min': "Warme Nächte pro Station",
         'yearly-series-label': "Jahreswert",
         'yearly-trend-label': "Trend",
-        'yearly-peak-note-max': "{year} hatte im Schnitt die meisten heißen Tage.",
-        'yearly-peak-note-min': "{year} hatte im Schnitt die meisten warmen Nächte.",
-        'yearly-bar-note-max': "Jeder Balken zeigt die heißen Tage in einem Jahr.",
-        'yearly-bar-note-min': "Jeder Balken zeigt die warmen Nächte in einem Jahr.",
         'yearly-peak-label': "Höchster Jahreswert",
         'yearly-latest-label': "Letzter Jahreswert",
         'yearly-trend-stat-label': "Trend pro Jahrzehnt",
@@ -262,10 +258,6 @@ const i18n = {
         'yearly-axis-label-min': "Warm nights per station",
         'yearly-series-label': "Annual value",
         'yearly-trend-label': "Trend",
-        'yearly-peak-note-max': "{year} had the highest average number of hot days.",
-        'yearly-peak-note-min': "{year} had the highest average number of warm nights.",
-        'yearly-bar-note-max': "Each bar shows hot days in one year.",
-        'yearly-bar-note-min': "Each bar shows warm nights in one year.",
         'yearly-peak-label': "Highest annual value",
         'yearly-latest-label': "Latest annual value",
         'yearly-trend-stat-label': "Trend per decade",
@@ -1594,33 +1586,11 @@ function renderYearlyTrendChart(filteredStations) {
     const barTop = currentMetric === 'min' ? '#38bdf8' : '#fb7185';
     const barBottom = currentMetric === 'min' ? '#0ea5e9' : '#f97316';
     const trendStroke = currentMetric === 'min' ? '#0c4a6e' : '#9f1239';
-    const peakStroke = currentMetric === 'min' ? '#bae6fd' : '#fed7aa';
-    const barNoteX = padding.left + 12;
-    const barNoteY = padding.top + chartHeight * 0.45;
 
     const formatValue = value => value.toLocaleString(currentLang === 'de' ? 'de-DE' : 'en-US', {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
     });
-    const wrapSvgText = (text, maxChars) => {
-        const words = String(text).split(' ');
-        const lines = [];
-        let currentLine = '';
-        words.forEach(word => {
-            const nextLine = currentLine ? `${currentLine} ${word}` : word;
-            if (nextLine.length > maxChars && currentLine) {
-                lines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = nextLine;
-            }
-        });
-        if (currentLine) lines.push(currentLine);
-        return lines;
-    };
-    const renderWrappedTspans = (lines, x) => lines.map((line, index) => (
-        `<tspan x="${x}" dy="${index === 0 ? 0 : 24}">${line}</tspan>`
-    )).join('');
 
     let yGridSvg = '';
     const ticks = 5;
@@ -1658,21 +1628,6 @@ function renderYearlyTrendChart(filteredStations) {
         `;
     }).join('');
 
-    const peakX = getX(peakIndex);
-    const peakY = getY(averages[peakIndex]);
-    const peakNote = t[`yearly-peak-note-${currentMetric}`].replace('{year}', years[peakIndex]);
-    const peakNoteLines = wrapSvgText(peakNote, 34);
-    const barNoteLines = wrapSvgText(t[`yearly-bar-note-${currentMetric}`], 34);
-    const noteWidth = 250;
-    const noteX = Math.min(Math.max(peakX - noteWidth * 0.55, padding.left), width - padding.right - noteWidth);
-    const noteY = Math.max(30, peakY - 74);
-    const arrowStartX = noteX + noteWidth * 0.7;
-    const arrowStartY = noteY + 26;
-    const arrowControlX = peakX + (arrowStartX < peakX ? -30 : 30);
-    const arrowControlY = Math.min(peakY - 16, arrowStartY + 28);
-    const peakLabelAnchor = peakX > width - padding.right - 72 ? 'end' : 'start';
-    const peakLabelX = peakLabelAnchor === 'end' ? peakX - 10 : peakX + 10;
-
     container.innerHTML = `
         <div class="flex flex-col gap-4">
             <div class="w-full overflow-x-auto">
@@ -1682,9 +1637,6 @@ function renderYearlyTrendChart(filteredStations) {
                             <stop offset="0%" stop-color="${barTop}" stop-opacity="0.98" />
                             <stop offset="100%" stop-color="${barBottom}" stop-opacity="0.78" />
                         </linearGradient>
-                        <marker id="yearly-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3.5" orient="auto">
-                            <path d="M0,0 L7,3.5 L0,7" fill="none" stroke="${textFill}" stroke-width="1.5" />
-                        </marker>
                     </defs>
 
                     <text x="${padding.left}" y="18" fill="${textFill}" font-size="12" font-weight="800">${t[`yearly-axis-label-${currentMetric}`]}</text>
@@ -1693,20 +1645,6 @@ function renderYearlyTrendChart(filteredStations) {
                     ${xLabelsSvg}
                     ${barsSvg}
                     <path d="${trendPath}" fill="none" stroke="${trendStroke}" stroke-width="3" stroke-linecap="round" />
-
-                    <circle cx="${peakX}" cy="${peakY}" r="4.5" fill="${trendStroke}" stroke="${peakStroke}" stroke-width="2" />
-                    <text x="${peakLabelX}" y="${peakY - 9}" fill="${trendStroke}" font-size="12" font-weight="900" text-anchor="${peakLabelAnchor}">${years[peakIndex]}: ${formatValue(averages[peakIndex])}</text>
-                    <path d="M ${arrowStartX} ${arrowStartY} Q ${arrowControlX} ${arrowControlY} ${peakX} ${peakY - 10}" fill="none" stroke="${textFill}" stroke-width="1.7" marker-end="url(#yearly-arrow)" />
-                    <text x="${noteX}" y="${noteY}" fill="${textFill}" font-size="18" font-weight="500">
-                        ${renderWrappedTspans(peakNoteLines, noteX)}
-                    </text>
-
-                    <path d="M ${barNoteX + 6} ${barNoteY + 8} L ${barNoteX + 6} ${barNoteY + 54}" fill="none" stroke="${textFill}" stroke-width="1.7" marker-end="url(#yearly-arrow)" />
-                    <text x="${barNoteX}" y="${barNoteY}" fill="${textFill}" font-size="19" font-weight="500">
-                        ${renderWrappedTspans(barNoteLines, barNoteX)}
-                    </text>
-
-                    <text x="${width - padding.right - 10}" y="${getY(trendEnd) - 8}" fill="${trendStroke}" font-size="18" font-weight="600" text-anchor="end">${t['yearly-trend-label']}</text>
 
                     <g transform="translate(${padding.left}, ${height - 15})">
                         <rect x="0" y="-11" width="10" height="11" rx="2" fill="url(#yearly-bar-grad)" />
