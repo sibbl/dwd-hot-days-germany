@@ -36,6 +36,7 @@ Date: 2026-06-24
 - Night threshold at `18 °C` updated the hash and legend buckets.
 - Daily maximum thresholds now start at `25 °C`; `data/weather_data.json` was regenerated with annual, monthly, and season keys `t25` through `t40`.
 - Browser check with `metric=max&temp=25&view=yearly` loaded `app.js?v=37`, showed slider range `25`-`40`, rendered nonzero yearly bars, and kept the layout free of horizontal overflow.
+- Annual chart legend no longer overlaps x-axis year labels; browser bounding-box check with `metric=max&temp=25&view=annual` found no legend/year-label intersections.
 - Single-map view rendered in night-minimum mode with threshold-specific total wording.
 - Mobile viewport check at roughly 390 px wide showed visible metric controls and no horizontal overflow in the checked controls.
 - Advanced filters open as a collapsed section below the main controls and include:

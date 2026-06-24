@@ -1425,7 +1425,7 @@ function renderAnnualChart(filteredStations) {
                     ${barsSvg}
                     <path d="${trendPath}" fill="none" stroke="${trendStroke}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${trendDash}" />
 
-                    <g transform="translate(${padding.left}, ${height - 16})">
+                    <g transform="translate(${width - padding.right - 260}, 18)">
                         <rect x="0" y="-10" width="10" height="10" rx="2" fill="url(#annual-bar-grad)" />
                         <text x="17" y="-1" fill="${textFill}" font-size="11" font-weight="700">${t['annual-series-label']}</text>
                         <line x1="128" y1="-5" x2="154" y2="-5" stroke="${trendStroke}" stroke-width="3" stroke-dasharray="${trendDash}" stroke-linecap="round" />
