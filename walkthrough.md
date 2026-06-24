@@ -1,6 +1,6 @@
 # Local Verification Walkthrough
 
-Date: 2026-06-23
+Date: 2026-06-24
 
 ## Server
 
@@ -10,7 +10,7 @@ Date: 2026-06-23
 ## Automated Checks
 
 - `node --check app.js` passed.
-- `python3 -m py_compile download_and_process.py verify_results.py` passed.
+- `python3 -m py_compile download_and_process.py verify_results.py` passed after removing the hard-coded active-station month cutoff.
 - `verify_results.py` completed, but the Spiegel fixed reference totals no longer match exactly after regenerating against current DWD 2025/2026 station availability.
 
 ## Browser Checks
@@ -35,3 +35,10 @@ Date: 2026-06-23
 - Night threshold at `18 °C` updated the hash and legend buckets.
 - Single-map view rendered in night-minimum mode with threshold-specific total wording.
 - Mobile viewport check at roughly 390 px wide showed visible metric controls and no horizontal overflow in the checked controls.
+- Advanced filters open as a collapsed section below the main controls and include:
+  - `Nur ortsfeste Stationen`
+  - `Flughafenumfeld ausschließen`
+  - `Großstadtumfeld ausschließen`
+- Airport/city exclusions are station-coordinate based and update the active station count and URL hash with `airport=exclude` and `city=exclude`.
+- `Jahresdiagramm` renders as a third visualization tab, hides the map-bubble legend, shows annual DWD station totals, a trend line, and peak/latest/trend stats.
+- Night-minimum mode keeps the `22 °C` default and switches the annual chart controls/trend styling to the blue palette.

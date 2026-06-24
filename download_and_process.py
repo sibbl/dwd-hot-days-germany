@@ -175,7 +175,9 @@ def main():
     
     # 3. Identify candidate stations spanning 1961-01-01 to target end date
     # Candidate criteria: start date <= 19610101 and end date >= (current_year - 1)1231 (or active)
-    current_year = datetime.now().year
+    now = datetime.now()
+    current_year = now.year
+    current_month_start = now.strftime('%Y%m01')
     target_end_date_str = f"{current_year - 1}1231"
     candidates = []
     for s in all_stations:
@@ -477,7 +479,7 @@ def main():
             'state': s['state'],
             'start_date': s['start_date'],
             'end_date': s['end_date'],
-            'active': (s['end_date'] >= '20260501'),
+            'active': (s['end_date'] >= current_month_start),
             'overall_coverage': round(overall_coverage, 4),
             'valid_span_days': valid_days,
             'valid_span_nights': valid_night_days,

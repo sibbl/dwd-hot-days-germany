@@ -10,10 +10,12 @@ let lastThresholdByMetric = { max: 35, min: 22 };
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
+let excludeAirportEnvironment = false;
+let excludeCityEnvironment = false;
 let selectedStationId = null;
 let currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 1 to 12 representing Jan to Dec
 
-let currentViewMode = 'grid'; // 'grid' or 'single'
+let currentViewMode = 'grid'; // 'grid', 'single', or 'annual'
 let currentActiveYear = 2025; // Active year for the single map view
 let animationIntervalId = null;
 let animationSpeed = 250; // ms per year in animation
@@ -47,6 +49,13 @@ const i18n = {
         'desc-coverage': "Mindestanteil valider Daten im gewählten Zeitraum.",
         'lbl-moves-header': "Standortverlauf:",
         'lbl-moves-filter': "Nur ortsfeste Stationen",
+        'lbl-advanced-filters': "Erweiterte Filter",
+        'desc-advanced-filters': "Stationen nach Standortumfeld ausschließen.",
+        'lbl-airport-filter': "Flughafenumfeld ausschließen",
+        'desc-airport-filter': "10-km-Umfeld großer deutscher Flughäfen",
+        'lbl-city-filter': "Großstadtumfeld ausschließen",
+        'desc-city-filter': "20-km-Umfeld großer deutscher Städte",
+        'lbl-filter-kept': "{kept} von {total} bleiben",
         'lbl-months': "Monate:",
         'btn-month-all': "Alle",
         'btn-month-summer': "Mai–Sep",
@@ -67,6 +76,19 @@ const i18n = {
         'card-title-single': "Klimawandel-Animation",
         'card-subtitle-single-max': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
         'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung warmer Nächte über Jahrzehnte hinweg zu animieren.",
+        'view-grid': "Raster",
+        'view-single': "Einzelkarte",
+        'view-annual': "Jahresdiagramm",
+        'card-title-annual': "Jahresdiagramm",
+        'card-subtitle-annual-max': "Summierte DWD-Stationsmeldungen pro Jahr für die aktiven Filter, inklusive linearem Trend.",
+        'card-subtitle-annual-min': "Summierte DWD-Stationsnächte pro Jahr für die aktiven Filter, inklusive linearem Trend.",
+        'annual-series-label': "DWD-Stationen",
+        'annual-trend-label': "Linearer Trend",
+        'annual-axis-label': "Meldungen pro Jahr",
+        'annual-peak-label': "Jahr mit den meisten Meldungen",
+        'annual-latest-label': "Wert im letzten Jahr der Reihe",
+        'annual-trend-stat-label': "Linearer Trend pro Jahrzehnt",
+        'annual-empty': "Keine Daten für die aktuelle Filterauswahl.",
         'legend-lbl-days': "Tage:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
@@ -141,6 +163,13 @@ const i18n = {
         'desc-coverage': "Minimum percentage of valid data in the selected period.",
         'lbl-moves-header': "Location History:",
         'lbl-moves-filter': "Only unmoved stations",
+        'lbl-advanced-filters': "Advanced filters",
+        'desc-advanced-filters': "Exclude stations by local environment.",
+        'lbl-airport-filter': "Exclude airport surroundings",
+        'desc-airport-filter': "10 km around major German airports",
+        'lbl-city-filter': "Exclude major-city surroundings",
+        'desc-city-filter': "20 km around major German cities",
+        'lbl-filter-kept': "{kept} of {total} remain",
         'lbl-months': "Months:",
         'btn-month-all': "All",
         'btn-month-summer': "May–Sep",
@@ -161,6 +190,19 @@ const i18n = {
         'card-title-single': "Climate Change Animation",
         'card-subtitle-single-max': "Use the play button to animate the rise of extremely hot days across decades.",
         'card-subtitle-single-min': "Use the play button to animate the development of warm nights across decades.",
+        'view-grid': "Grid",
+        'view-single': "Single map",
+        'view-annual': "Annual chart",
+        'card-title-annual': "Annual Chart",
+        'card-subtitle-annual-max': "Summed DWD station reports per year for the active filters, including a linear trend.",
+        'card-subtitle-annual-min': "Summed DWD station nights per year for the active filters, including a linear trend.",
+        'annual-series-label': "DWD stations",
+        'annual-trend-label': "Linear trend",
+        'annual-axis-label': "Reports per year",
+        'annual-peak-label': "Year with the most reports",
+        'annual-latest-label': "Value in the latest year of the series",
+        'annual-trend-stat-label': "Linear trend per decade",
+        'annual-empty': "No data for the current filter selection.",
         'legend-lbl-days': "Days:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
@@ -279,6 +321,18 @@ function setLanguage(lang) {
     const lblMovesHeader = document.getElementById('lbl-moves-header');
     if (lblMovesHeader) lblMovesHeader.textContent = i18n[lang]['lbl-moves-header'];
     document.getElementById('lbl-moves-filter').textContent = i18n[lang]['lbl-moves-filter'];
+    const lblAdvancedFilters = document.getElementById('lbl-advanced-filters');
+    if (lblAdvancedFilters) lblAdvancedFilters.textContent = i18n[lang]['lbl-advanced-filters'];
+    const descAdvancedFilters = document.getElementById('desc-advanced-filters');
+    if (descAdvancedFilters) descAdvancedFilters.textContent = i18n[lang]['desc-advanced-filters'];
+    const lblAirportFilter = document.getElementById('lbl-airport-filter');
+    if (lblAirportFilter) lblAirportFilter.textContent = i18n[lang]['lbl-airport-filter'];
+    const descAirportFilter = document.getElementById('desc-airport-filter');
+    if (descAirportFilter) descAirportFilter.textContent = i18n[lang]['desc-airport-filter'];
+    const lblCityFilter = document.getElementById('lbl-city-filter');
+    if (lblCityFilter) lblCityFilter.textContent = i18n[lang]['lbl-city-filter'];
+    const descCityFilter = document.getElementById('desc-city-filter');
+    if (descCityFilter) descCityFilter.textContent = i18n[lang]['desc-city-filter'];
     
     // Translate monthly selector elements
     const lblMonths = document.getElementById('lbl-months');
@@ -302,6 +356,12 @@ function setLanguage(lang) {
     
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
     document.getElementById('card-subtitle-grid').textContent = i18n[lang][`card-subtitle-grid-${currentMetric}`];
+    const btnViewGrid = document.getElementById('btn-view-grid');
+    if (btnViewGrid) btnViewGrid.textContent = i18n[lang]['view-grid'];
+    const btnViewSingle = document.getElementById('btn-view-single');
+    if (btnViewSingle) btnViewSingle.textContent = i18n[lang]['view-single'];
+    const btnViewAnnual = document.getElementById('btn-view-annual');
+    if (btnViewAnnual) btnViewAnnual.textContent = i18n[lang]['view-annual'];
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
     document.getElementById('inspector-title').textContent = i18n[lang]['inspector-title'];
@@ -489,6 +549,50 @@ const METRIC_CONFIG = {
         fill: '#0284c7'
     }
 };
+
+const AIRPORT_EXCLUSION_RADIUS_KM = 10;
+const CITY_EXCLUSION_RADIUS_KM = 20;
+
+const MAJOR_AIRPORTS = [
+    { name: 'Frankfurt am Main', lat: 50.0379, lon: 8.5622 },
+    { name: 'Muenchen', lat: 48.3538, lon: 11.7861 },
+    { name: 'Berlin Brandenburg', lat: 52.3667, lon: 13.5033 },
+    { name: 'Duesseldorf', lat: 51.2895, lon: 6.7668 },
+    { name: 'Hamburg', lat: 53.6304, lon: 9.9882 },
+    { name: 'Koeln/Bonn', lat: 50.8659, lon: 7.1427 },
+    { name: 'Stuttgart', lat: 48.6899, lon: 9.2219 },
+    { name: 'Hannover', lat: 52.4611, lon: 9.6851 },
+    { name: 'Nuernberg', lat: 49.4987, lon: 11.0780 },
+    { name: 'Leipzig/Halle', lat: 51.4239, lon: 12.2364 },
+    { name: 'Dresden', lat: 51.1328, lon: 13.7672 },
+    { name: 'Bremen', lat: 53.0475, lon: 8.7867 },
+    { name: 'Dortmund', lat: 51.5183, lon: 7.6122 },
+    { name: 'Karlsruhe/Baden-Baden', lat: 48.7794, lon: 8.0805 },
+    { name: 'Muenster/Osnabrueck', lat: 52.1346, lon: 7.6848 }
+];
+
+const MAJOR_CITIES = [
+    { name: 'Berlin', lat: 52.5200, lon: 13.4050 },
+    { name: 'Hamburg', lat: 53.5511, lon: 9.9937 },
+    { name: 'Muenchen', lat: 48.1351, lon: 11.5820 },
+    { name: 'Koeln', lat: 50.9375, lon: 6.9603 },
+    { name: 'Frankfurt am Main', lat: 50.1109, lon: 8.6821 },
+    { name: 'Stuttgart', lat: 48.7758, lon: 9.1829 },
+    { name: 'Duesseldorf', lat: 51.2277, lon: 6.7735 },
+    { name: 'Leipzig', lat: 51.3397, lon: 12.3731 },
+    { name: 'Dortmund', lat: 51.5136, lon: 7.4653 },
+    { name: 'Essen', lat: 51.4556, lon: 7.0116 },
+    { name: 'Bremen', lat: 53.0793, lon: 8.8017 },
+    { name: 'Dresden', lat: 51.0504, lon: 13.7373 },
+    { name: 'Hannover', lat: 52.3759, lon: 9.7320 },
+    { name: 'Nuernberg', lat: 49.4521, lon: 11.0767 },
+    { name: 'Duisburg', lat: 51.4344, lon: 6.7623 },
+    { name: 'Bochum', lat: 51.4818, lon: 7.2162 },
+    { name: 'Wuppertal', lat: 51.2562, lon: 7.1508 },
+    { name: 'Bielefeld', lat: 52.0302, lon: 8.5325 },
+    { name: 'Bonn', lat: 50.7374, lon: 7.0982 },
+    { name: 'Muenster', lat: 51.9607, lon: 7.6261 }
+];
 
 const GRID_BUBBLE_RADII = [1.8, 1.9, 2.2, 2.6, 3.0];
 const SINGLE_BUBBLE_SCALE_FALLBACK = 0.62;
@@ -792,6 +896,25 @@ function checkMovesForPeriod(station, startYear, endYear) {
     return distinct.length > 1;
 }
 
+function isStationNearAny(station, places, radiusKm) {
+    const location = station.current_location;
+    if (!location) return false;
+    return places.some(place => {
+        const distanceMeters = haversine(location.lat, location.lon, place.lat, place.lon);
+        return distanceMeters <= radiusKm * 1000;
+    });
+}
+
+function matchesEnvironmentFilters(station) {
+    if (excludeAirportEnvironment && isStationNearAny(station, MAJOR_AIRPORTS, AIRPORT_EXCLUSION_RADIUS_KM)) {
+        return false;
+    }
+    if (excludeCityEnvironment && isStationNearAny(station, MAJOR_CITIES, CITY_EXCLUSION_RADIUS_KM)) {
+        return false;
+    }
+    return true;
+}
+
 // Get list of stations filtered by coverage and moves over the sub-period
 function getFilteredStations() {
     return weatherData.filter(s => {
@@ -801,6 +924,7 @@ function getFilteredStations() {
         const periodMoved = checkMovesForPeriod(s, currentStartYear, maxYearGlobal);
         if (currentMovesFilter === 'moved' && !periodMoved) return false;
         if (currentMovesFilter === 'unmoved' && periodMoved) return false;
+        if (!matchesEnvironmentFilters(s)) return false;
         
         return true;
     });
@@ -921,6 +1045,47 @@ function updateGlobalStats(filteredStations, decadeTotals) {
     }
 }
 
+function updateAdvancedFilterRatios() {
+    const labelTemplate = i18n[currentLang]['lbl-filter-kept'];
+    const baseStations = weatherData.filter(s => (
+        calculateCoverageForPeriod(s, currentStartYear, maxYearGlobal) >= currentCoverageThreshold
+    ));
+
+    const moveBaseCount = baseStations.length;
+    const unmovedCount = baseStations.filter(s => !checkMovesForPeriod(s, currentStartYear, maxYearGlobal)).length;
+    const ratioElement = document.getElementById('lbl-moves-ratio');
+    if (ratioElement) {
+        const ofWord = currentLang === 'de' ? 'von' : 'of';
+        ratioElement.textContent = `(${unmovedCount} ${ofWord} ${moveBaseCount})`;
+    }
+
+    const afterMoveStations = baseStations.filter(s => {
+        const periodMoved = checkMovesForPeriod(s, currentStartYear, maxYearGlobal);
+        if (currentMovesFilter === 'moved' && !periodMoved) return false;
+        if (currentMovesFilter === 'unmoved' && periodMoved) return false;
+        return true;
+    });
+
+    const airportKept = afterMoveStations.filter(s => !isStationNearAny(s, MAJOR_AIRPORTS, AIRPORT_EXCLUSION_RADIUS_KM)).length;
+    const airportRatio = document.getElementById('lbl-airport-ratio');
+    if (airportRatio) {
+        airportRatio.textContent = labelTemplate
+            .replace('{kept}', airportKept)
+            .replace('{total}', afterMoveStations.length);
+    }
+
+    const afterAirportStations = afterMoveStations.filter(s => (
+        !excludeAirportEnvironment || !isStationNearAny(s, MAJOR_AIRPORTS, AIRPORT_EXCLUSION_RADIUS_KM)
+    ));
+    const cityKept = afterAirportStations.filter(s => !isStationNearAny(s, MAJOR_CITIES, CITY_EXCLUSION_RADIUS_KM)).length;
+    const cityRatio = document.getElementById('lbl-city-ratio');
+    if (cityRatio) {
+        cityRatio.textContent = labelTemplate
+            .replace('{kept}', cityKept)
+            .replace('{total}', afterAirportStations.length);
+    }
+}
+
 // Render the miniature maps grid
 function renderMapsGrid(filteredStations) {
     const gridContainer = document.getElementById('map-grid-container');
@@ -1002,6 +1167,170 @@ function renderMapsGrid(filteredStations) {
     });
 }
 
+function getAnnualTotals(filteredStations) {
+    const years = [];
+    const counts = [];
+    for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
+        years.push(yr);
+        let total = 0;
+        filteredStations.forEach(s => {
+            total += getDaysCountForYear(s, yr);
+        });
+        counts.push(total);
+    }
+    return { years, counts };
+}
+
+function calculateLinearRegression(values) {
+    const n = values.length;
+    if (n < 2) return { slope: 0, intercept: values[0] || 0 };
+
+    let sumX = 0, sumY = 0, sumXX = 0, sumXY = 0;
+    values.forEach((value, index) => {
+        sumX += index;
+        sumY += value;
+        sumXX += index * index;
+        sumXY += index * value;
+    });
+
+    const denominator = n * sumXX - sumX * sumX;
+    if (denominator === 0) return { slope: 0, intercept: sumY / n };
+
+    const slope = (n * sumXY - sumX * sumY) / denominator;
+    const intercept = (sumY - slope * sumX) / n;
+    return { slope, intercept };
+}
+
+function renderAnnualChart(filteredStations) {
+    const container = document.getElementById('annual-chart-container');
+    if (!container) return;
+
+    const { years, counts } = getAnnualTotals(filteredStations);
+    const t = i18n[currentLang];
+    if (!years.length) {
+        container.innerHTML = `<div class="py-24 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">${t['annual-empty']}</div>`;
+        return;
+    }
+
+    const accent = getModeAccent();
+    const isDark = document.documentElement.classList.contains('dark');
+    const width = 1040;
+    const height = 390;
+    const padding = { top: 24, right: 22, bottom: 42, left: 62 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const maxVal = Math.max(...counts, 5);
+    const yMax = Math.ceil(maxVal / 10) * 10 || 10;
+    const n = years.length;
+
+    const getX = (index) => n === 1
+        ? padding.left + chartWidth / 2
+        : padding.left + (index / (n - 1)) * chartWidth;
+    const getY = (value) => padding.top + chartHeight - (value / yMax) * chartHeight;
+    const barStep = n > 1 ? chartWidth / n : chartWidth;
+    const barWidth = Math.max(2, Math.min(12, barStep * 0.62));
+
+    const { slope, intercept } = calculateLinearRegression(counts);
+    const trendStart = intercept;
+    const trendEnd = slope * (n - 1) + intercept;
+    const trendPath = `M ${getX(0)},${getY(Math.max(0, trendStart))} L ${getX(n - 1)},${getY(Math.max(0, trendEnd))}`;
+    const trendPerDecade = slope * 10;
+
+    const axisStroke = isDark ? '#334155' : '#cbd5e1';
+    const gridStroke = isDark ? '#1e293b' : '#e2e8f0';
+    const textFill = isDark ? '#94a3b8' : '#64748b';
+    const barTop = currentMetric === 'min' ? '#38bdf8' : '#fb923c';
+    const barBottom = currentMetric === 'min' ? '#1d4ed8' : '#c2410c';
+    const trendStroke = currentMetric === 'min' ? '#075985' : '#b91c1c';
+    const trendDash = currentMetric === 'min' ? '6 5' : 'none';
+
+    let yGridSvg = '';
+    const ticks = 5;
+    for (let i = 0; i <= ticks; i++) {
+        const value = (yMax / ticks) * i;
+        const y = getY(value);
+        yGridSvg += `
+            <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2 4"'} />
+            <text x="${padding.left - 10}" y="${y + 4}" fill="${textFill}" font-size="11" font-weight="700" text-anchor="end">${Math.round(value)}</text>
+        `;
+    }
+
+    let xLabelsSvg = '';
+    years.forEach((year, index) => {
+        const isDecade = year % 10 === 0;
+        const isEdge = year === years[0] || year === years[years.length - 1];
+        if (isDecade || isEdge) {
+            const x = getX(index);
+            xLabelsSvg += `
+                <line x1="${x}" y1="${height - padding.bottom}" x2="${x}" y2="${height - padding.bottom + 4}" stroke="${axisStroke}" stroke-width="1" />
+                <text x="${x}" y="${height - padding.bottom + 21}" fill="${textFill}" font-size="11" font-weight="700" text-anchor="middle">${year}</text>
+            `;
+        }
+    });
+
+    const barsSvg = counts.map((value, index) => {
+        const x = getX(index) - barWidth / 2;
+        const y = getY(value);
+        const barHeight = Math.max(1, height - padding.bottom - y);
+        return `
+            <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="1.5" fill="url(#annual-bar-grad)" class="transition duration-150">
+                <title>${years[index]}: ${value.toLocaleString()} ${t['lbl-day-unit']}</title>
+            </rect>
+        `;
+    }).join('');
+
+    let peakIndex = 0;
+    counts.forEach((value, index) => {
+        if (value > counts[peakIndex]) peakIndex = index;
+    });
+    const latestIndex = counts.length - 1;
+    const trendValue = `${trendPerDecade >= 0 ? '+' : ''}${trendPerDecade.toFixed(2)}`;
+
+    container.innerHTML = `
+        <div class="flex flex-col gap-4">
+            <div class="w-full overflow-x-auto">
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" class="min-w-[760px]">
+                    <defs>
+                        <linearGradient id="annual-bar-grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${barTop}" stop-opacity="0.95" />
+                            <stop offset="100%" stop-color="${barBottom}" stop-opacity="0.68" />
+                        </linearGradient>
+                    </defs>
+
+                    <text x="${padding.left}" y="13" fill="${textFill}" font-size="12" font-weight="800">${t['annual-axis-label']}</text>
+                    ${yGridSvg}
+                    <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="${axisStroke}" stroke-width="1.2" />
+                    ${xLabelsSvg}
+                    ${barsSvg}
+                    <path d="${trendPath}" fill="none" stroke="${trendStroke}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${trendDash}" />
+
+                    <g transform="translate(${padding.left}, ${height - 16})">
+                        <rect x="0" y="-10" width="10" height="10" rx="2" fill="url(#annual-bar-grad)" />
+                        <text x="17" y="-1" fill="${textFill}" font-size="11" font-weight="700">${t['annual-series-label']}</text>
+                        <line x1="128" y1="-5" x2="154" y2="-5" stroke="${trendStroke}" stroke-width="3" stroke-dasharray="${trendDash}" stroke-linecap="round" />
+                        <text x="162" y="-1" fill="${textFill}" font-size="11" font-weight="700">${t['annual-trend-label']}</text>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+                <div class="flex flex-col gap-1">
+                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${counts[peakIndex].toLocaleString()} ${t['lbl-day-unit']}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-peak-label']}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[latestIndex]}: ${counts[latestIndex].toLocaleString()} ${t['lbl-day-unit']}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-latest-label']}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${t['lbl-day-unit']}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-trend-stat-label']}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // Perform dashboard redraw upon parameter changes
 function updateDashboard() {
     const filteredStations = getFilteredStations();
@@ -1013,15 +1342,19 @@ function updateDashboard() {
         const endYearLabel = getEndYearLabel(currentLang);
         if (currentViewMode === 'grid') {
             titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
-        } else {
+        } else if (currentViewMode === 'single') {
             titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${endYearLabel})`;
+        } else {
+            titleElement.textContent = i18n[currentLang]['card-title-annual'] + ` (${currentStartYear}–${endYearLabel})`;
         }
     }
     if (subtitleElement) {
         if (currentViewMode === 'grid') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-grid-${currentMetric}`];
-        } else {
+        } else if (currentViewMode === 'single') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
+        } else {
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-annual-${currentMetric}`];
         }
     }
     
@@ -1030,25 +1363,16 @@ function updateDashboard() {
     
     if (currentViewMode === 'grid') {
         renderMapsGrid(filteredStations);
-    } else {
+    } else if (currentViewMode === 'single') {
         renderSingleMap(filteredStations);
+    } else {
+        renderAnnualChart(filteredStations);
     }
     
     renderInspectorStationList(filteredStations);
     filterStationList(currentSearchQuery, true);
     
-    // Calculate and update the checkbox label with (unmovedCount of totalCoverageCount)
-    const baseStations = weatherData.filter(s => {
-        return calculateCoverageForPeriod(s, currentStartYear, maxYearGlobal) >= currentCoverageThreshold;
-    });
-    const y = baseStations.length;
-    const x = baseStations.filter(s => !checkMovesForPeriod(s, currentStartYear, maxYearGlobal)).length;
-    
-    const ratioElement = document.getElementById('lbl-moves-ratio');
-    if (ratioElement) {
-        const ofWord = currentLang === 'de' ? 'von' : 'of';
-        ratioElement.textContent = `(${x} ${ofWord} ${y})`;
-    }
+    updateAdvancedFilterRatios();
     
     // Update legend circles with visual sizes matching the maps
     updateLegend();
@@ -1110,6 +1434,16 @@ function updateCoverageThreshold(val) {
 
 function toggleMovesFilter(isChecked) {
     currentMovesFilter = isChecked ? 'unmoved' : 'all';
+    updateDashboard();
+}
+
+function toggleAirportFilter(isChecked) {
+    excludeAirportEnvironment = isChecked;
+    updateDashboard();
+}
+
+function toggleCityFilter(isChecked) {
+    excludeCityEnvironment = isChecked;
     updateDashboard();
 }
 
@@ -1827,6 +2161,12 @@ function updateURLHash() {
     params.set('start', currentStartYear);
     params.set('coverage', Math.round(currentCoverageThreshold * 100));
     params.set('moves', currentMovesFilter);
+    if (excludeAirportEnvironment) {
+        params.set('airport', 'exclude');
+    }
+    if (excludeCityEnvironment) {
+        params.set('city', 'exclude');
+    }
     if (selectedStationId) {
         params.set('station', selectedStationId);
     }
@@ -1857,6 +2197,8 @@ function loadStateFromURLHash() {
     currentMetric = 'max';
     currentTempThreshold = METRIC_CONFIG.max.defaultThreshold;
     lastThresholdByMetric = { max: METRIC_CONFIG.max.defaultThreshold, min: METRIC_CONFIG.min.defaultThreshold };
+    excludeAirportEnvironment = false;
+    excludeCityEnvironment = false;
     
     if (!hash) return;
     
@@ -1891,12 +2233,20 @@ function loadStateFromURLHash() {
         const val = params.get('moves');
         if (val === 'all' || val === 'unmoved') currentMovesFilter = val;
     }
+    if (params.has('airport')) {
+        const val = params.get('airport');
+        excludeAirportEnvironment = val === 'exclude' || val === '1' || val === 'true';
+    }
+    if (params.has('city')) {
+        const val = params.get('city');
+        excludeCityEnvironment = val === 'exclude' || val === '1' || val === 'true';
+    }
     if (params.has('station')) {
         selectedStationId = params.get('station');
     }
     if (params.has('view')) {
         const val = params.get('view');
-        if (val === 'grid' || val === 'single') currentViewMode = val;
+        if (val === 'grid' || val === 'single' || val === 'annual') currentViewMode = val;
     }
     if (params.has('year')) {
         const val = parseInt(params.get('year'));
@@ -1986,6 +2336,18 @@ function syncUIControls() {
         movesCheck.className = `w-4 h-4 mt-0.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}`;
     }
 
+    const airportCheck = document.getElementById('check-airport-exclusion');
+    if (airportCheck) {
+        airportCheck.checked = excludeAirportEnvironment;
+        airportCheck.className = `w-4 h-4 mt-0.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}`;
+    }
+
+    const cityCheck = document.getElementById('check-city-exclusion');
+    if (cityCheck) {
+        cityCheck.checked = excludeCityEnvironment;
+        cityCheck.className = `w-4 h-4 mt-0.5 ${accent.textSoft} bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded ${accent.focusRing} focus:ring-2 cursor-pointer ${accent.accent}`;
+    }
+
     const searchInput = document.getElementById('input-station-search');
     if (searchInput) {
         searchInput.value = currentSearchQuery;
@@ -2021,33 +2383,32 @@ function syncUIControls() {
     // Visual switch buttons sync
     const btnGrid = document.getElementById('btn-view-grid');
     const btnSingle = document.getElementById('btn-view-single');
-    if (btnGrid && btnSingle) {
+    const btnAnnual = document.getElementById('btn-view-annual');
+    if (btnGrid && btnSingle && btnAnnual) {
         const activeViewClass = `px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 ${accent.bg} text-white shadow-sm`;
         const inactiveViewClass = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
-        if (currentViewMode === 'grid') {
-            btnGrid.className = activeViewClass;
-            btnSingle.className = inactiveViewClass;
-        } else {
-            btnSingle.className = activeViewClass;
-            btnGrid.className = inactiveViewClass;
-        }
+        btnGrid.className = currentViewMode === 'grid' ? activeViewClass : inactiveViewClass;
+        btnSingle.className = currentViewMode === 'single' ? activeViewClass : inactiveViewClass;
+        btnAnnual.className = currentViewMode === 'annual' ? activeViewClass : inactiveViewClass;
     }
     
     // View panel visibility sync
     const gridView = document.getElementById('map-grid-view');
     const singleView = document.getElementById('map-single-view');
-    if (gridView && singleView) {
-        if (currentViewMode === 'grid') {
-            gridView.classList.remove('hidden');
-            gridView.classList.add('block');
-            singleView.classList.remove('block');
-            singleView.classList.add('hidden');
-        } else {
-            singleView.classList.remove('hidden');
-            singleView.classList.add('block');
-            gridView.classList.remove('block');
-            gridView.classList.add('hidden');
-        }
+    const annualView = document.getElementById('annual-chart-view');
+    if (gridView && singleView && annualView) {
+        gridView.classList.toggle('hidden', currentViewMode !== 'grid');
+        gridView.classList.toggle('block', currentViewMode === 'grid');
+        singleView.classList.toggle('hidden', currentViewMode !== 'single');
+        singleView.classList.toggle('block', currentViewMode === 'single');
+        annualView.classList.toggle('hidden', currentViewMode !== 'annual');
+        annualView.classList.toggle('block', currentViewMode === 'annual');
+    }
+
+    const bubbleLegend = document.getElementById('bubble-legend');
+    if (bubbleLegend) {
+        bubbleLegend.classList.toggle('hidden', currentViewMode === 'annual');
+        bubbleLegend.classList.toggle('flex', currentViewMode !== 'annual');
     }
     
     // Animate timeline bar year progress slider limits sync
@@ -2084,12 +2445,13 @@ function updatePlayButtonAccent() {
     playBtn.className = `flex items-center justify-center w-9 h-9 rounded-full ${accent.bg} ${accent.bgHover} text-white font-bold transition duration-150 shadow-md ${accent.shadow} active:scale-95`;
 }
 
-// Set the active visualization view mode ('grid' or 'single')
+// Set the active visualization view mode ('grid', 'single', or 'annual')
 function setViewMode(mode) {
+    if (!['grid', 'single', 'annual'].includes(mode)) return;
     if (currentViewMode === mode) return;
     
     // Pause animation if playing and switching away from single map
-    if (mode === 'grid' && animationIntervalId) {
+    if (mode !== 'single' && animationIntervalId) {
         togglePlayAnimation();
     }
     

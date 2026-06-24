@@ -61,6 +61,8 @@ python download_and_process.py
 ```
 *Note: This script automatically establishes connections with the DWD Open Data CDC servers, pulls down daily files, extracts geographic timelines, deduplicates records, and calculates local coordinate changes. It generates `data/weather_data.json`.*
 
+For the regular monthly refresh, run this command at the beginning of the month after DWD has published recent daily values. The frontend derives the airport and major-city exclusion filters from each station's current coordinates, so no additional geospatial preprocessing step is required for those UI filters.
+
 ### 2. Run the Mathematical Validation Script
 To check our precalculated aggregates against the original *Spiegel* study's mathematical targets:
 ```bash
