@@ -32,7 +32,7 @@ http://localhost:8000/
 
 ## Refresh The Data
 
-The preprocessed dataset is checked in at `data/weather_data.json`. To rebuild it from DWD source data:
+The preprocessed datasets are checked in under `data/`. To rebuild them from DWD source data:
 
 ```bash
 .venv/bin/python download_and_process.py
@@ -56,7 +56,8 @@ The comparison is based on historical Spiegel reference totals. Small difference
 - `app.js` - dashboard state, charts, maps, localization, and interactions
 - `download_and_process.py` - DWD data import and preprocessing
 - `verify_results.py` - aggregate validation helper
-- `data/weather_data.json` - preprocessed station dataset
+- `data/weather_data.json` - preprocessed station dataset for maps and annual charts
+- `data/weather_season_data.json` - season-length data loaded only when that chart is opened
 - `data/germany_states.json` - Germany state outlines for the maps
 
 ## Data And Credits
