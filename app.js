@@ -15,7 +15,7 @@ let excludeCityEnvironment = false;
 let selectedStationId = null;
 let currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 1 to 12 representing Jan to Dec
 
-let currentViewMode = 'grid'; // 'grid', 'single', 'annual', or 'season'
+let currentViewMode = 'grid'; // 'grid', 'single', 'annual', 'yearly', or 'season'
 let currentActiveYear = 2025; // Active year for the single map view
 let animationIntervalId = null;
 let animationSpeed = 250; // ms per year in animation
@@ -82,11 +82,16 @@ const i18n = {
         'view-single-desc': "Jahr für Jahr",
         'view-annual': "Jahresdiagramm",
         'view-annual-desc': "Balken & Trend",
+        'view-yearly': "Jahresreihe",
+        'view-yearly-desc': "Deutschland-Schnitt",
         'view-season': "Saisonlänge",
         'view-season-desc': "Erste bis letzte Meldung",
         'card-title-annual': "Jahresdiagramm",
         'card-subtitle-annual-max': "Summierte DWD-Stationsmeldungen pro Jahr für die aktiven Filter, inklusive linearem Trend.",
         'card-subtitle-annual-min': "Summierte DWD-Stationsnächte pro Jahr für die aktiven Filter, inklusive linearem Trend.",
+        'card-title-yearly': "Jahresreihe im Deutschland-Schnitt",
+        'card-subtitle-yearly-max': "Jeder Balken zeigt die mittlere Zahl heißer Tage pro meldender Station und Jahr, inklusive Trend.",
+        'card-subtitle-yearly-min': "Jeder Balken zeigt die mittlere Zahl warmer Nächte pro meldender Station und Jahr, inklusive Trend.",
         'card-title-season': "Saisonlänge",
         'card-subtitle-season-max': "Spanne zwischen erstem und letztem Tag mit Tagesmaximum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
         'card-subtitle-season-min': "Spanne zwischen erster und letzter Nacht mit Tagesminimum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
@@ -97,6 +102,20 @@ const i18n = {
         'annual-latest-label': "Wert im letzten Jahr der Reihe",
         'annual-trend-stat-label': "Linearer Trend pro Jahrzehnt",
         'annual-empty': "Keine Daten für die aktuelle Filterauswahl.",
+        'yearly-axis-label-max': "Heiße Tage pro Station",
+        'yearly-axis-label-min': "Warme Nächte pro Station",
+        'yearly-series-label': "Jahreswert",
+        'yearly-trend-label': "Trend",
+        'yearly-peak-note-max': "{year} hatte im Schnitt die meisten heißen Tage.",
+        'yearly-peak-note-min': "{year} hatte im Schnitt die meisten warmen Nächte.",
+        'yearly-bar-note-max': "Jeder Balken zeigt die heißen Tage in einem Jahr.",
+        'yearly-bar-note-min': "Jeder Balken zeigt die warmen Nächte in einem Jahr.",
+        'yearly-peak-label': "Höchster Jahreswert",
+        'yearly-latest-label': "Letzter Jahreswert",
+        'yearly-trend-stat-label': "Trend pro Jahrzehnt",
+        'yearly-methodology-max': "Berechnet als Durchschnitt der Tage mit Tagesmaximum ab {temp} °C pro Station mit Daten im jeweiligen Jahr.",
+        'yearly-methodology-min': "Berechnet als Durchschnitt der Nächte mit Tagesminimum ab {temp} °C pro Station mit Daten im jeweiligen Jahr.",
+        'yearly-empty': "Keine Jahresreihen-Daten für die aktuelle Filterauswahl.",
         'season-shortest': "Kürzeste",
         'season-longest': "Längste",
         'season-average': "Durchschnitt",
@@ -211,11 +230,16 @@ const i18n = {
         'view-single-desc': "Year by year",
         'view-annual': "Annual chart",
         'view-annual-desc': "Bars & trend",
+        'view-yearly': "Year series",
+        'view-yearly-desc': "Germany average",
         'view-season': "Season length",
         'view-season-desc': "First to last report",
         'card-title-annual': "Annual Chart",
         'card-subtitle-annual-max': "Summed DWD station reports per year for the active filters, including a linear trend.",
         'card-subtitle-annual-min': "Summed DWD station nights per year for the active filters, including a linear trend.",
+        'card-title-yearly': "Year-by-Year Germany Average",
+        'card-subtitle-yearly-max': "Each bar shows the mean number of hot days per reporting station and year, including the trend.",
+        'card-subtitle-yearly-min': "Each bar shows the mean number of warm nights per reporting station and year, including the trend.",
         'card-title-season': "Season Length",
         'card-subtitle-season-max': "Span between the first and last day with daily maximum at or above {temp} °C across selected stations in Germany.",
         'card-subtitle-season-min': "Span between the first and last night with daily minimum at or above {temp} °C across selected stations in Germany.",
@@ -226,6 +250,20 @@ const i18n = {
         'annual-latest-label': "Value in the latest year of the series",
         'annual-trend-stat-label': "Linear trend per decade",
         'annual-empty': "No data for the current filter selection.",
+        'yearly-axis-label-max': "Hot days per station",
+        'yearly-axis-label-min': "Warm nights per station",
+        'yearly-series-label': "Annual value",
+        'yearly-trend-label': "Trend",
+        'yearly-peak-note-max': "{year} had the highest average number of hot days.",
+        'yearly-peak-note-min': "{year} had the highest average number of warm nights.",
+        'yearly-bar-note-max': "Each bar shows hot days in one year.",
+        'yearly-bar-note-min': "Each bar shows warm nights in one year.",
+        'yearly-peak-label': "Highest annual value",
+        'yearly-latest-label': "Latest annual value",
+        'yearly-trend-stat-label': "Trend per decade",
+        'yearly-methodology-max': "Calculated as the average number of days with daily maximum at or above {temp} °C per station with data in that year.",
+        'yearly-methodology-min': "Calculated as the average number of nights with daily minimum at or above {temp} °C per station with data in that year.",
+        'yearly-empty': "No year-series data for the current filter selection.",
         'season-shortest': "Shortest",
         'season-longest': "Longest",
         'season-average': "Average",
@@ -390,6 +428,7 @@ function setLanguage(lang) {
         ['btn-view-grid', 'view-grid'],
         ['btn-view-single', 'view-single'],
         ['btn-view-annual', 'view-annual'],
+        ['btn-view-yearly', 'view-yearly'],
         ['btn-view-season', 'view-season']
     ].forEach(([id, key]) => {
         const label = document.getElementById(`${id}-label`);
@@ -860,6 +899,21 @@ function getDaysCountForYear(station, year) {
     return sum;
 }
 
+function getValidObservationDaysForYear(station, year) {
+    const yrData = station.annual_data[year];
+    if (!yrData) return 0;
+
+    const annualKey = currentMetric === 'min' ? 'valid_days_min' : 'valid_days_max';
+    const monthlyKey = currentMetric === 'min' ? 'm_valid_min' : 'm_valid_max';
+
+    if (currentMonths.length === 12) {
+        return yrData[annualKey] || yrData.valid_days || 0;
+    }
+
+    const monthlyValid = yrData[monthlyKey] || yrData.m_valid || [];
+    return currentMonths.reduce((total, month) => total + (monthlyValid[month - 1] || 0), 0);
+}
+
 // Helper: Calculate data coverage for a station only over the selected sub-period and months
 function calculateCoverageForPeriod(station, startYear, endYear) {
     let validDays = 0;
@@ -1216,6 +1270,33 @@ function getAnnualTotals(filteredStations) {
     return { years, counts };
 }
 
+function getYearlyAverageSeries(filteredStations) {
+    const years = [];
+    const averages = [];
+    const totals = [];
+    const stationCounts = [];
+
+    for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
+        let total = 0;
+        let stationsWithData = 0;
+
+        filteredStations.forEach(station => {
+            if (getValidObservationDaysForYear(station, yr) <= 0) return;
+            total += getDaysCountForYear(station, yr);
+            stationsWithData += 1;
+        });
+
+        if (stationsWithData > 0) {
+            years.push(yr);
+            totals.push(total);
+            stationCounts.push(stationsWithData);
+            averages.push(total / stationsWithData);
+        }
+    }
+
+    return { years, averages, totals, stationCounts };
+}
+
 function calculateLinearRegression(values) {
     const n = values.length;
     if (n < 2) return { slope: 0, intercept: values[0] || 0 };
@@ -1361,6 +1442,200 @@ function renderAnnualChart(filteredStations) {
                     <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${t['lbl-day-unit']}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-trend-stat-label']}</span>
                 </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderYearlyTrendChart(filteredStations) {
+    const container = document.getElementById('yearly-chart-container');
+    if (!container) return;
+
+    const { years, averages, totals, stationCounts } = getYearlyAverageSeries(filteredStations);
+    const t = i18n[currentLang];
+    if (!years.length) {
+        container.innerHTML = `<div class="py-24 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">${t['yearly-empty']}</div>`;
+        return;
+    }
+
+    const accent = getModeAccent();
+    const isDark = document.documentElement.classList.contains('dark');
+    const width = 1040;
+    const height = 500;
+    const padding = { top: 68, right: 30, bottom: 62, left: 62 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const n = years.length;
+    const maxVal = Math.max(...averages, 2);
+    const yMax = Math.max(5, Math.ceil(maxVal / 5) * 5);
+
+    const getX = (index) => n === 1
+        ? padding.left + chartWidth / 2
+        : padding.left + (index / (n - 1)) * chartWidth;
+    const getY = (value) => padding.top + chartHeight - (value / yMax) * chartHeight;
+    const barStep = n > 1 ? chartWidth / n : chartWidth;
+    const barWidth = Math.max(3, Math.min(10, barStep * 0.58));
+
+    const { slope, intercept } = calculateLinearRegression(averages);
+    const trendStart = Math.max(0, intercept);
+    const trendEnd = Math.max(0, slope * (n - 1) + intercept);
+    const trendPerDecade = slope * 10;
+    const trendPath = `M ${getX(0)},${getY(trendStart)} L ${getX(n - 1)},${getY(trendEnd)}`;
+
+    let peakIndex = 0;
+    averages.forEach((value, index) => {
+        if (value > averages[peakIndex]) peakIndex = index;
+    });
+    const latestIndex = averages.length - 1;
+
+    const axisStroke = isDark ? '#334155' : '#cbd5e1';
+    const gridStroke = isDark ? '#334155' : '#cbd5e1';
+    const textFill = isDark ? '#94a3b8' : '#64748b';
+    const mutedText = isDark ? '#64748b' : '#94a3b8';
+    const barTop = currentMetric === 'min' ? '#38bdf8' : '#fb7185';
+    const barBottom = currentMetric === 'min' ? '#0ea5e9' : '#f97316';
+    const trendStroke = currentMetric === 'min' ? '#0c4a6e' : '#9f1239';
+    const peakStroke = currentMetric === 'min' ? '#bae6fd' : '#fed7aa';
+    const barNoteX = padding.left + 12;
+    const barNoteY = padding.top + chartHeight * 0.45;
+
+    const formatValue = value => value.toLocaleString(currentLang === 'de' ? 'de-DE' : 'en-US', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    });
+    const wrapSvgText = (text, maxChars) => {
+        const words = String(text).split(' ');
+        const lines = [];
+        let currentLine = '';
+        words.forEach(word => {
+            const nextLine = currentLine ? `${currentLine} ${word}` : word;
+            if (nextLine.length > maxChars && currentLine) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = nextLine;
+            }
+        });
+        if (currentLine) lines.push(currentLine);
+        return lines;
+    };
+    const renderWrappedTspans = (lines, x) => lines.map((line, index) => (
+        `<tspan x="${x}" dy="${index === 0 ? 0 : 24}">${line}</tspan>`
+    )).join('');
+
+    let yGridSvg = '';
+    const ticks = 5;
+    for (let i = 0; i <= ticks; i++) {
+        const value = (yMax / ticks) * i;
+        const y = getY(value);
+        yGridSvg += `
+            <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="3 7"'} opacity="${i === 0 ? '0.9' : '0.7'}" />
+            <text x="${padding.left - 10}" y="${y + 4}" fill="${textFill}" font-size="13" font-weight="700" text-anchor="end">${Math.round(value)}</text>
+        `;
+    }
+
+    let xLabelsSvg = '';
+    years.forEach((year, index) => {
+        const isDecade = year % 10 === 0;
+        const isEdge = year === years[0] || year === years[years.length - 1];
+        if (isDecade || isEdge) {
+            const x = getX(index);
+            xLabelsSvg += `
+                <line x1="${x}" y1="${height - padding.bottom}" x2="${x}" y2="${height - padding.bottom + 5}" stroke="${axisStroke}" stroke-width="1" />
+                <text x="${x}" y="${height - padding.bottom + 25}" fill="${textFill}" font-size="13" font-weight="700" text-anchor="middle">${year}</text>
+            `;
+        }
+    });
+
+    const barsSvg = averages.map((value, index) => {
+        const x = getX(index) - barWidth / 2;
+        const y = getY(value);
+        const barHeight = Math.max(1, height - padding.bottom - y);
+        const isPeak = index === peakIndex;
+        return `
+            <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="1.5" fill="url(#yearly-bar-grad)" opacity="${isPeak ? '1' : '0.82'}">
+                <title>${years[index]}: ${formatValue(value)} (${totals[index].toLocaleString()} / ${stationCounts[index]} ${t['inspector-lbl-stations'].toLowerCase()})</title>
+            </rect>
+        `;
+    }).join('');
+
+    const peakX = getX(peakIndex);
+    const peakY = getY(averages[peakIndex]);
+    const peakNote = t[`yearly-peak-note-${currentMetric}`].replace('{year}', years[peakIndex]);
+    const peakNoteLines = wrapSvgText(peakNote, 34);
+    const barNoteLines = wrapSvgText(t[`yearly-bar-note-${currentMetric}`], 34);
+    const noteWidth = 250;
+    const noteX = Math.min(Math.max(peakX - noteWidth * 0.55, padding.left), width - padding.right - noteWidth);
+    const noteY = Math.max(30, peakY - 74);
+    const arrowStartX = noteX + noteWidth * 0.7;
+    const arrowStartY = noteY + 26;
+    const arrowControlX = peakX + (arrowStartX < peakX ? -30 : 30);
+    const arrowControlY = Math.min(peakY - 16, arrowStartY + 28);
+    const peakLabelAnchor = peakX > width - padding.right - 72 ? 'end' : 'start';
+    const peakLabelX = peakLabelAnchor === 'end' ? peakX - 10 : peakX + 10;
+
+    container.innerHTML = `
+        <div class="flex flex-col gap-4">
+            <div class="w-full overflow-x-auto">
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" class="min-w-[780px]">
+                    <defs>
+                        <linearGradient id="yearly-bar-grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${barTop}" stop-opacity="0.98" />
+                            <stop offset="100%" stop-color="${barBottom}" stop-opacity="0.78" />
+                        </linearGradient>
+                        <marker id="yearly-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3.5" orient="auto">
+                            <path d="M0,0 L7,3.5 L0,7" fill="none" stroke="${textFill}" stroke-width="1.5" />
+                        </marker>
+                    </defs>
+
+                    <text x="${padding.left}" y="18" fill="${textFill}" font-size="12" font-weight="800">${t[`yearly-axis-label-${currentMetric}`]}</text>
+                    ${yGridSvg}
+                    <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="${axisStroke}" stroke-width="1.4" />
+                    ${xLabelsSvg}
+                    ${barsSvg}
+                    <path d="${trendPath}" fill="none" stroke="${trendStroke}" stroke-width="3" stroke-linecap="round" />
+
+                    <circle cx="${peakX}" cy="${peakY}" r="4.5" fill="${trendStroke}" stroke="${peakStroke}" stroke-width="2" />
+                    <text x="${peakLabelX}" y="${peakY - 9}" fill="${trendStroke}" font-size="12" font-weight="900" text-anchor="${peakLabelAnchor}">${years[peakIndex]}: ${formatValue(averages[peakIndex])}</text>
+                    <path d="M ${arrowStartX} ${arrowStartY} Q ${arrowControlX} ${arrowControlY} ${peakX} ${peakY - 10}" fill="none" stroke="${textFill}" stroke-width="1.7" marker-end="url(#yearly-arrow)" />
+                    <text x="${noteX}" y="${noteY}" fill="${textFill}" font-size="18" font-weight="500">
+                        ${renderWrappedTspans(peakNoteLines, noteX)}
+                    </text>
+
+                    <path d="M ${barNoteX + 6} ${barNoteY + 8} L ${barNoteX + 6} ${barNoteY + 54}" fill="none" stroke="${textFill}" stroke-width="1.7" marker-end="url(#yearly-arrow)" />
+                    <text x="${barNoteX}" y="${barNoteY}" fill="${textFill}" font-size="19" font-weight="500">
+                        ${renderWrappedTspans(barNoteLines, barNoteX)}
+                    </text>
+
+                    <text x="${width - padding.right - 10}" y="${getY(trendEnd) - 8}" fill="${trendStroke}" font-size="18" font-weight="600" text-anchor="end">${t['yearly-trend-label']}</text>
+
+                    <g transform="translate(${padding.left}, ${height - 15})">
+                        <rect x="0" y="-11" width="10" height="11" rx="2" fill="url(#yearly-bar-grad)" />
+                        <text x="17" y="-1" fill="${textFill}" font-size="11" font-weight="800">${t['yearly-series-label']}</text>
+                        <line x1="132" y1="-6" x2="160" y2="-6" stroke="${trendStroke}" stroke-width="3" stroke-linecap="round" />
+                        <text x="168" y="-1" fill="${textFill}" font-size="11" font-weight="800">${t['yearly-trend-label']}</text>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+                <div class="flex flex-col gap-1">
+                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${formatValue(averages[peakIndex])}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['yearly-peak-label']}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[latestIndex]}: ${formatValue(averages[latestIndex])}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['yearly-latest-label']}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendPerDecade >= 0 ? '+' : ''}${formatValue(trendPerDecade)}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['yearly-trend-stat-label']}</span>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                <span class="font-semibold ${accent.textSoft} ${accent.textSoftDark}">${currentTempThreshold} °C:</span>
+                ${t[`yearly-methodology-${currentMetric}`].replace('{temp}', currentTempThreshold)}
             </div>
         </div>
     `;
@@ -1652,6 +1927,8 @@ function updateDashboard() {
             titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${endYearLabel})`;
         } else if (currentViewMode === 'annual') {
             titleElement.textContent = i18n[currentLang]['card-title-annual'] + ` (${currentStartYear}–${endYearLabel})`;
+        } else if (currentViewMode === 'yearly') {
+            titleElement.textContent = i18n[currentLang]['card-title-yearly'] + ` (${currentStartYear}–${endYearLabel})`;
         } else {
             titleElement.textContent = i18n[currentLang]['card-title-season'] + ` (${currentStartYear}–${endYearLabel})`;
         }
@@ -1663,6 +1940,8 @@ function updateDashboard() {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
         } else if (currentViewMode === 'annual') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-annual-${currentMetric}`];
+        } else if (currentViewMode === 'yearly') {
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-yearly-${currentMetric}`];
         } else {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-season-${currentMetric}`].replace('{temp}', currentTempThreshold);
         }
@@ -1677,6 +1956,8 @@ function updateDashboard() {
         renderSingleMap(filteredStations);
     } else if (currentViewMode === 'annual') {
         renderAnnualChart(filteredStations);
+    } else if (currentViewMode === 'yearly') {
+        renderYearlyTrendChart(filteredStations);
     } else {
         renderSeasonChart(filteredStations);
     }
@@ -2558,7 +2839,7 @@ function loadStateFromURLHash() {
     }
     if (params.has('view')) {
         const val = params.get('view');
-        if (val === 'grid' || val === 'single' || val === 'annual' || val === 'season') currentViewMode = val;
+        if (val === 'grid' || val === 'single' || val === 'annual' || val === 'yearly' || val === 'season') currentViewMode = val;
     }
     if (params.has('year')) {
         const val = parseInt(params.get('year'));
@@ -2696,12 +2977,14 @@ function syncUIControls() {
     const btnGrid = document.getElementById('btn-view-grid');
     const btnSingle = document.getElementById('btn-view-single');
     const btnAnnual = document.getElementById('btn-view-annual');
+    const btnYearly = document.getElementById('btn-view-yearly');
     const btnSeason = document.getElementById('btn-view-season');
-    if (btnGrid && btnSingle && btnAnnual && btnSeason) {
+    if (btnGrid && btnSingle && btnAnnual && btnYearly && btnSeason) {
         const viewButtons = [
             ['grid', btnGrid],
             ['single', btnSingle],
             ['annual', btnAnnual],
+            ['yearly', btnYearly],
             ['season', btnSeason]
         ];
         const activeViewClass = `group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left transition duration-150 ${accent.bg} text-white shadow-sm ${accent.shadow}`;
@@ -2731,14 +3014,17 @@ function syncUIControls() {
     const gridView = document.getElementById('map-grid-view');
     const singleView = document.getElementById('map-single-view');
     const annualView = document.getElementById('annual-chart-view');
+    const yearlyView = document.getElementById('yearly-chart-view');
     const seasonView = document.getElementById('season-chart-view');
-    if (gridView && singleView && annualView && seasonView) {
+    if (gridView && singleView && annualView && yearlyView && seasonView) {
         gridView.classList.toggle('hidden', currentViewMode !== 'grid');
         gridView.classList.toggle('block', currentViewMode === 'grid');
         singleView.classList.toggle('hidden', currentViewMode !== 'single');
         singleView.classList.toggle('block', currentViewMode === 'single');
         annualView.classList.toggle('hidden', currentViewMode !== 'annual');
         annualView.classList.toggle('block', currentViewMode === 'annual');
+        yearlyView.classList.toggle('hidden', currentViewMode !== 'yearly');
+        yearlyView.classList.toggle('block', currentViewMode === 'yearly');
         seasonView.classList.toggle('hidden', currentViewMode !== 'season');
         seasonView.classList.toggle('block', currentViewMode === 'season');
     }
@@ -2784,9 +3070,9 @@ function updatePlayButtonAccent() {
     playBtn.className = `flex items-center justify-center w-9 h-9 rounded-full ${accent.bg} ${accent.bgHover} text-white font-bold transition duration-150 shadow-md ${accent.shadow} active:scale-95`;
 }
 
-// Set the active visualization view mode ('grid', 'single', 'annual', or 'season')
+// Set the active visualization view mode ('grid', 'single', 'annual', 'yearly', or 'season')
 function setViewMode(mode) {
-    if (!['grid', 'single', 'annual', 'season'].includes(mode)) return;
+    if (!['grid', 'single', 'annual', 'yearly', 'season'].includes(mode)) return;
     if (currentViewMode === mode) return;
     
     // Pause animation if playing and switching away from single map
