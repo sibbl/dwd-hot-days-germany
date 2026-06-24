@@ -5,7 +5,7 @@ let bbox = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
 let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
-let currentTempThreshold = 35; // 30-40 for max, 18-28 for min
+let currentTempThreshold = 35; // 25-40 for max, 18-28 for min
 let lastThresholdByMetric = { max: 35, min: 22 };
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
@@ -578,6 +578,11 @@ function formatDate(dStr) {
 }
 
 const HEAT_SCALES = {
+    25: [20, 40, 60, 80, 100],
+    26: [20, 40, 60, 80, 100],
+    27: [15, 30, 50, 70, 90],
+    28: [10, 25, 40, 55, 70],
+    29: [10, 20, 35, 50, 65],
     30: [5, 15, 30, 45, 60],
     31: [5, 15, 30, 45, 60],
     32: [5, 15, 30, 45, 60],
@@ -608,7 +613,7 @@ const NIGHT_SCALES = {
 const METRIC_CONFIG = {
     max: {
         keyPrefix: 't',
-        minThreshold: 30,
+        minThreshold: 25,
         maxThreshold: 40,
         defaultThreshold: 35,
         scales: HEAT_SCALES,

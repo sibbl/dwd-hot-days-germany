@@ -456,12 +456,12 @@ def main():
                 'valid_days_max': valid_yr_days,
                 'valid_days_min': valid_yr_nights
             }
-            for temp_t in range(30, 41):
+            for temp_t in range(25, 41):
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
             for temp_t in range(18, 29):
                 stats[f'n{temp_t}'] = int((group['TNK'] >= float(temp_t)).sum())
             season_stats = {}
-            season_stats.update(collect_season_stats(group, 'TXK', 't', range(30, 41)))
+            season_stats.update(collect_season_stats(group, 'TXK', 't', range(25, 41)))
             season_stats.update(collect_season_stats(group, 'TNK', 'n', range(18, 29)))
             if season_stats:
                 stats['season'] = season_stats
@@ -477,7 +477,7 @@ def main():
                     m_valid[idx] = int(m_group['TXK'].notna().sum())
                     m_valid_min[idx] = int(m_group['TNK'].notna().sum())
                     m_stats = {}
-                    for temp_t in range(30, 41):
+                    for temp_t in range(25, 41):
                         count = int((m_group['TXK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f't{temp_t}'] = count
@@ -486,7 +486,7 @@ def main():
                         if count > 0:
                             m_stats[f'n{temp_t}'] = count
                     month_season_stats = {}
-                    month_season_stats.update(collect_season_stats(m_group, 'TXK', 't', range(30, 41)))
+                    month_season_stats.update(collect_season_stats(m_group, 'TXK', 't', range(25, 41)))
                     month_season_stats.update(collect_season_stats(m_group, 'TNK', 'n', range(18, 29)))
                     if month_season_stats:
                         m_stats['season'] = month_season_stats
@@ -526,7 +526,7 @@ def main():
     output_path = os.path.join(DATA_DIR, 'weather_data.json')
     print(f"Writing aggregated results to: {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(processed_stations, f, indent=2, ensure_ascii=False)
+        json.dump(processed_stations, f, ensure_ascii=False, separators=(',', ':'))
         
     print(f"Pipeline complete! Successfully processed {len(processed_stations)} weather stations.")
 
