@@ -157,6 +157,9 @@
                                 <button id="btn-view-annual" onclick="setViewMode('annual')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
                                     Jahresdiagramm
                                 </button>
+                                <button id="btn-view-season" onclick="setViewMode('season')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
+                                    Saisonlänge
+                                </button>
                             </div>
                         </div>
                         <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
@@ -175,7 +178,7 @@
 
                 <!-- Parameter Control Panel (Horizontal Toolbar Bar) -->
                 <div class="bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-xl p-4 mb-4 mt-1">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Metric Selection -->
                         <div class="flex flex-col gap-2">
                             <div class="flex justify-between items-end text-xs lg:h-10">
@@ -207,15 +210,6 @@
                                 <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">1961</span>
                             </div>
                             <input id="slider-start-year" type="range" min="1961" max="2020" value="1961" step="1" oninput="updateStartYear(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
-                        </div>
-
-                        <!-- Coverage Selection -->
-                        <div class="flex flex-col gap-2">
-                            <div class="flex justify-between items-end text-xs lg:h-10">
-                                <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
-                                <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shrink-0">90 %</span>
-                            </div>
-                            <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
                         </div>
 
                         <!-- Month Selection (Custom Dropdown) -->
@@ -267,7 +261,16 @@
                             </svg>
                         </summary>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 pt-3">
+                            <div class="flex flex-col gap-2 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2">
+                                <div class="flex justify-between items-end text-xs">
+                                    <span id="lbl-coverage" class="font-semibold text-slate-600 dark:text-slate-350">Daten-Vollständigkeit:</span>
+                                    <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shrink-0">90 %</span>
+                                </div>
+                                <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                                <span id="desc-coverage" class="text-[9px] font-normal text-slate-450 dark:text-slate-500 leading-tight">Mindestanteil valider Daten im gewählten Zeitraum.</span>
+                            </div>
+
                             <label class="flex items-start gap-2.5 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2 cursor-pointer">
                                 <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
                                 <span class="text-xs font-semibold text-slate-600 dark:text-slate-350 select-none flex flex-col gap-0.5">
@@ -373,6 +376,13 @@
                         <!-- Annual chart dynamically injected -->
                     </div>
                 </div>
+
+                <!-- Season Length View Panel -->
+                <div id="season-chart-view" class="hidden">
+                    <div id="season-chart-container" class="w-full min-h-[420px]">
+                        <!-- Season length chart dynamically injected -->
+                    </div>
+                </div>
             </div>
 
 
@@ -469,6 +479,6 @@
     </div>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=31"></script>
+    <script src="app.js?v=32"></script>
 </body>
 </html>

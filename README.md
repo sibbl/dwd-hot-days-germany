@@ -52,14 +52,14 @@ dwd-data-analysis/
 ## Setup & Running Locally
 
 ### Prerequisites
-The project uses standard vanilla Python (version 3.8+) and frontend JavaScript. No external dependencies are strictly required to run the web server or the data pipeline.
+The frontend uses static HTML, CSS, and JavaScript. The data pipeline needs Python with `pandas`; use the checked-in virtual environment when it is available.
 
 ### 1. (Optional) Re-run the Scraper & Preprocessor
 To scrape the most recent daily records and rebuild the local databases, execute the python script in your terminal:
 ```bash
-python download_and_process.py
+.venv/bin/python download_and_process.py
 ```
-*Note: This script automatically establishes connections with the DWD Open Data CDC servers, pulls down daily files, extracts geographic timelines, deduplicates records, and calculates local coordinate changes. It generates `data/weather_data.json`.*
+*Note: This script automatically establishes connections with the DWD Open Data CDC servers, pulls down daily files, extracts geographic timelines, deduplicates records, calculates local coordinate changes, and exports yearly/monthly threshold spans for the season-length view. It generates `data/weather_data.json`.*
 
 For the regular monthly refresh, run this command at the beginning of the month after DWD has published recent daily values. The frontend derives the airport and major-city exclusion filters from each station's current coordinates, so no additional geospatial preprocessing step is required for those UI filters.
 

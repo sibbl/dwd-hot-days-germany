@@ -10,7 +10,8 @@ Date: 2026-06-24
 ## Automated Checks
 
 - `node --check app.js` passed.
-- `python3 -m py_compile download_and_process.py verify_results.py` passed after removing the hard-coded active-station month cutoff.
+- `.venv/bin/python download_and_process.py` completed and regenerated `data/weather_data.json` with `season` fields for yearly and monthly threshold spans.
+- `.venv/bin/python -m py_compile download_and_process.py verify_results.py` passed after removing the hard-coded active-station month cutoff.
 - `verify_results.py` completed, but the Spiegel fixed reference totals no longer match exactly after regenerating against current DWD 2025/2026 station availability.
 
 ## Browser Checks
@@ -36,9 +37,12 @@ Date: 2026-06-24
 - Single-map view rendered in night-minimum mode with threshold-specific total wording.
 - Mobile viewport check at roughly 390 px wide showed visible metric controls and no horizontal overflow in the checked controls.
 - Advanced filters open as a collapsed section below the main controls and include:
+  - `Daten-Vollständigkeit`
   - `Nur ortsfeste Stationen`
   - `Flughafenumfeld ausschließen`
   - `Großstadtumfeld ausschließen`
+- `Daten-Vollständigkeit` is no longer present in the main control row; changing it in advanced filters updates the URL hash and active station count.
 - Airport/city exclusions are station-coordinate based and update the active station count and URL hash with `airport=exclude` and `city=exclude`.
 - `Jahresdiagramm` renders as a third visualization tab, hides the map-bubble legend, shows annual DWD station totals, a trend line, and peak/latest/trend stats.
+- `Saisonlänge` renders as a fourth visualization tab, hides the map-bubble legend, and compares the 1970s with the latest 10 years using shortest/longest yearly Germany-wide threshold spans.
 - Night-minimum mode keeps the `22 °C` default and switches the annual chart controls/trend styling to the blue palette.

@@ -15,7 +15,7 @@ let excludeCityEnvironment = false;
 let selectedStationId = null;
 let currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 1 to 12 representing Jan to Dec
 
-let currentViewMode = 'grid'; // 'grid', 'single', or 'annual'
+let currentViewMode = 'grid'; // 'grid', 'single', 'annual', or 'season'
 let currentActiveYear = 2025; // Active year for the single map view
 let animationIntervalId = null;
 let animationSpeed = 250; // ms per year in animation
@@ -79,9 +79,13 @@ const i18n = {
         'view-grid': "Raster",
         'view-single': "Einzelkarte",
         'view-annual': "Jahresdiagramm",
+        'view-season': "Saisonlänge",
         'card-title-annual': "Jahresdiagramm",
         'card-subtitle-annual-max': "Summierte DWD-Stationsmeldungen pro Jahr für die aktiven Filter, inklusive linearem Trend.",
         'card-subtitle-annual-min': "Summierte DWD-Stationsnächte pro Jahr für die aktiven Filter, inklusive linearem Trend.",
+        'card-title-season': "Saisonlänge",
+        'card-subtitle-season-max': "Spanne zwischen erstem und letztem Tag mit Tagesmaximum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
+        'card-subtitle-season-min': "Spanne zwischen erster und letzter Nacht mit Tagesminimum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
         'annual-series-label': "DWD-Stationen",
         'annual-trend-label': "Linearer Trend",
         'annual-axis-label': "Meldungen pro Jahr",
@@ -89,6 +93,15 @@ const i18n = {
         'annual-latest-label': "Wert im letzten Jahr der Reihe",
         'annual-trend-stat-label': "Linearer Trend pro Jahrzehnt",
         'annual-empty': "Keine Daten für die aktuelle Filterauswahl.",
+        'season-baseline-label': "1970er",
+        'season-recent-label': "Letzte 10 Jahre",
+        'season-shortest': "Kürzeste",
+        'season-longest': "Längste",
+        'season-average': "Durchschnitt",
+        'season-days': "{n} Tage",
+        'season-empty': "Keine Saisonlängen-Daten für die aktuelle Filterauswahl. Bitte `download_and_process.py` neu ausführen.",
+        'season-axis-label': "Tage zwischen erstem und letztem Ereignis",
+        'season-methodology': "Pro Jahr wird die deutschlandweite Spanne zwischen frühestem und spätestem Schwellenereignis über alle selektierten Stationen berechnet.",
         'legend-lbl-days': "Tage:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
@@ -193,9 +206,13 @@ const i18n = {
         'view-grid': "Grid",
         'view-single': "Single map",
         'view-annual': "Annual chart",
+        'view-season': "Season length",
         'card-title-annual': "Annual Chart",
         'card-subtitle-annual-max': "Summed DWD station reports per year for the active filters, including a linear trend.",
         'card-subtitle-annual-min': "Summed DWD station nights per year for the active filters, including a linear trend.",
+        'card-title-season': "Season Length",
+        'card-subtitle-season-max': "Span between the first and last day with daily maximum at or above {temp} °C across selected stations in Germany.",
+        'card-subtitle-season-min': "Span between the first and last night with daily minimum at or above {temp} °C across selected stations in Germany.",
         'annual-series-label': "DWD stations",
         'annual-trend-label': "Linear trend",
         'annual-axis-label': "Reports per year",
@@ -203,6 +220,15 @@ const i18n = {
         'annual-latest-label': "Value in the latest year of the series",
         'annual-trend-stat-label': "Linear trend per decade",
         'annual-empty': "No data for the current filter selection.",
+        'season-baseline-label': "1970s",
+        'season-recent-label': "Latest 10 years",
+        'season-shortest': "Shortest",
+        'season-longest': "Longest",
+        'season-average': "Average",
+        'season-days': "{n} days",
+        'season-empty': "No season-length data for the current filter selection. Please rerun `download_and_process.py`.",
+        'season-axis-label': "Days between first and last event",
+        'season-methodology': "For each year, the Germany-wide span between the earliest and latest threshold event is calculated across all selected stations.",
         'legend-lbl-days': "Days:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
@@ -362,6 +388,8 @@ function setLanguage(lang) {
     if (btnViewSingle) btnViewSingle.textContent = i18n[lang]['view-single'];
     const btnViewAnnual = document.getElementById('btn-view-annual');
     if (btnViewAnnual) btnViewAnnual.textContent = i18n[lang]['view-annual'];
+    const btnViewSeason = document.getElementById('btn-view-season');
+    if (btnViewSeason) btnViewSeason.textContent = i18n[lang]['view-season'];
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
     document.getElementById('inspector-title').textContent = i18n[lang]['inspector-title'];
@@ -1331,6 +1359,215 @@ function renderAnnualChart(filteredStations) {
     `;
 }
 
+function getSeasonEntryForStationYear(station, year) {
+    const yrData = station.annual_data[year];
+    if (!yrData) return null;
+    const key = getMetricDataKey();
+
+    if (currentMonths.length === 12) {
+        return yrData.season ? yrData.season[key] || null : null;
+    }
+
+    let firstDoy = null;
+    let lastDoy = null;
+    let firstDate = null;
+    let lastDate = null;
+
+    currentMonths.forEach(month => {
+        const monthData = yrData.m_data ? yrData.m_data[String(month)] : null;
+        const entry = monthData && monthData.season ? monthData.season[key] : null;
+        if (!entry) return;
+        if (firstDoy === null || entry.first_doy < firstDoy) {
+            firstDoy = entry.first_doy;
+            firstDate = entry.first;
+        }
+        if (lastDoy === null || entry.last_doy > lastDoy) {
+            lastDoy = entry.last_doy;
+            lastDate = entry.last;
+        }
+    });
+
+    if (firstDoy === null || lastDoy === null) return null;
+    return {
+        first: firstDate,
+        last: lastDate,
+        first_doy: firstDoy,
+        last_doy: lastDoy,
+        length: lastDoy - firstDoy + 1
+    };
+}
+
+function getCombinedSeasonForYear(filteredStations, year) {
+    let firstDoy = null;
+    let lastDoy = null;
+    let firstDate = null;
+    let lastDate = null;
+
+    filteredStations.forEach(station => {
+        const entry = getSeasonEntryForStationYear(station, year);
+        if (!entry) return;
+        if (firstDoy === null || entry.first_doy < firstDoy) {
+            firstDoy = entry.first_doy;
+            firstDate = entry.first;
+        }
+        if (lastDoy === null || entry.last_doy > lastDoy) {
+            lastDoy = entry.last_doy;
+            lastDate = entry.last;
+        }
+    });
+
+    if (firstDoy === null || lastDoy === null) return null;
+    return {
+        year,
+        first: firstDate,
+        last: lastDate,
+        first_doy: firstDoy,
+        last_doy: lastDoy,
+        length: lastDoy - firstDoy + 1
+    };
+}
+
+function summarizeSeasonPeriod(filteredStations, startYear, endYear, label) {
+    const seasons = [];
+    for (let year = startYear; year <= endYear; year++) {
+        const season = getCombinedSeasonForYear(filteredStations, year);
+        if (season) seasons.push(season);
+    }
+
+    if (!seasons.length) {
+        return { label, startYear, endYear, seasons: [], shortest: null, longest: null, average: 0 };
+    }
+
+    let shortest = seasons[0];
+    let longest = seasons[0];
+    let total = 0;
+    seasons.forEach(season => {
+        if (season.length < shortest.length) shortest = season;
+        if (season.length > longest.length) longest = season;
+        total += season.length;
+    });
+
+    return {
+        label,
+        startYear,
+        endYear,
+        seasons,
+        shortest,
+        longest,
+        average: total / seasons.length
+    };
+}
+
+function formatPeriodLabel(startYear, endYear) {
+    if (endYear === maxYearGlobal) {
+        return `${startYear}–${getEndYearLabel(currentLang)}`;
+    }
+    return `${startYear}–${endYear}`;
+}
+
+function renderSeasonChart(filteredStations) {
+    const container = document.getElementById('season-chart-container');
+    if (!container) return;
+
+    const t = i18n[currentLang];
+    const baselineStart = Math.max(currentStartYear, 1971);
+    const baselineEnd = Math.min(1980, maxYearGlobal);
+    const recentStart = Math.max(currentStartYear, maxYearGlobal - 9);
+    const recentEnd = maxYearGlobal;
+    const periods = [];
+
+    if (baselineStart <= baselineEnd) {
+        periods.push(summarizeSeasonPeriod(filteredStations, baselineStart, baselineEnd, t['season-baseline-label']));
+    }
+    if (recentStart <= recentEnd) {
+        periods.push(summarizeSeasonPeriod(filteredStations, recentStart, recentEnd, t['season-recent-label']));
+    }
+
+    const availablePeriods = periods.filter(period => period.shortest && period.longest);
+    if (!availablePeriods.length) {
+        container.innerHTML = `<div class="py-24 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">${t['season-empty']}</div>`;
+        return;
+    }
+
+    const isDark = document.documentElement.classList.contains('dark');
+    const width = 1040;
+    const height = 360;
+    const padding = { top: 42, right: 34, bottom: 48, left: 150 };
+    const chartWidth = width - padding.left - padding.right;
+    const rowGap = 92;
+    const maxLength = Math.max(...availablePeriods.map(period => period.longest.length), 30);
+    const xMax = Math.ceil(maxLength / 20) * 20;
+    const getX = value => padding.left + (value / xMax) * chartWidth;
+    const axisY = height - padding.bottom;
+    const textFill = isDark ? '#94a3b8' : '#64748b';
+    const mutedText = isDark ? '#64748b' : '#94a3b8';
+    const gridStroke = isDark ? '#1e293b' : '#e2e8f0';
+    const lineStroke = isDark ? '#475569' : '#cbd5e1';
+    const shortestColor = currentMetric === 'min' ? '#38bdf8' : '#eab308';
+    const longestColor = currentMetric === 'min' ? '#1d4ed8' : '#dc2626';
+    const accent = getModeAccent();
+
+    let axisSvg = '';
+    const tickStep = Math.max(10, Math.ceil(xMax / 5 / 10) * 10);
+    for (let value = 0; value <= xMax; value += tickStep) {
+        const x = getX(value);
+        axisSvg += `
+            <line x1="${x}" y1="${padding.top - 12}" x2="${x}" y2="${axisY}" stroke="${gridStroke}" stroke-width="1" />
+            <text x="${x}" y="${axisY + 20}" fill="${textFill}" font-size="11" font-weight="700" text-anchor="middle">${value}</text>
+        `;
+    }
+
+    const rowsSvg = availablePeriods.map((period, index) => {
+        const y = padding.top + 38 + index * rowGap;
+        const shortestX = getX(period.shortest.length);
+        const longestX = getX(period.longest.length);
+        const periodLabel = formatPeriodLabel(period.startYear, period.endYear);
+        const shortestLabel = t['season-days'].replace('{n}', Math.round(period.shortest.length));
+        const longestLabel = t['season-days'].replace('{n}', Math.round(period.longest.length));
+        const avgLabel = t['season-days'].replace('{n}', period.average.toFixed(1));
+
+        return `
+            <g>
+                <text x="${padding.left - 22}" y="${y - 8}" fill="${textFill}" font-size="16" font-weight="900" text-anchor="end">${period.label}</text>
+                <text x="${padding.left - 22}" y="${y + 12}" fill="${mutedText}" font-size="11" font-weight="700" text-anchor="end">${periodLabel}</text>
+                <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" stroke-dasharray="2 4" />
+                <line x1="${shortestX}" y1="${y}" x2="${longestX}" y2="${y}" stroke="${lineStroke}" stroke-width="8" stroke-linecap="round" opacity="0.55" />
+                <circle cx="${shortestX}" cy="${y}" r="8" fill="${shortestColor}" stroke="${isDark ? '#020617' : '#ffffff'}" stroke-width="2">
+                    <title>${period.shortest.year}: ${shortestLabel} (${period.shortest.first} – ${period.shortest.last})</title>
+                </circle>
+                <circle cx="${longestX}" cy="${y}" r="8" fill="${longestColor}" stroke="${isDark ? '#020617' : '#ffffff'}" stroke-width="2">
+                    <title>${period.longest.year}: ${longestLabel} (${period.longest.first} – ${period.longest.last})</title>
+                </circle>
+                <text x="${shortestX - 10}" y="${y - 16}" fill="${shortestColor}" font-size="12" font-weight="900" text-anchor="end">${period.shortest.year}: ${Math.round(period.shortest.length)}</text>
+                <text x="${longestX + 10}" y="${y + 4}" fill="${longestColor}" font-size="12" font-weight="900">${period.longest.year}: ${Math.round(period.longest.length)}</text>
+                <text x="${width - padding.right}" y="${y - 16}" fill="${textFill}" font-size="11" font-weight="800" text-anchor="end">${t['season-average']}: ${avgLabel}</text>
+            </g>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="flex flex-col gap-4">
+            <div class="w-full overflow-x-auto">
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" class="min-w-[760px]">
+                    <text x="${padding.left}" y="18" fill="${textFill}" font-size="12" font-weight="800">${t['season-axis-label']}</text>
+                    ${axisSvg}
+                    ${rowsSvg}
+                    <g transform="translate(${padding.left}, ${height - 14})">
+                        <circle cx="0" cy="-4" r="6" fill="${shortestColor}" />
+                        <text x="13" y="0" fill="${textFill}" font-size="11" font-weight="800">${t['season-shortest']}</text>
+                        <circle cx="104" cy="-4" r="6" fill="${longestColor}" />
+                        <text x="117" y="0" fill="${textFill}" font-size="11" font-weight="800">${t['season-longest']}</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="border-t border-slate-200 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                <span class="font-semibold ${accent.textSoft} ${accent.textSoftDark}">${currentTempThreshold} °C:</span>
+                ${t['season-methodology']}
+            </div>
+        </div>
+    `;
+}
+
 // Perform dashboard redraw upon parameter changes
 function updateDashboard() {
     const filteredStations = getFilteredStations();
@@ -1344,8 +1581,10 @@ function updateDashboard() {
             titleElement.textContent = i18n[currentLang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
         } else if (currentViewMode === 'single') {
             titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${endYearLabel})`;
-        } else {
+        } else if (currentViewMode === 'annual') {
             titleElement.textContent = i18n[currentLang]['card-title-annual'] + ` (${currentStartYear}–${endYearLabel})`;
+        } else {
+            titleElement.textContent = i18n[currentLang]['card-title-season'] + ` (${currentStartYear}–${endYearLabel})`;
         }
     }
     if (subtitleElement) {
@@ -1353,8 +1592,10 @@ function updateDashboard() {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-grid-${currentMetric}`];
         } else if (currentViewMode === 'single') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
-        } else {
+        } else if (currentViewMode === 'annual') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-annual-${currentMetric}`];
+        } else {
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-season-${currentMetric}`].replace('{temp}', currentTempThreshold);
         }
     }
     
@@ -1365,8 +1606,10 @@ function updateDashboard() {
         renderMapsGrid(filteredStations);
     } else if (currentViewMode === 'single') {
         renderSingleMap(filteredStations);
-    } else {
+    } else if (currentViewMode === 'annual') {
         renderAnnualChart(filteredStations);
+    } else {
+        renderSeasonChart(filteredStations);
     }
     
     renderInspectorStationList(filteredStations);
@@ -2246,7 +2489,7 @@ function loadStateFromURLHash() {
     }
     if (params.has('view')) {
         const val = params.get('view');
-        if (val === 'grid' || val === 'single' || val === 'annual') currentViewMode = val;
+        if (val === 'grid' || val === 'single' || val === 'annual' || val === 'season') currentViewMode = val;
     }
     if (params.has('year')) {
         const val = parseInt(params.get('year'));
@@ -2384,31 +2627,37 @@ function syncUIControls() {
     const btnGrid = document.getElementById('btn-view-grid');
     const btnSingle = document.getElementById('btn-view-single');
     const btnAnnual = document.getElementById('btn-view-annual');
-    if (btnGrid && btnSingle && btnAnnual) {
+    const btnSeason = document.getElementById('btn-view-season');
+    if (btnGrid && btnSingle && btnAnnual && btnSeason) {
         const activeViewClass = `px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 ${accent.bg} text-white shadow-sm`;
         const inactiveViewClass = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
         btnGrid.className = currentViewMode === 'grid' ? activeViewClass : inactiveViewClass;
         btnSingle.className = currentViewMode === 'single' ? activeViewClass : inactiveViewClass;
         btnAnnual.className = currentViewMode === 'annual' ? activeViewClass : inactiveViewClass;
+        btnSeason.className = currentViewMode === 'season' ? activeViewClass : inactiveViewClass;
     }
     
     // View panel visibility sync
     const gridView = document.getElementById('map-grid-view');
     const singleView = document.getElementById('map-single-view');
     const annualView = document.getElementById('annual-chart-view');
-    if (gridView && singleView && annualView) {
+    const seasonView = document.getElementById('season-chart-view');
+    if (gridView && singleView && annualView && seasonView) {
         gridView.classList.toggle('hidden', currentViewMode !== 'grid');
         gridView.classList.toggle('block', currentViewMode === 'grid');
         singleView.classList.toggle('hidden', currentViewMode !== 'single');
         singleView.classList.toggle('block', currentViewMode === 'single');
         annualView.classList.toggle('hidden', currentViewMode !== 'annual');
         annualView.classList.toggle('block', currentViewMode === 'annual');
+        seasonView.classList.toggle('hidden', currentViewMode !== 'season');
+        seasonView.classList.toggle('block', currentViewMode === 'season');
     }
 
     const bubbleLegend = document.getElementById('bubble-legend');
     if (bubbleLegend) {
-        bubbleLegend.classList.toggle('hidden', currentViewMode === 'annual');
-        bubbleLegend.classList.toggle('flex', currentViewMode !== 'annual');
+        const showBubbleLegend = currentViewMode === 'grid' || currentViewMode === 'single';
+        bubbleLegend.classList.toggle('hidden', !showBubbleLegend);
+        bubbleLegend.classList.toggle('flex', showBubbleLegend);
     }
     
     // Animate timeline bar year progress slider limits sync
@@ -2445,9 +2694,9 @@ function updatePlayButtonAccent() {
     playBtn.className = `flex items-center justify-center w-9 h-9 rounded-full ${accent.bg} ${accent.bgHover} text-white font-bold transition duration-150 shadow-md ${accent.shadow} active:scale-95`;
 }
 
-// Set the active visualization view mode ('grid', 'single', or 'annual')
+// Set the active visualization view mode ('grid', 'single', 'annual', or 'season')
 function setViewMode(mode) {
-    if (!['grid', 'single', 'annual'].includes(mode)) return;
+    if (!['grid', 'single', 'annual', 'season'].includes(mode)) return;
     if (currentViewMode === mode) return;
     
     // Pause animation if playing and switching away from single map
