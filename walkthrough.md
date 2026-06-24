@@ -46,6 +46,7 @@ Date: 2026-06-24
   - `Großstadtumfeld ausschließen`
 - `Daten-Vollständigkeit` is no longer present in the main control row; changing it in advanced filters updates the URL hash and active station count.
 - Airport/city exclusions are station-coordinate based and update the active station count and URL hash with `airport=exclude` and `city=exclude`.
+- Airport/city exclusion cards now use the same compact header/title/detail typography as the `Standortverlauf` filter card.
 - `Jahressumme` renders as a visualization tab, hides the map-bubble legend, and clearly describes that it shows absolute annual sums across all station reports.
 - `Jahrzehnte` renders as a visualization tab, replaces the former header button and modal, hides the map-bubble legend, and shows 10-year totals as horizontal bars.
 - The duplicate `Stationsschnitt` visualization has been removed; old `view=yearly` URLs fall back to `Jahressumme`.

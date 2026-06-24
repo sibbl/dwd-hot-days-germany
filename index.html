@@ -328,6 +328,7 @@
                             <label class="flex items-start gap-2.5 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2 cursor-pointer">
                                 <input id="check-airport-exclusion" type="checkbox" onchange="toggleAirportFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
                                 <span class="text-xs font-semibold text-slate-600 dark:text-slate-350 select-none flex flex-col gap-0.5">
+                                    <span id="lbl-airport-header" class="text-[9px] text-slate-450 dark:text-slate-500 uppercase tracking-wider">Standortumfeld:</span>
                                     <span id="lbl-airport-filter">Flughafenumfeld ausschließen</span>
                                     <span id="desc-airport-filter" class="text-[9px] font-normal text-slate-450 dark:text-slate-500 leading-tight">10-km-Umfeld großer deutscher Flughäfen</span>
                                     <span id="lbl-airport-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
@@ -337,6 +338,7 @@
                             <label class="flex items-start gap-2.5 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2 cursor-pointer">
                                 <input id="check-city-exclusion" type="checkbox" onchange="toggleCityFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
                                 <span class="text-xs font-semibold text-slate-600 dark:text-slate-350 select-none flex flex-col gap-0.5">
+                                    <span id="lbl-city-header" class="text-[9px] text-slate-450 dark:text-slate-500 uppercase tracking-wider">Standortumfeld:</span>
                                     <span id="lbl-city-filter">Großstadtumfeld ausschließen</span>
                                     <span id="desc-city-filter" class="text-[9px] font-normal text-slate-450 dark:text-slate-500 leading-tight">20-km-Umfeld großer deutscher Städte</span>
                                     <span id="lbl-city-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
@@ -503,6 +505,6 @@
     </footer>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=41"></script>
+    <script src="app.js?v=42"></script>
 </body>
 </html>

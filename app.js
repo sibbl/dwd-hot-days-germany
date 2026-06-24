@@ -51,8 +51,10 @@ const i18n = {
         'lbl-moves-filter': "Nur ortsfeste Stationen",
         'lbl-advanced-filters': "Erweiterte Filter",
         'desc-advanced-filters': "Stationen nach Standortumfeld ausschließen.",
+        'lbl-airport-header': "Standortumfeld:",
         'lbl-airport-filter': "Flughafenumfeld ausschließen",
         'desc-airport-filter': "10-km-Umfeld großer deutscher Flughäfen",
+        'lbl-city-header': "Standortumfeld:",
         'lbl-city-filter': "Großstadtumfeld ausschließen",
         'desc-city-filter': "20-km-Umfeld großer deutscher Städte",
         'lbl-filter-kept': "{kept} von {total} bleiben",
@@ -184,8 +186,10 @@ const i18n = {
         'lbl-moves-filter': "Only unmoved stations",
         'lbl-advanced-filters': "Advanced filters",
         'desc-advanced-filters': "Exclude stations by local environment.",
+        'lbl-airport-header': "Local environment:",
         'lbl-airport-filter': "Exclude airport surroundings",
         'desc-airport-filter': "10 km around major German airports",
+        'lbl-city-header': "Local environment:",
         'lbl-city-filter': "Exclude major-city surroundings",
         'desc-city-filter': "20 km around major German cities",
         'lbl-filter-kept': "{kept} of {total} remain",
@@ -363,10 +367,14 @@ function setLanguage(lang) {
     if (lblAdvancedFilters) lblAdvancedFilters.textContent = i18n[lang]['lbl-advanced-filters'];
     const descAdvancedFilters = document.getElementById('desc-advanced-filters');
     if (descAdvancedFilters) descAdvancedFilters.textContent = i18n[lang]['desc-advanced-filters'];
+    const lblAirportHeader = document.getElementById('lbl-airport-header');
+    if (lblAirportHeader) lblAirportHeader.textContent = i18n[lang]['lbl-airport-header'];
     const lblAirportFilter = document.getElementById('lbl-airport-filter');
     if (lblAirportFilter) lblAirportFilter.textContent = i18n[lang]['lbl-airport-filter'];
     const descAirportFilter = document.getElementById('desc-airport-filter');
     if (descAirportFilter) descAirportFilter.textContent = i18n[lang]['desc-airport-filter'];
+    const lblCityHeader = document.getElementById('lbl-city-header');
+    if (lblCityHeader) lblCityHeader.textContent = i18n[lang]['lbl-city-header'];
     const lblCityFilter = document.getElementById('lbl-city-filter');
     if (lblCityFilter) lblCityFilter.textContent = i18n[lang]['lbl-city-filter'];
     const descCityFilter = document.getElementById('desc-city-filter');
