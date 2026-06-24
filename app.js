@@ -1,5 +1,8 @@
 // Core state variables
 let weatherData = [];
+let weatherDataByStationId = new Map();
+let seasonDataLoaded = false;
+let seasonDataPromise = null;
 let geojson = null;
 let bbox = null;
 
@@ -107,6 +110,8 @@ const i18n = {
         'season-average': "Durchschnitt",
         'season-days': "{n} Tage",
         'season-empty': "Keine Saisonlängen-Daten für die aktuelle Filterauswahl. Bitte `download_and_process.py` neu ausführen.",
+        'season-loading': "Lade Saisonlängen-Daten...",
+        'season-load-error': "Saisonlängen-Daten konnten nicht geladen werden.",
         'season-axis-label': "Tage zwischen erstem und letztem Ereignis",
         'season-methodology': "Pro Jahr wird die deutschlandweite Spanne zwischen frühestem und spätestem Schwellenereignis über alle selektierten Stationen berechnet.",
         'legend-lbl-days': "Tage:",
@@ -241,6 +246,8 @@ const i18n = {
         'season-average': "Average",
         'season-days': "{n} days",
         'season-empty': "No season-length data for the current filter selection. Please rerun `download_and_process.py`.",
+        'season-loading': "Loading season-length data...",
+        'season-load-error': "Could not load season-length data.",
         'season-axis-label': "Days between first and last event",
         'season-methodology': "For each year, the Germany-wide span between the earliest and latest threshold event is calculated across all selected stations.",
         'legend-lbl-days': "Days:",
@@ -721,6 +728,91 @@ function getMonthlyValidDays(yearData, month) {
     return undefined;
 }
 
+function formatDateFromDayOfYear(year, dayOfYear) {
+    if (!year || !dayOfYear) return '';
+    const date = new Date(Date.UTC(year, 0, dayOfYear));
+    return date.toISOString().slice(0, 10);
+}
+
+function normalizeSeasonEntry(entry, year) {
+    if (!entry) return null;
+    if (Array.isArray(entry)) {
+        const firstDoy = entry[0];
+        const lastDoy = entry[1];
+        if (!firstDoy || !lastDoy) return null;
+        return {
+            first: formatDateFromDayOfYear(year, firstDoy),
+            last: formatDateFromDayOfYear(year, lastDoy),
+            first_doy: firstDoy,
+            last_doy: lastDoy,
+            length: lastDoy - firstDoy + 1
+        };
+    }
+
+    if (entry.first_doy === undefined || entry.last_doy === undefined) return null;
+    return {
+        first: entry.first || formatDateFromDayOfYear(year, entry.first_doy),
+        last: entry.last || formatDateFromDayOfYear(year, entry.last_doy),
+        first_doy: entry.first_doy,
+        last_doy: entry.last_doy,
+        length: entry.length || (entry.last_doy - entry.first_doy + 1)
+    };
+}
+
+function mergeSeasonData(seasonStations) {
+    seasonStations.forEach(seasonStation => {
+        const station = weatherDataByStationId.get(seasonStation.station_id);
+        if (!station || !seasonStation.annual_data) return;
+
+        Object.entries(seasonStation.annual_data).forEach(([year, seasonYear]) => {
+            const targetYear = station.annual_data ? station.annual_data[year] : null;
+            if (!targetYear) return;
+
+            if (seasonYear.season) {
+                targetYear.season = seasonYear.season;
+            }
+
+            if (seasonYear.m_data) {
+                targetYear.m_data = targetYear.m_data || {};
+                Object.entries(seasonYear.m_data).forEach(([month, seasonMonth]) => {
+                    targetYear.m_data[month] = targetYear.m_data[month] || {};
+                    if (seasonMonth.season) {
+                        targetYear.m_data[month].season = seasonMonth.season;
+                    }
+                });
+            }
+        });
+    });
+}
+
+async function ensureSeasonDataLoaded({ rerender = true } = {}) {
+    if (seasonDataLoaded) return true;
+
+    if (!seasonDataPromise) {
+        seasonDataPromise = fetch('data/weather_season_data.json?v=' + Date.now())
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(seasonStations => {
+                mergeSeasonData(seasonStations);
+                seasonDataLoaded = true;
+                return true;
+            })
+            .catch(error => {
+                seasonDataPromise = null;
+                console.error("Failed to load season-length data:", error);
+                return false;
+            });
+    }
+
+    const loaded = await seasonDataPromise;
+    if (loaded && rerender && currentViewMode === 'season') {
+        updateDashboard();
+    }
+    return loaded;
+}
+
 function refreshMaxDaysInMonthsOfLastYear() {
     maxDaysInMonthsOfLastYear = Array(12).fill(0);
     weatherData.forEach(s => {
@@ -805,6 +897,7 @@ async function loadData() {
         ]);
         
         weatherData = await weatherRes.json();
+        weatherDataByStationId = new Map(weatherData.map(station => [station.station_id, station]));
         geojson = await geojsonRes.json();
         
         bbox = calculateBBox(geojson);
@@ -1472,7 +1565,7 @@ function getSeasonEntryForStationYear(station, year) {
     const key = getMetricDataKey();
 
     if (currentMonths.length === 12) {
-        return yrData.season ? yrData.season[key] || null : null;
+        return yrData.season ? normalizeSeasonEntry(yrData.season[key], year) : null;
     }
 
     let firstDoy = null;
@@ -1482,7 +1575,7 @@ function getSeasonEntryForStationYear(station, year) {
 
     currentMonths.forEach(month => {
         const monthData = yrData.m_data ? yrData.m_data[String(month)] : null;
-        const entry = monthData && monthData.season ? monthData.season[key] : null;
+        const entry = monthData && monthData.season ? normalizeSeasonEntry(monthData.season[key], year) : null;
         if (!entry) return;
         if (firstDoy === null || entry.first_doy < firstDoy) {
             firstDoy = entry.first_doy;
@@ -1589,6 +1682,17 @@ function getSeasonDecadePeriods() {
             endYear
         }))
         .filter(period => period.startYear <= period.endYear);
+}
+
+function renderSeasonLoading(state = 'loading') {
+    const container = document.getElementById('season-chart-container');
+    if (!container) return;
+
+    const key = state === 'error' ? 'season-load-error' : 'season-loading';
+    const colorClass = state === 'error'
+        ? 'text-red-500 dark:text-red-400'
+        : 'text-slate-500 dark:text-slate-400';
+    container.innerHTML = `<div class="py-24 text-center text-sm font-semibold ${colorClass}">${i18n[currentLang][key]}</div>`;
 }
 
 function renderSeasonChart(filteredStations) {
@@ -1783,6 +1887,13 @@ function updateDashboard() {
         renderAnnualChart(filteredStations);
     } else if (currentViewMode === 'decades') {
         renderDecadesChart(filteredStations, decadeTotals);
+    } else if (!seasonDataLoaded) {
+        renderSeasonLoading();
+        ensureSeasonDataLoaded().then(loaded => {
+            if (!loaded && currentViewMode === 'season') {
+                renderSeasonLoading('error');
+            }
+        });
     } else {
         renderSeasonChart(filteredStations);
     }

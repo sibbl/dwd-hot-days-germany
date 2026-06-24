@@ -438,13 +438,10 @@ def main():
                     continue
                 first_date = qualifying_dates.iloc[0]
                 last_date = qualifying_dates.iloc[-1]
-                season_stats[f'{key_prefix}{temp_t}'] = {
-                    'first': first_date.strftime('%Y-%m-%d'),
-                    'last': last_date.strftime('%Y-%m-%d'),
-                    'first_doy': int(first_date.dayofyear),
-                    'last_doy': int(last_date.dayofyear),
-                    'length': int((last_date - first_date).days) + 1
-                }
+                season_stats[f'{key_prefix}{temp_t}'] = [
+                    int(first_date.dayofyear),
+                    int(last_date.dayofyear)
+                ]
             return season_stats
         
         for yr, group in df_span.groupby('YEAR'):
@@ -453,7 +450,6 @@ def main():
             
             stats = {
                 'valid_days': valid_yr_days,
-                'valid_days_max': valid_yr_days,
                 'valid_days_min': valid_yr_nights
             }
             for temp_t in range(25, 41):
@@ -494,7 +490,6 @@ def main():
                         m_data[str(mnth)] = m_stats
             
             stats['m_valid'] = m_valid
-            stats['m_valid_max'] = m_valid
             stats['m_valid_min'] = m_valid_min
             stats['m_data'] = m_data
                 
@@ -522,11 +517,48 @@ def main():
             'annual_data': annual_stats
         })
         
+    # Split season spans into a companion file so the initial map/chart payload stays small.
+    # The frontend lazy-loads this only when the season-length visualization is opened.
+    season_stations = []
+    for station in processed_stations:
+        station_season_years = {}
+
+        for year, stats in station.get('annual_data', {}).items():
+            year_season = {}
+            annual_season = stats.pop('season', None)
+            if annual_season:
+                year_season['season'] = annual_season
+
+            month_seasons = {}
+            m_data = stats.get('m_data', {})
+            for month, month_stats in list(m_data.items()):
+                month_season = month_stats.pop('season', None)
+                if month_season:
+                    month_seasons[month] = {'season': month_season}
+                if not month_stats:
+                    del m_data[month]
+
+            if month_seasons:
+                year_season['m_data'] = month_seasons
+            if year_season:
+                station_season_years[year] = year_season
+
+        if station_season_years:
+            season_stations.append({
+                'station_id': station['station_id'],
+                'annual_data': station_season_years
+            })
+
     # Write processed data out
     output_path = os.path.join(DATA_DIR, 'weather_data.json')
     print(f"Writing aggregated results to: {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(processed_stations, f, ensure_ascii=False, separators=(',', ':'))
+
+    season_output_path = os.path.join(DATA_DIR, 'weather_season_data.json')
+    print(f"Writing season-length results to: {season_output_path}")
+    with open(season_output_path, 'w', encoding='utf-8') as f:
+        json.dump(season_stations, f, ensure_ascii=False, separators=(',', ':'))
         
     print(f"Pipeline complete! Successfully processed {len(processed_stations)} weather stations.")
 

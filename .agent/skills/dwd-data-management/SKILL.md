@@ -9,16 +9,16 @@ Use this skill for data pipeline, generated dataset, and validation changes.
 
 ## Data Shape
 
-- `download_and_process.py` rebuilds `data/weather_data.json` from DWD daily records.
+- `download_and_process.py` rebuilds `data/weather_data.json` and `data/weather_season_data.json` from DWD daily records.
 - `verify_results.py` compares selected aggregates against the original Spiegel reference study.
-- `data/weather_data.json` and `data/germany_states.json` are static browser assets.
+- `data/weather_data.json`, `data/weather_season_data.json`, and `data/germany_states.json` are static browser assets.
 - `.github/workflows/import-data.yml` refreshes weather data monthly.
 
 ## Pipeline Rules
 
-- Put generated project data in `data/`, especially `data/weather_data.json`.
+- Put generated project data in `data/`, especially `data/weather_data.json` and `data/weather_season_data.json`.
 - Do not store project outputs in temporary folders or desktop paths.
-- Keep `data/weather_data.json` compact enough for GitHub. Prefer compact JSON formatting before changing behavior if size becomes a problem.
+- Keep `data/weather_data.json` compact enough for mobile loading. Season first/last spans belong in `data/weather_season_data.json`, which the frontend lazy-loads only for the season-length view.
 - Keep station-coordinate filters station-based unless a separate raster dataset is explicitly introduced.
 - If data keys change, update frontend consumers and documentation in the same change.
 
@@ -27,6 +27,7 @@ Use this skill for data pipeline, generated dataset, and validation changes.
 - Daily maximum thresholds: `t25` through `t40`.
 - Nightly minimum thresholds: `n18` through `n28`.
 - Aggregates include annual totals, monthly totals, and season first/last spans.
+- Season span entries are compact day-of-year arrays `[first_doy, last_doy]`, not verbose date objects.
 - Airport and major-city exclusion filters derive from each station's current coordinates.
 - DWD historical and recent files can overlap; daily records should be deduplicated by date.
 
@@ -57,4 +58,4 @@ For pipeline changes, run:
 git diff --check
 ```
 
-For generated data changes, inspect the resulting `data/weather_data.json` size and ensure the frontend still loads representative URLs under a local static server.
+For generated data changes, inspect the resulting `data/weather_data.json` and `data/weather_season_data.json` sizes and ensure the frontend still loads representative URLs under a local static server.

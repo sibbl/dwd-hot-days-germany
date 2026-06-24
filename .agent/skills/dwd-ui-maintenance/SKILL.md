@@ -9,7 +9,7 @@ Use this skill for frontend and visualization changes in the DWD climate dashboa
 
 ## Frontend Shape
 
-- Static app: `index.html`, `app.js`, `data/weather_data.json`, and `data/germany_states.json`.
+- Static app: `index.html`, `app.js`, `data/weather_data.json`, `data/weather_season_data.json`, and `data/germany_states.json`.
 - UI stack: Tailwind via CDN, vanilla JavaScript state, inline SVG charts and maps.
 - Main browser target: `http://localhost:8000/` served from the repository root.
 
