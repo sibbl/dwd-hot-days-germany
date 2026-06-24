@@ -44,5 +44,5 @@ Date: 2026-06-24
 - `Daten-Vollständigkeit` is no longer present in the main control row; changing it in advanced filters updates the URL hash and active station count.
 - Airport/city exclusions are station-coordinate based and update the active station count and URL hash with `airport=exclude` and `city=exclude`.
 - `Jahresdiagramm` renders as a third visualization tab, hides the map-bubble legend, shows annual DWD station totals, a trend line, and peak/latest/trend stats.
-- `Saisonlänge` renders as a fourth visualization tab, hides the map-bubble legend, and compares the 1970s with the latest 10 years using shortest/longest yearly Germany-wide threshold spans.
+- `Saisonlänge` renders as a fourth visualization tab, hides the map-bubble legend, and shows every decade from 1961 through the current partial decade using shortest/longest yearly Germany-wide threshold spans.
 - Night-minimum mode keeps the `22 °C` default and switches the annual chart controls/trend styling to the blue palette.

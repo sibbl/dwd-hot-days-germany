@@ -93,8 +93,6 @@ const i18n = {
         'annual-latest-label': "Wert im letzten Jahr der Reihe",
         'annual-trend-stat-label': "Linearer Trend pro Jahrzehnt",
         'annual-empty': "Keine Daten für die aktuelle Filterauswahl.",
-        'season-baseline-label': "1970er",
-        'season-recent-label': "Letzte 10 Jahre",
         'season-shortest': "Kürzeste",
         'season-longest': "Längste",
         'season-average': "Durchschnitt",
@@ -220,8 +218,6 @@ const i18n = {
         'annual-latest-label': "Value in the latest year of the series",
         'annual-trend-stat-label': "Linear trend per decade",
         'annual-empty': "No data for the current filter selection.",
-        'season-baseline-label': "1970s",
-        'season-recent-label': "Latest 10 years",
         'season-shortest': "Shortest",
         'season-longest': "Longest",
         'season-average': "Average",
@@ -1465,23 +1461,38 @@ function formatPeriodLabel(startYear, endYear) {
     return `${startYear}–${endYear}`;
 }
 
+function getSeasonDecadePeriods() {
+    const decades = [
+        [1961, 1970],
+        [1971, 1980],
+        [1981, 1990],
+        [1991, 2000],
+        [2001, 2010],
+        [2011, 2020],
+        [2021, maxYearGlobal]
+    ];
+
+    return decades
+        .map(([startYear, endYear]) => ({
+            startYear: Math.max(currentStartYear, startYear),
+            endYear
+        }))
+        .filter(period => period.startYear <= period.endYear);
+}
+
 function renderSeasonChart(filteredStations) {
     const container = document.getElementById('season-chart-container');
     if (!container) return;
 
     const t = i18n[currentLang];
-    const baselineStart = Math.max(currentStartYear, 1971);
-    const baselineEnd = Math.min(1980, maxYearGlobal);
-    const recentStart = Math.max(currentStartYear, maxYearGlobal - 9);
-    const recentEnd = maxYearGlobal;
-    const periods = [];
-
-    if (baselineStart <= baselineEnd) {
-        periods.push(summarizeSeasonPeriod(filteredStations, baselineStart, baselineEnd, t['season-baseline-label']));
-    }
-    if (recentStart <= recentEnd) {
-        periods.push(summarizeSeasonPeriod(filteredStations, recentStart, recentEnd, t['season-recent-label']));
-    }
+    const periods = getSeasonDecadePeriods().map(period => (
+        summarizeSeasonPeriod(
+            filteredStations,
+            period.startYear,
+            period.endYear,
+            formatPeriodLabel(period.startYear, period.endYear)
+        )
+    ));
 
     const availablePeriods = periods.filter(period => period.shortest && period.longest);
     if (!availablePeriods.length) {
@@ -1491,10 +1502,10 @@ function renderSeasonChart(filteredStations) {
 
     const isDark = document.documentElement.classList.contains('dark');
     const width = 1040;
-    const height = 360;
-    const padding = { top: 42, right: 34, bottom: 48, left: 150 };
+    const rowGap = 62;
+    const padding = { top: 42, right: 34, bottom: 52, left: 150 };
+    const height = padding.top + padding.bottom + 48 + (availablePeriods.length - 1) * rowGap;
     const chartWidth = width - padding.left - padding.right;
-    const rowGap = 92;
     const maxLength = Math.max(...availablePeriods.map(period => period.longest.length), 30);
     const xMax = Math.ceil(maxLength / 20) * 20;
     const getX = value => padding.left + (value / xMax) * chartWidth;
@@ -1521,15 +1532,15 @@ function renderSeasonChart(filteredStations) {
         const y = padding.top + 38 + index * rowGap;
         const shortestX = getX(period.shortest.length);
         const longestX = getX(period.longest.length);
-        const periodLabel = formatPeriodLabel(period.startYear, period.endYear);
         const shortestLabel = t['season-days'].replace('{n}', Math.round(period.shortest.length));
         const longestLabel = t['season-days'].replace('{n}', Math.round(period.longest.length));
         const avgLabel = t['season-days'].replace('{n}', period.average.toFixed(1));
+        const yearsWithDataLabel = `${period.seasons.length}/${period.endYear - period.startYear + 1} ${currentLang === 'de' ? 'Jahre' : 'years'}`;
 
         return `
             <g>
-                <text x="${padding.left - 22}" y="${y - 8}" fill="${textFill}" font-size="16" font-weight="900" text-anchor="end">${period.label}</text>
-                <text x="${padding.left - 22}" y="${y + 12}" fill="${mutedText}" font-size="11" font-weight="700" text-anchor="end">${periodLabel}</text>
+                <text x="${padding.left - 22}" y="${y - 8}" fill="${textFill}" font-size="14" font-weight="900" text-anchor="end">${period.label}</text>
+                <text x="${padding.left - 22}" y="${y + 12}" fill="${mutedText}" font-size="11" font-weight="700" text-anchor="end">${yearsWithDataLabel}</text>
                 <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" stroke-dasharray="2 4" />
                 <line x1="${shortestX}" y1="${y}" x2="${longestX}" y2="${y}" stroke="${lineStroke}" stroke-width="8" stroke-linecap="round" opacity="0.55" />
                 <circle cx="${shortestX}" cy="${y}" r="8" fill="${shortestColor}" stroke="${isDark ? '#020617' : '#ffffff'}" stroke-width="2">
@@ -1540,7 +1551,7 @@ function renderSeasonChart(filteredStations) {
                 </circle>
                 <text x="${shortestX - 10}" y="${y - 16}" fill="${shortestColor}" font-size="12" font-weight="900" text-anchor="end">${period.shortest.year}: ${Math.round(period.shortest.length)}</text>
                 <text x="${longestX + 10}" y="${y + 4}" fill="${longestColor}" font-size="12" font-weight="900">${period.longest.year}: ${Math.round(period.longest.length)}</text>
-                <text x="${width - padding.right}" y="${y - 16}" fill="${textFill}" font-size="11" font-weight="800" text-anchor="end">${t['season-average']}: ${avgLabel}</text>
+                <text x="${width - padding.right}" y="${y - 14}" fill="${textFill}" font-size="10" font-weight="800" text-anchor="end">${t['season-average']}: ${avgLabel}</text>
             </g>
         `;
     }).join('');
