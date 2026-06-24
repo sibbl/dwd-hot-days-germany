@@ -139,39 +139,79 @@
         <!-- Weather Map Grid (Full Width) -->
         <section class="w-full flex flex-col gap-4">
             <div class="glass-panel rounded-xl p-5 flex flex-col h-full">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex flex-col sm:flex-row sm:items-center items-start gap-3">
+                <div class="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+                    <!-- Primary Visualization Mode Switcher -->
+                    <div id="view-mode-selector" class="grid grid-cols-2 lg:grid-cols-4 gap-1.5 bg-slate-100/80 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-850 rounded-xl p-1.5">
+                        <button id="btn-view-grid" type="button" onclick="setViewMode('grid')" aria-pressed="true" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left transition duration-150 bg-orange-600 text-white shadow-sm">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-grid-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Raster</span>
+                                <span id="btn-view-grid-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-white/75">Dekadenkarten</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-single" type="button" onclick="setViewMode('single')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"></path>
+                                    <circle cx="12" cy="10" r="2.5"></circle>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-single-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Einzelkarte</span>
+                                <span id="btn-view-single-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Jahr für Jahr</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-annual" type="button" onclick="setViewMode('annual')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 20V6"></path>
+                                    <path d="M9 20V10"></path>
+                                    <path d="M14 20V4"></path>
+                                    <path d="M19 20v-7"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-annual-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Jahresdiagramm</span>
+                                <span id="btn-view-annual-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Balken & Trend</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-season" type="button" onclick="setViewMode('season')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 12h16"></path>
+                                    <circle cx="7" cy="12" r="2.5"></circle>
+                                    <circle cx="17" cy="12" r="2.5"></circle>
+                                    <path d="M7 7v10"></path>
+                                    <path d="M17 7v10"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-season-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Saisonlänge</span>
+                                <span id="btn-view-season-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Erste bis letzte Meldung</span>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div class="flex flex-col gap-1.5 min-w-0">
                             <h2 id="card-title-grid" class="text-lg font-bold text-slate-700 dark:text-slate-200">
                                 Deutschlandkarten-Raster (1961–2025)
                             </h2>
-                            
-                            <!-- Segemented Tab Switcher for Visualization Views -->
-                            <div class="flex w-fit bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-850 rounded-lg p-0.5 overflow-hidden">
-                                <button id="btn-view-grid" onclick="setViewMode('grid')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm">
-                                    Raster
-                                </button>
-                                <button id="btn-view-single" onclick="setViewMode('single')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
-                                    Einzelkarte
-                                </button>
-                                <button id="btn-view-annual" onclick="setViewMode('annual')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
-                                    Jahresdiagramm
-                                </button>
-                                <button id="btn-view-season" onclick="setViewMode('season')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
-                                    Saisonlänge
-                                </button>
-                            </div>
+                            <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
+                                Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.
+                            </p>
                         </div>
-                        <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
-                            Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.
-                        </p>
-                    </div>
-                    
-                    <!-- Bubble Legend -->
-                    <div id="bubble-legend" class="flex items-center gap-4 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 border-slate-800/60 rounded-lg px-4 py-2 text-xs">
-                        <span id="legend-lbl-days" class="text-slate-550 dark:text-slate-400 font-medium">Tage:</span>
-                        <div id="legend-circles-container" class="flex items-center gap-2.5 font-semibold">
-                            <!-- Injected dynamically via JS to match the map circles' physical visual scale exactly -->
+
+                        <!-- Bubble Legend -->
+                        <div id="bubble-legend" class="flex items-center gap-4 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/60 rounded-lg px-4 py-2 text-xs">
+                            <span id="legend-lbl-days" class="text-slate-550 dark:text-slate-400 font-medium">Tage:</span>
+                            <div id="legend-circles-container" class="flex items-center gap-2.5 font-semibold">
+                                <!-- Injected dynamically via JS to match the map circles' physical visual scale exactly -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -479,6 +519,6 @@
     </div>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=33"></script>
+    <script src="app.js?v=34"></script>
 </body>
 </html>

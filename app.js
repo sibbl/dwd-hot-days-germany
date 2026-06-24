@@ -77,9 +77,13 @@ const i18n = {
         'card-subtitle-single-max': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
         'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung warmer Nächte über Jahrzehnte hinweg zu animieren.",
         'view-grid': "Raster",
+        'view-grid-desc': "Dekadenkarten",
         'view-single': "Einzelkarte",
+        'view-single-desc': "Jahr für Jahr",
         'view-annual': "Jahresdiagramm",
+        'view-annual-desc': "Balken & Trend",
         'view-season': "Saisonlänge",
+        'view-season-desc': "Erste bis letzte Meldung",
         'card-title-annual': "Jahresdiagramm",
         'card-subtitle-annual-max': "Summierte DWD-Stationsmeldungen pro Jahr für die aktiven Filter, inklusive linearem Trend.",
         'card-subtitle-annual-min': "Summierte DWD-Stationsnächte pro Jahr für die aktiven Filter, inklusive linearem Trend.",
@@ -202,9 +206,13 @@ const i18n = {
         'card-subtitle-single-max': "Use the play button to animate the rise of extremely hot days across decades.",
         'card-subtitle-single-min': "Use the play button to animate the development of warm nights across decades.",
         'view-grid': "Grid",
+        'view-grid-desc': "Decade maps",
         'view-single': "Single map",
+        'view-single-desc': "Year by year",
         'view-annual': "Annual chart",
+        'view-annual-desc': "Bars & trend",
         'view-season': "Season length",
+        'view-season-desc': "First to last report",
         'card-title-annual': "Annual Chart",
         'card-subtitle-annual-max': "Summed DWD station reports per year for the active filters, including a linear trend.",
         'card-subtitle-annual-min': "Summed DWD station nights per year for the active filters, including a linear trend.",
@@ -378,14 +386,17 @@ function setLanguage(lang) {
     
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
     document.getElementById('card-subtitle-grid').textContent = i18n[lang][`card-subtitle-grid-${currentMetric}`];
-    const btnViewGrid = document.getElementById('btn-view-grid');
-    if (btnViewGrid) btnViewGrid.textContent = i18n[lang]['view-grid'];
-    const btnViewSingle = document.getElementById('btn-view-single');
-    if (btnViewSingle) btnViewSingle.textContent = i18n[lang]['view-single'];
-    const btnViewAnnual = document.getElementById('btn-view-annual');
-    if (btnViewAnnual) btnViewAnnual.textContent = i18n[lang]['view-annual'];
-    const btnViewSeason = document.getElementById('btn-view-season');
-    if (btnViewSeason) btnViewSeason.textContent = i18n[lang]['view-season'];
+    [
+        ['btn-view-grid', 'view-grid'],
+        ['btn-view-single', 'view-single'],
+        ['btn-view-annual', 'view-annual'],
+        ['btn-view-season', 'view-season']
+    ].forEach(([id, key]) => {
+        const label = document.getElementById(`${id}-label`);
+        if (label) label.textContent = i18n[lang][key];
+        const desc = document.getElementById(`${id}-desc`);
+        if (desc) desc.textContent = i18n[lang][`${key}-desc`];
+    });
     document.getElementById('legend-lbl-days').textContent = i18n[lang]['legend-lbl-days'];
     
     document.getElementById('inspector-title').textContent = i18n[lang]['inspector-title'];
@@ -2640,12 +2651,33 @@ function syncUIControls() {
     const btnAnnual = document.getElementById('btn-view-annual');
     const btnSeason = document.getElementById('btn-view-season');
     if (btnGrid && btnSingle && btnAnnual && btnSeason) {
-        const activeViewClass = `px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 ${accent.bg} text-white shadow-sm`;
-        const inactiveViewClass = 'px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
-        btnGrid.className = currentViewMode === 'grid' ? activeViewClass : inactiveViewClass;
-        btnSingle.className = currentViewMode === 'single' ? activeViewClass : inactiveViewClass;
-        btnAnnual.className = currentViewMode === 'annual' ? activeViewClass : inactiveViewClass;
-        btnSeason.className = currentViewMode === 'season' ? activeViewClass : inactiveViewClass;
+        const viewButtons = [
+            ['grid', btnGrid],
+            ['single', btnSingle],
+            ['annual', btnAnnual],
+            ['season', btnSeason]
+        ];
+        const activeViewClass = `group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left transition duration-150 ${accent.bg} text-white shadow-sm ${accent.shadow}`;
+        const inactiveViewClass = 'group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80';
+        viewButtons.forEach(([mode, button]) => {
+            const isActive = currentViewMode === mode;
+            button.className = isActive ? activeViewClass : inactiveViewClass;
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+            const icon = button.querySelector('.view-mode-icon');
+            if (icon) {
+                icon.className = isActive
+                    ? 'view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white'
+                    : `view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg ${accent.bgSoft} ${accent.textSoft} ${accent.textSoftDark}`;
+            }
+
+            const desc = button.querySelector('.view-mode-desc');
+            if (desc) {
+                desc.className = isActive
+                    ? 'view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-white/75'
+                    : 'view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500';
+            }
+        });
     }
     
     // View panel visibility sync

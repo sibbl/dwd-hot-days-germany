@@ -46,3 +46,7 @@ Date: 2026-06-24
 - `Jahresdiagramm` renders as a third visualization tab, hides the map-bubble legend, shows annual DWD station totals, a trend line, and peak/latest/trend stats.
 - `Saisonlänge` renders as a fourth visualization tab, hides the map-bubble legend, and shows every decade from 1961 through the current partial decade using shortest/longest yearly Germany-wide threshold spans.
 - Night-minimum mode keeps the `22 °C` default and switches the annual chart controls/trend styling to the blue palette.
+- Visualization modes are now promoted to a top selector above the active view title:
+  - phone viewport (`390x820`) uses a compact 2x2 icon-over-label layout with no horizontal or label overflow,
+  - tablet viewport (`820x900`) uses a 2x2 layout with descriptions,
+  - desktop viewport (`1280x860`) uses a single 4-wide row with descriptions.
