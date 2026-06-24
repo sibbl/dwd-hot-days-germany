@@ -1,0 +1,4 @@
+interface:
+  display_name: "DWD Dashboard Maintenance"
+  short_description: "Maintain and verify the DWD climate dashboard"
+  default_prompt: "Use $dwd-dashboard-maintenance to update and verify the DWD climate dashboard."
