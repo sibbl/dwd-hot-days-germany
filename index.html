@@ -98,16 +98,6 @@
                         <span id="stat-lbl-reports" class="text-[9px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Meldungen</span>
                         <span id="stat-total-reports" class="font-bold text-red-600 dark:text-red-500 text-sm">---</span>
                     </div>
-                    <!-- Decades Modal Trigger Button (Matched style) -->
-                    <button id="btn-show-decades" onclick="openDecadesModal()" class="flex flex-col bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-900/60 dark:hover:bg-slate-900 border border-slate-300/80 dark:border-slate-800 hover:border-orange-500/30 dark:hover:border-orange-500/30 rounded-lg px-2.5 py-1 text-center min-w-[85px] sm:min-w-[95px] transition duration-150 active:scale-95 group">
-                        <span id="btn-lbl-decades" class="text-[9px] text-slate-500 dark:text-slate-550 font-semibold uppercase tracking-wider group-hover:text-orange-500 transition duration-150">Jahrzehnte</span>
-                        <span class="font-bold text-slate-600 dark:text-slate-400 text-[11px] sm:text-xs flex items-center justify-center gap-1 mt-0.5 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition duration-150">
-                            <svg class="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
-                            </svg>
-                            <span class="font-bold text-[10px] sm:text-xs">Diagramm</span>
-                        </span>
-                    </button>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -139,40 +129,101 @@
         <!-- Weather Map Grid (Full Width) -->
         <section class="w-full flex flex-col gap-4">
             <div class="glass-panel rounded-xl p-5 flex flex-col h-full">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex flex-col sm:flex-row sm:items-center items-start gap-3">
+                <div class="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+                    <!-- Primary Visualization Mode Switcher -->
+                    <div id="view-mode-selector" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-1.5 bg-slate-100/80 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-850 rounded-xl p-1.5">
+                        <button id="btn-view-grid" type="button" onclick="setViewMode('grid')" aria-pressed="true" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left transition duration-150 bg-orange-600 text-white shadow-sm">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-grid-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Raster</span>
+                                <span id="btn-view-grid-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-white/75">Dekadenkarten</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-single" type="button" onclick="setViewMode('single')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"></path>
+                                    <circle cx="12" cy="10" r="2.5"></circle>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-single-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Einzelkarte</span>
+                                <span id="btn-view-single-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Jahr für Jahr</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-annual" type="button" onclick="setViewMode('annual')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 20V6"></path>
+                                    <path d="M9 20V10"></path>
+                                    <path d="M14 20V4"></path>
+                                    <path d="M19 20v-7"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-annual-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Jahressumme</span>
+                                <span id="btn-view-annual-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Alle Meldungen</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-decades" type="button" onclick="setViewMode('decades')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 20V8"></path>
+                                    <path d="M8 20V4"></path>
+                                    <path d="M12 20v-9"></path>
+                                    <path d="M16 20v-6"></path>
+                                    <path d="M20 20v-3"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-decades-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Jahrzehnte</span>
+                                <span id="btn-view-decades-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">10-Jahres-Summe</span>
+                            </span>
+                        </button>
+                        <button id="btn-view-season" type="button" onclick="setViewMode('season')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
+                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M4 12h16"></path>
+                                    <circle cx="7" cy="12" r="2.5"></circle>
+                                    <circle cx="17" cy="12" r="2.5"></circle>
+                                    <path d="M7 7v10"></path>
+                                    <path d="M17 7v10"></path>
+                                </svg>
+                            </span>
+                            <span class="flex min-w-0 flex-col items-center sm:items-start">
+                                <span id="btn-view-season-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Saisonlänge</span>
+                                <span id="btn-view-season-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Erste bis letzte Meldung</span>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div class="flex flex-col gap-1.5 min-w-0">
                             <h2 id="card-title-grid" class="text-lg font-bold text-slate-700 dark:text-slate-200">
                                 Deutschlandkarten-Raster (1961–2025)
                             </h2>
-                            
-                            <!-- Segemented Tab Switcher for Grid/Single Views -->
-                            <div class="flex w-fit bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-850 rounded-lg p-0.5 overflow-hidden">
-                                <button id="btn-view-grid" onclick="setViewMode('grid')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 bg-orange-600 text-white shadow-sm">
-                                    Raster
-                                </button>
-                                <button id="btn-view-single" onclick="setViewMode('single')" class="px-2.5 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">
-                                    Einzelkarte
-                                </button>
-                            </div>
+                            <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
+                                Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.
+                            </p>
                         </div>
-                        <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
-                            Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage über dem Schwellenwert.
-                        </p>
-                    </div>
-                    
-                    <!-- Bubble Legend -->
-                    <div class="flex items-center gap-4 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 border-slate-800/60 rounded-lg px-4 py-2 text-xs">
-                        <span id="legend-lbl-days" class="text-slate-550 dark:text-slate-400 font-medium">Tage:</span>
-                        <div id="legend-circles-container" class="flex items-center gap-2.5 font-semibold">
-                            <!-- Injected dynamically via JS to match the map circles' physical visual scale exactly -->
+
+                        <!-- Bubble Legend -->
+                        <div id="bubble-legend" class="flex items-center gap-4 bg-slate-100 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/60 rounded-lg px-4 py-2 text-xs">
+                            <span id="legend-lbl-days" class="text-slate-550 dark:text-slate-400 font-medium">Tage:</span>
+                            <div id="legend-circles-container" class="flex items-center gap-2.5 font-semibold">
+                                <!-- Injected dynamically via JS to match the map circles' physical visual scale exactly -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Parameter Control Panel (Horizontal Toolbar Bar) -->
                 <div class="bg-slate-100/40 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-xl p-4 mb-4 mt-1">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Metric Selection -->
                         <div class="flex flex-col gap-2">
                             <div class="flex justify-between items-end text-xs lg:h-10">
@@ -204,15 +255,6 @@
                                 <span id="start-year-val" class="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 shrink-0">1961</span>
                             </div>
                             <input id="slider-start-year" type="range" min="1961" max="2020" value="1961" step="1" oninput="updateStartYear(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
-                        </div>
-
-                        <!-- Coverage Selection -->
-                        <div class="flex flex-col gap-2">
-                            <div class="flex justify-between items-end text-xs lg:h-10">
-                                <span id="lbl-coverage" class="font-semibold text-slate-500 dark:text-slate-400">Daten-Vollständigkeit:</span>
-                                <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shrink-0">90 %</span>
-                            </div>
-                            <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
                         </div>
 
                         <!-- Month Selection (Custom Dropdown) -->
@@ -251,20 +293,59 @@
                             </div>
                         </div>
 
-                        <!-- Station Moves Selection -->
-                        <div class="flex flex-col gap-2">
-                            <div class="flex justify-between items-end text-xs lg:h-10">
-                                <span id="lbl-moves-header" class="font-semibold text-slate-500 dark:text-slate-400">Standortverlauf:</span>
+                    </div>
+
+                    <details id="advanced-filters-panel" class="group mt-4 border-t border-slate-200/70 dark:border-slate-800/70 pt-3">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-350">
+                            <span class="flex flex-col">
+                                <span id="lbl-advanced-filters" class="font-bold uppercase tracking-wider">Erweiterte Filter</span>
+                                <span id="desc-advanced-filters" class="text-[10px] text-slate-450 dark:text-slate-500 font-medium">Stationen nach Standortumfeld ausschließen.</span>
+                            </span>
+                            <svg class="w-4 h-4 text-slate-500 transition duration-150 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 pt-3">
+                            <div class="flex flex-col gap-2 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2">
+                                <div class="flex justify-between items-end text-xs">
+                                    <span id="lbl-coverage" class="font-semibold text-slate-600 dark:text-slate-350">Daten-Vollständigkeit:</span>
+                                    <span id="coverage-val" class="font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 shrink-0">90 %</span>
+                                </div>
+                                <input id="slider-coverage" type="range" min="50" max="100" value="90" step="1" oninput="updateCoverageThreshold(this.value)" class="w-full h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                                <span id="desc-coverage" class="text-[9px] font-normal text-slate-450 dark:text-slate-500 leading-tight">Mindestanteil valider Daten im gewählten Zeitraum.</span>
                             </div>
-                            <div class="flex items-start gap-2.5 pt-1 min-h-[36px]">
+
+                            <label class="flex items-start gap-2.5 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2 cursor-pointer">
                                 <input id="check-moves-unmoved" type="checkbox" onchange="toggleMovesFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
-                                <label for="check-moves-unmoved" class="text-xs font-semibold text-slate-500 dark:text-slate-400 cursor-pointer select-none flex flex-col gap-0.5">
+                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-350 select-none flex flex-col gap-0.5">
+                                    <span id="lbl-moves-header" class="text-[9px] text-slate-450 dark:text-slate-500 uppercase tracking-wider">Standortverlauf:</span>
                                     <span id="lbl-moves-filter">Nur ortsfeste Stationen</span>
                                     <span id="lbl-moves-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
-                                </label>
-                            </div>
+                                </span>
+                            </label>
+
+                            <label class="flex items-start gap-2.5 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2 cursor-pointer">
+                                <input id="check-airport-exclusion" type="checkbox" onchange="toggleAirportFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-350 select-none flex flex-col gap-0.5">
+                                    <span id="lbl-airport-header" class="text-[9px] text-slate-450 dark:text-slate-500 uppercase tracking-wider">Standortumfeld:</span>
+                                    <span id="lbl-airport-filter">Flughafenumfeld ausschließen</span>
+                                    <span id="desc-airport-filter" class="text-[9px] font-normal text-slate-450 dark:text-slate-500 leading-tight">10-km-Umfeld großer deutscher Flughäfen</span>
+                                    <span id="lbl-airport-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
+                                </span>
+                            </label>
+
+                            <label class="flex items-start gap-2.5 bg-white/55 dark:bg-slate-950/35 border border-slate-200/80 dark:border-slate-800/70 rounded-lg px-3 py-2 cursor-pointer">
+                                <input id="check-city-exclusion" type="checkbox" onchange="toggleCityFilter(this.checked)" class="w-4 h-4 mt-0.5 text-orange-600 bg-slate-100 dark:bg-slate-955 border-slate-350 dark:border-slate-800 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer accent-orange-500">
+                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-350 select-none flex flex-col gap-0.5">
+                                    <span id="lbl-city-header" class="text-[9px] text-slate-450 dark:text-slate-500 uppercase tracking-wider">Standortumfeld:</span>
+                                    <span id="lbl-city-filter">Großstadtumfeld ausschließen</span>
+                                    <span id="desc-city-filter" class="text-[9px] font-normal text-slate-450 dark:text-slate-500 leading-tight">20-km-Umfeld großer deutscher Städte</span>
+                                    <span id="lbl-city-ratio" class="text-[9px] font-normal text-slate-400 dark:text-slate-500 leading-tight"></span>
+                                </span>
+                            </label>
                         </div>
-                    </div>
+                    </details>
                 </div>
 
                 <!-- Grid View Panel -->
@@ -335,6 +416,27 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Annual Chart View Panel -->
+                <div id="annual-chart-view" class="hidden">
+                    <div id="annual-chart-container" class="w-full min-h-[420px]">
+                        <!-- Annual chart dynamically injected -->
+                    </div>
+                </div>
+
+                <!-- Decades Chart View Panel -->
+                <div id="decades-chart-view" class="hidden">
+                    <div id="decades-chart-container" class="w-full min-h-[420px]">
+                        <!-- Decades chart dynamically injected -->
+                    </div>
+                </div>
+
+                <!-- Season Length View Panel -->
+                <div id="season-chart-view" class="hidden">
+                    <div id="season-chart-container" class="w-full min-h-[420px]">
+                        <!-- Season length chart dynamically injected -->
+                    </div>
+                </div>
             </div>
 
 
@@ -402,35 +504,7 @@
         </div>
     </footer>
 
-    <!-- Decades Modal (Shown on Demand) -->
-    <div id="decades-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300" onclick="closeDecadesModal()"></div>
-        
-        <!-- Modal Content -->
-        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 flex flex-col gap-4 transform transition-all duration-150 scale-95 opacity-0" id="decades-modal-card">
-            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 id="card-title-decades" class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-350">
-                    Meldungen pro Jahrzehnt
-                </h3>
-                <button onclick="closeDecadesModal()" class="text-slate-400 hover:text-slate-650 dark:text-slate-500 dark:hover:text-slate-350 transition duration-150">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <div id="decade-list-container" class="flex flex-col gap-3 max-h-[350px] overflow-y-auto pr-1">
-                <!-- Injected dynamically -->
-            </div>
-            
-            <div id="decades-methodology" class="pt-3 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
-                <!-- Methodology dynamically injected -->
-            </div>
-        </div>
-    </div>
-
     <!-- Main JS Application script -->
-    <script src="app.js?v=30"></script>
+    <script src="app.js?v=43"></script>
 </body>
 </html>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "DWD Data Management"
+  short_description: "Maintain DWD data import and validation"
+  default_prompt: "Use $dwd-data-management to update and verify the DWD data pipeline."

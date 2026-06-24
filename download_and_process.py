@@ -175,7 +175,9 @@ def main():
     
     # 3. Identify candidate stations spanning 1961-01-01 to target end date
     # Candidate criteria: start date <= 19610101 and end date >= (current_year - 1)1231 (or active)
-    current_year = datetime.now().year
+    now = datetime.now()
+    current_year = now.year
+    current_month_start = now.strftime('%Y%m01')
     target_end_date_str = f"{current_year - 1}1231"
     candidates = []
     for s in all_stations:
@@ -427,6 +429,23 @@ def main():
         df_span['YEAR'] = df_span['DATE'].dt.year
         df_span['MONTH'] = df_span['DATE'].dt.month
         annual_stats = {}
+
+        def collect_season_stats(group, temp_column, key_prefix, temp_range):
+            season_stats = {}
+            for temp_t in temp_range:
+                qualifying_dates = group.loc[group[temp_column] >= float(temp_t), 'DATE'].sort_values()
+                if qualifying_dates.empty:
+                    continue
+                first_date = qualifying_dates.iloc[0]
+                last_date = qualifying_dates.iloc[-1]
+                season_stats[f'{key_prefix}{temp_t}'] = {
+                    'first': first_date.strftime('%Y-%m-%d'),
+                    'last': last_date.strftime('%Y-%m-%d'),
+                    'first_doy': int(first_date.dayofyear),
+                    'last_doy': int(last_date.dayofyear),
+                    'length': int((last_date - first_date).days) + 1
+                }
+            return season_stats
         
         for yr, group in df_span.groupby('YEAR'):
             valid_yr_days = int(group['TXK'].notna().sum())
@@ -437,10 +456,15 @@ def main():
                 'valid_days_max': valid_yr_days,
                 'valid_days_min': valid_yr_nights
             }
-            for temp_t in range(30, 41):
+            for temp_t in range(25, 41):
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
             for temp_t in range(18, 29):
                 stats[f'n{temp_t}'] = int((group['TNK'] >= float(temp_t)).sum())
+            season_stats = {}
+            season_stats.update(collect_season_stats(group, 'TXK', 't', range(25, 41)))
+            season_stats.update(collect_season_stats(group, 'TNK', 'n', range(18, 29)))
+            if season_stats:
+                stats['season'] = season_stats
                 
             # Aggregate monthly stats
             m_valid = [0] * 12
@@ -453,7 +477,7 @@ def main():
                     m_valid[idx] = int(m_group['TXK'].notna().sum())
                     m_valid_min[idx] = int(m_group['TNK'].notna().sum())
                     m_stats = {}
-                    for temp_t in range(30, 41):
+                    for temp_t in range(25, 41):
                         count = int((m_group['TXK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f't{temp_t}'] = count
@@ -461,6 +485,11 @@ def main():
                         count = int((m_group['TNK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f'n{temp_t}'] = count
+                    month_season_stats = {}
+                    month_season_stats.update(collect_season_stats(m_group, 'TXK', 't', range(25, 41)))
+                    month_season_stats.update(collect_season_stats(m_group, 'TNK', 'n', range(18, 29)))
+                    if month_season_stats:
+                        m_stats['season'] = month_season_stats
                     if m_stats:
                         m_data[str(mnth)] = m_stats
             
@@ -477,7 +506,7 @@ def main():
             'state': s['state'],
             'start_date': s['start_date'],
             'end_date': s['end_date'],
-            'active': (s['end_date'] >= '20260501'),
+            'active': (s['end_date'] >= current_month_start),
             'overall_coverage': round(overall_coverage, 4),
             'valid_span_days': valid_days,
             'valid_span_nights': valid_night_days,
@@ -497,7 +526,7 @@ def main():
     output_path = os.path.join(DATA_DIR, 'weather_data.json')
     print(f"Writing aggregated results to: {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(processed_stations, f, indent=2, ensure_ascii=False)
+        json.dump(processed_stations, f, ensure_ascii=False, separators=(',', ':'))
         
     print(f"Pipeline complete! Successfully processed {len(processed_stations)} weather stations.")
 
