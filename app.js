@@ -1520,6 +1520,8 @@ function renderSeasonChart(filteredStations) {
     const maxLength = Math.max(...availablePeriods.map(period => period.longest.length), 30);
     const xMax = Math.ceil(maxLength / 20) * 20;
     const getX = value => padding.left + (value / xMax) * chartWidth;
+    const plotLeft = padding.left;
+    const plotRight = width - padding.right;
     const axisY = height - padding.bottom;
     const textFill = isDark ? '#94a3b8' : '#64748b';
     const mutedText = isDark ? '#64748b' : '#94a3b8';
@@ -1539,6 +1541,47 @@ function renderSeasonChart(filteredStations) {
         `;
     }
 
+    const getTextWidthEstimate = (text, fontSize = 12, fontWeight = 800) => {
+        const weightFactor = fontWeight >= 800 ? 0.64 : 0.58;
+        return String(text).length * fontSize * weightFactor;
+    };
+
+    const averageLabelWidth = Math.max(
+        ...availablePeriods.map(period => (
+            getTextWidthEstimate(
+                `${t['season-average']}: ${t['season-days'].replace('{n}', period.average.toFixed(1))}`,
+                10,
+                800
+            )
+        ))
+    );
+    const pointLabelRight = Math.max(plotLeft + 120, plotRight - averageLabelWidth - 18);
+
+    const getClampedPointLabel = (x, text, preferredSide) => {
+        const labelPadding = 10;
+        const labelWidth = getTextWidthEstimate(text, 12, 900);
+        const fitsLeft = x - labelPadding - labelWidth >= plotLeft;
+        const fitsRight = x + labelPadding + labelWidth <= pointLabelRight;
+
+        if (preferredSide === 'left' && fitsLeft) {
+            return { x: x - labelPadding, anchor: 'end' };
+        }
+        if (preferredSide === 'right' && fitsRight) {
+            return { x: x + labelPadding, anchor: 'start' };
+        }
+        if (fitsRight) {
+            return { x: x + labelPadding, anchor: 'start' };
+        }
+        if (fitsLeft) {
+            return { x: x - labelPadding, anchor: 'end' };
+        }
+
+        return {
+            x: Math.min(Math.max(x, plotLeft + labelWidth / 2), pointLabelRight - labelWidth / 2),
+            anchor: 'middle'
+        };
+    };
+
     const rowsSvg = availablePeriods.map((period, index) => {
         const y = padding.top + 38 + index * rowGap;
         const shortestX = getX(period.shortest.length);
@@ -1546,6 +1589,10 @@ function renderSeasonChart(filteredStations) {
         const shortestLabel = t['season-days'].replace('{n}', Math.round(period.shortest.length));
         const longestLabel = t['season-days'].replace('{n}', Math.round(period.longest.length));
         const avgLabel = t['season-days'].replace('{n}', period.average.toFixed(1));
+        const shortestPointLabel = `${period.shortest.year}: ${Math.round(period.shortest.length)}`;
+        const longestPointLabel = `${period.longest.year}: ${Math.round(period.longest.length)}`;
+        const shortestPlacement = getClampedPointLabel(shortestX, shortestPointLabel, 'left');
+        const longestPlacement = getClampedPointLabel(longestX, longestPointLabel, 'right');
         const yearsWithDataLabel = `${period.seasons.length}/${period.endYear - period.startYear + 1} ${currentLang === 'de' ? 'Jahre' : 'years'}`;
 
         return `
@@ -1560,9 +1607,9 @@ function renderSeasonChart(filteredStations) {
                 <circle cx="${longestX}" cy="${y}" r="8" fill="${longestColor}" stroke="${isDark ? '#020617' : '#ffffff'}" stroke-width="2">
                     <title>${period.longest.year}: ${longestLabel} (${period.longest.first} – ${period.longest.last})</title>
                 </circle>
-                <text x="${shortestX - 10}" y="${y - 16}" fill="${shortestColor}" font-size="12" font-weight="900" text-anchor="end">${period.shortest.year}: ${Math.round(period.shortest.length)}</text>
-                <text x="${longestX + 10}" y="${y + 4}" fill="${longestColor}" font-size="12" font-weight="900">${period.longest.year}: ${Math.round(period.longest.length)}</text>
-                <text x="${width - padding.right}" y="${y - 14}" fill="${textFill}" font-size="10" font-weight="800" text-anchor="end">${t['season-average']}: ${avgLabel}</text>
+                <text x="${shortestPlacement.x}" y="${y - 16}" fill="${shortestColor}" font-size="12" font-weight="900" text-anchor="${shortestPlacement.anchor}">${shortestPointLabel}</text>
+                <text x="${longestPlacement.x}" y="${y + 4}" fill="${longestColor}" font-size="12" font-weight="900" text-anchor="${longestPlacement.anchor}">${longestPointLabel}</text>
+                <text x="${plotRight}" y="${y - 14}" fill="${textFill}" font-size="10" font-weight="800" text-anchor="end">${t['season-average']}: ${avgLabel}</text>
             </g>
         `;
     }).join('');

@@ -50,3 +50,4 @@ Date: 2026-06-24
   - phone viewport (`390x820`) uses a compact 2x2 icon-over-label layout with no horizontal or label overflow,
   - tablet viewport (`820x900`) uses a 2x2 layout with descriptions,
   - desktop viewport (`1280x860`) uses a single 4-wide row with descriptions.
+- Season-length chart point labels are clamped to the chart bounds; left-edge labels flip to the right of the marker, and right-edge labels flip left before colliding with the average-label lane.
