@@ -2,7 +2,7 @@
 
 This repository has a project skill for Codex-style maintenance work:
 
-`skills/dwd-dashboard-maintenance/SKILL.md`
+`.agent/skills/dwd-dashboard-maintenance/SKILL.md`
 
 Use that skill when changing the dashboard UI, data pipeline, visualizations, filters, generated dataset, or verification workflow.
 
