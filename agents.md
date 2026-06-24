@@ -1,10 +1,11 @@
 # Agent Handoff
 
-This repository has a project skill for Codex-style maintenance work:
+This repository has project skills for agent maintenance work:
 
-`.agent/skills/dwd-dashboard-maintenance/SKILL.md`
+- `.agent/skills/dwd-ui-maintenance/SKILL.md` for frontend, visualizations, filters, localization, and browser verification.
+- `.agent/skills/dwd-data-management/SKILL.md` for data import, generated JSON, threshold keys, monthly refresh, and validation.
 
-Use that skill when changing the dashboard UI, data pipeline, visualizations, filters, generated dataset, or verification workflow.
+Use the relevant skill before changing the dashboard UI, data pipeline, generated dataset, or verification workflow.
 
 ## Project Invariants
 
@@ -14,7 +15,7 @@ Use that skill when changing the dashboard UI, data pipeline, visualizations, fi
 - Keep map bubble sizes and legend bubble sizes visually aligned.
 - Keep night-minimum mode blue-toned across controls, charts, and legends.
 - Keep data outputs in `data/`, especially `data/weather_data.json`.
-- Keep README human-facing; put detailed maintenance workflow in the skill, not in README.
+- Keep README human-facing; put detailed maintenance workflow in `.agent/skills`, not in README.
 
 ## Basic Checks
 

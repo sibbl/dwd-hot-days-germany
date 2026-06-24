@@ -1,0 +1,4 @@
+interface:
+  display_name: "DWD UI Maintenance"
+  short_description: "Maintain the DWD dashboard frontend"
+  default_prompt: "Use $dwd-ui-maintenance to update and verify the DWD dashboard UI."
