@@ -100,7 +100,6 @@ const i18n = {
         'annual-trend-label': "Linearer Trend",
         'annual-axis-label': "Meldungen pro Jahr",
         'annual-peak-label': "Jahr mit den meisten Meldungen",
-        'annual-latest-label': "Wert im letzten Jahr der Reihe",
         'annual-trend-stat-label': "Linearer Trend pro Jahrzehnt",
         'annual-empty': "Keine Daten für die aktuelle Filterauswahl.",
         'season-shortest': "Kürzeste",
@@ -235,7 +234,6 @@ const i18n = {
         'annual-trend-label': "Linear trend",
         'annual-axis-label': "Reports per year",
         'annual-peak-label': "Year with the most reports",
-        'annual-latest-label': "Value in the latest year of the series",
         'annual-trend-stat-label': "Linear trend per decade",
         'annual-empty': "No data for the current filter selection.",
         'season-shortest': "Shortest",
@@ -1425,7 +1423,6 @@ function renderAnnualChart(filteredStations) {
     counts.forEach((value, index) => {
         if (value > counts[peakIndex]) peakIndex = index;
     });
-    const latestIndex = counts.length - 1;
     const trendValue = `${trendPerDecade >= 0 ? '+' : ''}${trendPerDecade.toFixed(2)}`;
 
     container.innerHTML = `
@@ -1455,14 +1452,10 @@ function renderAnnualChart(filteredStations) {
                 </svg>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-800 pt-4">
                 <div class="flex flex-col gap-1">
                     <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${counts[peakIndex].toLocaleString()} ${t['lbl-day-unit']}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-peak-label']}</span>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[latestIndex]}: ${counts[latestIndex].toLocaleString()} ${t['lbl-day-unit']}</span>
-                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-latest-label']}</span>
                 </div>
                 <div class="flex flex-col gap-1">
                     <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${t['lbl-day-unit']}</span>
