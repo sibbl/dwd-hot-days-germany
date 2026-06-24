@@ -15,7 +15,7 @@ let excludeCityEnvironment = false;
 let selectedStationId = null;
 let currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 1 to 12 representing Jan to Dec
 
-let currentViewMode = 'grid'; // 'grid', 'single', 'annual', 'yearly', or 'season'
+let currentViewMode = 'grid'; // 'grid', 'single', 'annual', 'decades', 'yearly', or 'season'
 let currentActiveYear = 2025; // Active year for the single map view
 let animationIntervalId = null;
 let animationSpeed = 250; // ms per year in animation
@@ -66,10 +66,12 @@ const i18n = {
         'no-months': "Keine Monate",
         'summer-months': "Mai–Sep",
         'n-months': "{n} Monate",
-        'card-title-decades': "Meldungen pro Jahrzehnt",
-        'btn-lbl-decades': "Jahrzehnte",
+        'card-title-decades': "Jahrzehnt-Summen aller Stationsmeldungen",
+        'card-subtitle-decades-max': "Vergleicht komplette 10-Jahres-Zeiträume: alle Tage mit Tagesmaximum ab {temp} °C werden über alle aktiven Stationen aufsummiert.",
+        'card-subtitle-decades-min': "Vergleicht komplette 10-Jahres-Zeiträume: alle Nächte mit Tagesminimum ab {temp} °C werden über alle aktiven Stationen aufsummiert.",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-axis-label': "Meldungen pro Jahrzehnt",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
         'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
@@ -80,18 +82,20 @@ const i18n = {
         'view-grid-desc': "Dekadenkarten",
         'view-single': "Einzelkarte",
         'view-single-desc': "Jahr für Jahr",
-        'view-annual': "Jahresdiagramm",
-        'view-annual-desc': "Balken & Trend",
-        'view-yearly': "Jahresreihe",
-        'view-yearly-desc': "Deutschland-Schnitt",
+        'view-annual': "Jahressumme",
+        'view-annual-desc': "Alle Meldungen",
+        'view-decades': "Jahrzehnte",
+        'view-decades-desc': "10-Jahres-Summe",
+        'view-yearly': "Stationsschnitt",
+        'view-yearly-desc': "Pro Station/Jahr",
         'view-season': "Saisonlänge",
         'view-season-desc': "Erste bis letzte Meldung",
-        'card-title-annual': "Jahresdiagramm",
-        'card-subtitle-annual-max': "Summierte DWD-Stationsmeldungen pro Jahr für die aktiven Filter, inklusive linearem Trend.",
-        'card-subtitle-annual-min': "Summierte DWD-Stationsnächte pro Jahr für die aktiven Filter, inklusive linearem Trend.",
-        'card-title-yearly': "Jahresreihe im Deutschland-Schnitt",
-        'card-subtitle-yearly-max': "Jeder Balken zeigt die mittlere Zahl heißer Tage pro meldender Station und Jahr, inklusive Trend.",
-        'card-subtitle-yearly-min': "Jeder Balken zeigt die mittlere Zahl warmer Nächte pro meldender Station und Jahr, inklusive Trend.",
+        'card-title-annual': "Jahressumme aller Stationsmeldungen",
+        'card-subtitle-annual-max': "Zeigt die absolute Summe aller Tagesmaximum-Meldungen ab {temp} °C pro Jahr. Höhere Werte können auch durch mehr aktive Stationen entstehen.",
+        'card-subtitle-annual-min': "Zeigt die absolute Summe aller Nachtminimum-Meldungen ab {temp} °C pro Jahr. Höhere Werte können auch durch mehr aktive Stationen entstehen.",
+        'card-title-yearly': "Stationsschnitt pro Jahr",
+        'card-subtitle-yearly-max': "Normalisiert die Jahreswerte: Jeder Balken zeigt die mittlere Zahl heißer Tage pro meldender Station.",
+        'card-subtitle-yearly-min': "Normalisiert die Jahreswerte: Jeder Balken zeigt die mittlere Zahl warmer Nächte pro meldender Station.",
         'card-title-season': "Saisonlänge",
         'card-subtitle-season-max': "Spanne zwischen erstem und letztem Tag mit Tagesmaximum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
         'card-subtitle-season-min': "Spanne zwischen erster und letzter Nacht mit Tagesminimum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
@@ -214,10 +218,12 @@ const i18n = {
         'no-months': "No Months",
         'summer-months': "May–Sep",
         'n-months': "{n} Months",
-        'card-title-decades': "Reports per Decade",
-        'btn-lbl-decades': "Decades",
+        'card-title-decades': "Decade Totals Across All Station Reports",
+        'card-subtitle-decades-max': "Compares full 10-year periods: all days with daily maximum at or above {temp} °C are summed across active stations.",
+        'card-subtitle-decades-min': "Compares full 10-year periods: all nights with daily minimum at or above {temp} °C are summed across active stations.",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above {temp} °C across all selected stations within each decade.",
         'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above {temp} °C across all selected stations within each decade.",
+        'decades-axis-label': "Reports per decade",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
         'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
@@ -228,18 +234,20 @@ const i18n = {
         'view-grid-desc': "Decade maps",
         'view-single': "Single map",
         'view-single-desc': "Year by year",
-        'view-annual': "Annual chart",
-        'view-annual-desc': "Bars & trend",
-        'view-yearly': "Year series",
-        'view-yearly-desc': "Germany average",
+        'view-annual': "Annual total",
+        'view-annual-desc': "All reports",
+        'view-decades': "Decades",
+        'view-decades-desc': "10-year totals",
+        'view-yearly': "Station average",
+        'view-yearly-desc': "Per station/year",
         'view-season': "Season length",
         'view-season-desc': "First to last report",
-        'card-title-annual': "Annual Chart",
-        'card-subtitle-annual-max': "Summed DWD station reports per year for the active filters, including a linear trend.",
-        'card-subtitle-annual-min': "Summed DWD station nights per year for the active filters, including a linear trend.",
-        'card-title-yearly': "Year-by-Year Germany Average",
-        'card-subtitle-yearly-max': "Each bar shows the mean number of hot days per reporting station and year, including the trend.",
-        'card-subtitle-yearly-min': "Each bar shows the mean number of warm nights per reporting station and year, including the trend.",
+        'card-title-annual': "Annual Total Across All Station Reports",
+        'card-subtitle-annual-max': "Shows the absolute sum of all daily-maximum reports at or above {temp} °C per year. Higher values can also reflect more active stations.",
+        'card-subtitle-annual-min': "Shows the absolute sum of all nightly-minimum reports at or above {temp} °C per year. Higher values can also reflect more active stations.",
+        'card-title-yearly': "Station Average per Year",
+        'card-subtitle-yearly-max': "Normalizes annual values: each bar shows the mean number of hot days per reporting station.",
+        'card-subtitle-yearly-min': "Normalizes annual values: each bar shows the mean number of warm nights per reporting station.",
         'card-title-season': "Season Length",
         'card-subtitle-season-max': "Span between the first and last day with daily maximum at or above {temp} °C across selected stations in Germany.",
         'card-subtitle-season-min': "Span between the first and last night with daily minimum at or above {temp} °C across selected stations in Germany.",
@@ -418,16 +426,13 @@ function setLanguage(lang) {
     renderMonthDropdownItems();
     updateMonthButtonLabel();
     
-    document.getElementById('card-title-decades').textContent = i18n[lang]['card-title-decades'];
-    document.getElementById('btn-lbl-decades').textContent = i18n[lang]['btn-lbl-decades'];
-    document.getElementById('decades-methodology').innerHTML = i18n[lang][`decades-methodology-${currentMetric}`].replace('{temp}', currentTempThreshold);
-    
     document.getElementById('card-title-grid').textContent = i18n[lang]['card-title-grid'] + ` (${currentStartYear}–${endYearLabel})`;
     document.getElementById('card-subtitle-grid').textContent = i18n[lang][`card-subtitle-grid-${currentMetric}`];
     [
         ['btn-view-grid', 'view-grid'],
         ['btn-view-single', 'view-single'],
         ['btn-view-annual', 'view-annual'],
+        ['btn-view-decades', 'view-decades'],
         ['btn-view-yearly', 'view-yearly'],
         ['btn-view-season', 'view-season']
     ].forEach(([id, key]) => {
@@ -1024,7 +1029,7 @@ function getFilteredStations() {
     });
 }
 
-// Calculate decadal reports and display them
+// Calculate decadal reports and optionally display legacy inline rows if a container exists.
 function renderDecadalStats(filteredStations) {
     const currentDecadeLabel = `2021–${getEndYearLabel(currentLang)}`;
     const decadeTotals = {
@@ -1057,6 +1062,8 @@ function renderDecadalStats(filteredStations) {
     const maxDecadeVal = Math.max(...Object.values(decadeTotals), 1);
     
     const container = document.getElementById('decade-list-container');
+    if (!container) return decadeTotals;
+
     container.innerHTML = '';
     const accent = getModeAccent();
     
@@ -1093,6 +1100,93 @@ function renderDecadalStats(filteredStations) {
     });
     
     return decadeTotals;
+}
+
+function renderDecadesChart(filteredStations, decadeTotals = renderDecadalStats(filteredStations)) {
+    const container = document.getElementById('decades-chart-container');
+    if (!container) return;
+
+    const t = i18n[currentLang];
+    const accent = getModeAccent();
+    const isDark = document.documentElement.classList.contains('dark');
+    const entries = Object.entries(decadeTotals).filter(([label]) => {
+        const decadeEnd = parseInt(label.substring(5, 9));
+        return decadeEnd >= currentStartYear;
+    });
+
+    if (!entries.length) {
+        container.innerHTML = `<div class="py-24 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">${t['annual-empty']}</div>`;
+        return;
+    }
+
+    const width = 1040;
+    const rowGap = 58;
+    const padding = { top: 42, right: 44, bottom: 54, left: 150 };
+    const height = padding.top + padding.bottom + (entries.length - 1) * rowGap + 42;
+    const chartWidth = width - padding.left - padding.right;
+    const maxVal = Math.max(...entries.map(([, total]) => total), 1);
+    const xMax = Math.ceil(maxVal / 1000) * 1000 || 1000;
+    const getX = value => padding.left + (value / xMax) * chartWidth;
+    const axisY = height - padding.bottom;
+    const textFill = isDark ? '#94a3b8' : '#64748b';
+    const mutedText = isDark ? '#64748b' : '#94a3b8';
+    const gridStroke = isDark ? '#1e293b' : '#e2e8f0';
+    const barTop = currentMetric === 'min' ? '#38bdf8' : '#fb923c';
+    const barBottom = currentMetric === 'min' ? '#1d4ed8' : '#c2410c';
+
+    const formatCount = value => value.toLocaleString(currentLang === 'de' ? 'de-DE' : 'en-US');
+
+    let axisSvg = '';
+    const tickCount = 4;
+    for (let i = 0; i <= tickCount; i++) {
+        const value = (xMax / tickCount) * i;
+        const x = getX(value);
+        axisSvg += `
+            <line x1="${x}" y1="${padding.top - 18}" x2="${x}" y2="${axisY}" stroke="${gridStroke}" stroke-width="1" ${i === 0 ? '' : 'stroke-dasharray="2 4"'} />
+            <text x="${x}" y="${axisY + 22}" fill="${textFill}" font-size="11" font-weight="700" text-anchor="middle">${formatCount(Math.round(value))}</text>
+        `;
+    }
+
+    const rowsSvg = entries.map(([label, total], index) => {
+        const y = padding.top + 24 + index * rowGap;
+        const barWidth = Math.max(2, getX(total) - padding.left);
+        const pct = total / maxVal;
+        return `
+            <g>
+                <text x="${padding.left - 20}" y="${y + 5}" fill="${textFill}" font-size="14" font-weight="900" text-anchor="end">${label}</text>
+                <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" stroke-dasharray="2 5" />
+                <rect x="${padding.left}" y="${y - 13}" width="${barWidth}" height="26" rx="6" fill="url(#decades-bar-grad)" opacity="${0.56 + pct * 0.44}">
+                    <title>${label}: ${formatCount(total)} ${t['lbl-day-unit']}</title>
+                </rect>
+                <text x="${Math.min(padding.left + barWidth + 12, width - padding.right)}" y="${y + 5}" fill="${pct > 0.82 ? barTop : textFill}" font-size="12" font-weight="900" text-anchor="${padding.left + barWidth + 12 > width - padding.right ? 'end' : 'start'}">${formatCount(total)}</text>
+            </g>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="flex flex-col gap-4">
+            <div class="w-full overflow-x-auto">
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" class="min-w-[760px]">
+                    <defs>
+                        <linearGradient id="decades-bar-grad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="${barBottom}" stop-opacity="0.72" />
+                            <stop offset="100%" stop-color="${barTop}" stop-opacity="0.98" />
+                        </linearGradient>
+                    </defs>
+                    <text x="${padding.left}" y="18" fill="${textFill}" font-size="12" font-weight="800">${t['decades-axis-label']}</text>
+                    ${axisSvg}
+                    ${rowsSvg}
+                    <g transform="translate(${padding.left}, ${height - 16})">
+                        <rect x="0" y="-11" width="12" height="12" rx="3" fill="url(#decades-bar-grad)" />
+                        <text x="19" y="-1" fill="${textFill}" font-size="11" font-weight="800">${t['view-decades-desc']}</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="border-t border-slate-200 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                ${t[`decades-methodology-${currentMetric}`].replace('{temp}', currentTempThreshold)}
+            </div>
+        </div>
+    `;
 }
 
 // Update Global Stats Panel
@@ -1932,6 +2026,8 @@ function updateDashboard() {
             titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${endYearLabel})`;
         } else if (currentViewMode === 'annual') {
             titleElement.textContent = i18n[currentLang]['card-title-annual'] + ` (${currentStartYear}–${endYearLabel})`;
+        } else if (currentViewMode === 'decades') {
+            titleElement.textContent = i18n[currentLang]['card-title-decades'] + ` (${currentStartYear}–${endYearLabel})`;
         } else if (currentViewMode === 'yearly') {
             titleElement.textContent = i18n[currentLang]['card-title-yearly'] + ` (${currentStartYear}–${endYearLabel})`;
         } else {
@@ -1944,7 +2040,9 @@ function updateDashboard() {
         } else if (currentViewMode === 'single') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
         } else if (currentViewMode === 'annual') {
-            subtitleElement.textContent = i18n[currentLang][`card-subtitle-annual-${currentMetric}`];
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-annual-${currentMetric}`].replace('{temp}', currentTempThreshold);
+        } else if (currentViewMode === 'decades') {
+            subtitleElement.textContent = i18n[currentLang][`card-subtitle-decades-${currentMetric}`].replace('{temp}', currentTempThreshold);
         } else if (currentViewMode === 'yearly') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-yearly-${currentMetric}`];
         } else {
@@ -1961,6 +2059,8 @@ function updateDashboard() {
         renderSingleMap(filteredStations);
     } else if (currentViewMode === 'annual') {
         renderAnnualChart(filteredStations);
+    } else if (currentViewMode === 'decades') {
+        renderDecadesChart(filteredStations, decadeTotals);
     } else if (currentViewMode === 'yearly') {
         renderYearlyTrendChart(filteredStations);
     } else {
@@ -2844,7 +2944,7 @@ function loadStateFromURLHash() {
     }
     if (params.has('view')) {
         const val = params.get('view');
-        if (val === 'grid' || val === 'single' || val === 'annual' || val === 'yearly' || val === 'season') currentViewMode = val;
+        if (val === 'grid' || val === 'single' || val === 'annual' || val === 'decades' || val === 'yearly' || val === 'season') currentViewMode = val;
     }
     if (params.has('year')) {
         const val = parseInt(params.get('year'));
@@ -2965,30 +3065,19 @@ function syncUIControls() {
         btnMonthSummer.className = `text-[10px] font-extrabold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} ${accent.bgSoftHover} px-2 py-1 rounded transition duration-150`;
     }
 
-    const decadesButton = document.getElementById('btn-show-decades');
-    if (decadesButton) {
-        decadesButton.className = `flex flex-col bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-900/60 dark:hover:bg-slate-900 border border-slate-300/80 dark:border-slate-800 hover:${accent.borderSoft} dark:hover:${accent.borderSoft} rounded-lg px-2.5 py-1 text-center min-w-[85px] sm:min-w-[95px] transition duration-150 active:scale-95 group`;
-        const label = document.getElementById('btn-lbl-decades');
-        if (label) {
-            label.className = `text-[9px] text-slate-500 dark:text-slate-550 font-semibold uppercase tracking-wider group-hover:${accent.textSoft.replace('text-', 'text-')} transition duration-150`;
-        }
-        const icon = decadesButton.querySelector('svg');
-        if (icon) {
-            icon.className = `w-3 h-3 ${currentMetric === 'min' ? 'text-sky-500' : 'text-orange-500'}`;
-        }
-    }
-
     // Visual switch buttons sync
     const btnGrid = document.getElementById('btn-view-grid');
     const btnSingle = document.getElementById('btn-view-single');
     const btnAnnual = document.getElementById('btn-view-annual');
+    const btnDecades = document.getElementById('btn-view-decades');
     const btnYearly = document.getElementById('btn-view-yearly');
     const btnSeason = document.getElementById('btn-view-season');
-    if (btnGrid && btnSingle && btnAnnual && btnYearly && btnSeason) {
+    if (btnGrid && btnSingle && btnAnnual && btnDecades && btnYearly && btnSeason) {
         const viewButtons = [
             ['grid', btnGrid],
             ['single', btnSingle],
             ['annual', btnAnnual],
+            ['decades', btnDecades],
             ['yearly', btnYearly],
             ['season', btnSeason]
         ];
@@ -3019,15 +3108,18 @@ function syncUIControls() {
     const gridView = document.getElementById('map-grid-view');
     const singleView = document.getElementById('map-single-view');
     const annualView = document.getElementById('annual-chart-view');
+    const decadesView = document.getElementById('decades-chart-view');
     const yearlyView = document.getElementById('yearly-chart-view');
     const seasonView = document.getElementById('season-chart-view');
-    if (gridView && singleView && annualView && yearlyView && seasonView) {
+    if (gridView && singleView && annualView && decadesView && yearlyView && seasonView) {
         gridView.classList.toggle('hidden', currentViewMode !== 'grid');
         gridView.classList.toggle('block', currentViewMode === 'grid');
         singleView.classList.toggle('hidden', currentViewMode !== 'single');
         singleView.classList.toggle('block', currentViewMode === 'single');
         annualView.classList.toggle('hidden', currentViewMode !== 'annual');
         annualView.classList.toggle('block', currentViewMode === 'annual');
+        decadesView.classList.toggle('hidden', currentViewMode !== 'decades');
+        decadesView.classList.toggle('block', currentViewMode === 'decades');
         yearlyView.classList.toggle('hidden', currentViewMode !== 'yearly');
         yearlyView.classList.toggle('block', currentViewMode === 'yearly');
         seasonView.classList.toggle('hidden', currentViewMode !== 'season');
@@ -3075,9 +3167,9 @@ function updatePlayButtonAccent() {
     playBtn.className = `flex items-center justify-center w-9 h-9 rounded-full ${accent.bg} ${accent.bgHover} text-white font-bold transition duration-150 shadow-md ${accent.shadow} active:scale-95`;
 }
 
-// Set the active visualization view mode ('grid', 'single', 'annual', 'yearly', or 'season')
+// Set the active visualization view mode ('grid', 'single', 'annual', 'decades', 'yearly', or 'season')
 function setViewMode(mode) {
-    if (!['grid', 'single', 'annual', 'yearly', 'season'].includes(mode)) return;
+    if (!['grid', 'single', 'annual', 'decades', 'yearly', 'season'].includes(mode)) return;
     if (currentViewMode === mode) return;
     
     // Pause animation if playing and switching away from single map
@@ -3265,31 +3357,3 @@ window.addEventListener('hashchange', () => {
         selectStation(null);
     }
 });
-
-// Decades Modal controllers
-function openDecadesModal() {
-    const modal = document.getElementById('decades-modal');
-    const card = document.getElementById('decades-modal-card');
-    if (modal && card) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        // Smooth transition
-        setTimeout(() => {
-            card.classList.remove('scale-95', 'opacity-0');
-            card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-}
-
-function closeDecadesModal() {
-    const modal = document.getElementById('decades-modal');
-    const card = document.getElementById('decades-modal-card');
-    if (modal && card) {
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }, 150);
-    }
-}
