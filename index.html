@@ -131,7 +131,7 @@
             <div class="glass-panel rounded-xl p-5 flex flex-col h-full">
                 <div class="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
                     <!-- Primary Visualization Mode Switcher -->
-                    <div id="view-mode-selector" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-1.5 bg-slate-100/80 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-850 rounded-xl p-1.5">
+                    <div id="view-mode-selector" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-1.5 bg-slate-100/80 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-850 rounded-xl p-1.5">
                         <button id="btn-view-grid" type="button" onclick="setViewMode('grid')" aria-pressed="true" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left transition duration-150 bg-orange-600 text-white shadow-sm">
                             <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -182,22 +182,6 @@
                             <span class="flex min-w-0 flex-col items-center sm:items-start">
                                 <span id="btn-view-decades-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Jahrzehnte</span>
                                 <span id="btn-view-decades-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">10-Jahres-Summe</span>
-                            </span>
-                        </button>
-                        <button id="btn-view-yearly" type="button" onclick="setViewMode('yearly')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
-                            <span class="view-mode-icon flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path d="M4 19h16"></path>
-                                    <path d="M7 16V9"></path>
-                                    <path d="M11 16V5"></path>
-                                    <path d="M15 16v-6"></path>
-                                    <path d="M19 16v-3"></path>
-                                    <path d="M5 13c4-5 9-6 15-3"></path>
-                                </svg>
-                            </span>
-                            <span class="flex min-w-0 flex-col items-center sm:items-start">
-                                <span id="btn-view-yearly-label" class="view-mode-label truncate text-[11px] sm:text-sm font-extrabold leading-tight">Stationsschnitt</span>
-                                <span id="btn-view-yearly-desc" class="view-mode-desc hidden sm:block truncate text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-500">Pro Station/Jahr</span>
                             </span>
                         </button>
                         <button id="btn-view-season" type="button" onclick="setViewMode('season')" aria-pressed="false" class="group flex min-h-[74px] flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 rounded-lg px-2.5 sm:px-3 py-2.5 text-center sm:text-left text-slate-600 dark:text-slate-350 transition duration-150 hover:bg-white/70 dark:hover:bg-slate-900/80">
@@ -445,13 +429,6 @@
                     </div>
                 </div>
 
-                <!-- Year-by-Year Average Chart View Panel -->
-                <div id="yearly-chart-view" class="hidden">
-                    <div id="yearly-chart-container" class="w-full min-h-[500px]">
-                        <!-- Year-by-year average chart dynamically injected -->
-                    </div>
-                </div>
-
                 <!-- Season Length View Panel -->
                 <div id="season-chart-view" class="hidden">
                     <div id="season-chart-container" class="w-full min-h-[420px]">
@@ -526,6 +503,6 @@
     </footer>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=40"></script>
+    <script src="app.js?v=41"></script>
 </body>
 </html>
