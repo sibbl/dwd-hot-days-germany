@@ -69,14 +69,14 @@ const i18n = {
         'summer-months': "Mai–Sep",
         'n-months': "{n} Monate",
         'card-title-decades': "Jahrzehnt-Summen aller Stationsmeldungen",
-        'card-subtitle-decades-max': "Vergleicht komplette 10-Jahres-Zeiträume: alle Tage mit Tagesmaximum ab {temp} °C werden über alle aktiven Stationen aufsummiert.",
-        'card-subtitle-decades-min': "Vergleicht komplette 10-Jahres-Zeiträume: alle Nächte mit Tagesminimum ab {temp} °C werden über alle aktiven Stationen aufsummiert.",
-        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden die summierten Tage mit Tagesmaximum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
-        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden die summierten Nächte mit Tagesminimum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'card-subtitle-decades-max': "Vergleicht komplette 10-Jahres-Zeiträume: alle Stationsmeldungen mit Tagesmaximum ab {temp} °C werden aufsummiert.",
+        'card-subtitle-decades-min': "Vergleicht komplette 10-Jahres-Zeiträume: alle Stationsmeldungen mit Tagesminimum ab {temp} °C werden aufsummiert.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden Stationsmeldungen mit Tagesmaximum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden Stationsmeldungen mit Tagesminimum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'decades-axis-label': "Meldungen pro Jahrzehnt",
         'card-title-grid': "Deutschlandkarten-Raster",
-        'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage mit Tagesmaximum über dem Schwellenwert.",
-        'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte mit Tagesminimum ab dem Schwellenwert.",
+        'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage je Station mit Tagesmaximum über dem Schwellenwert.",
+        'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte je Station mit Tagesminimum ab dem Schwellenwert.",
         'card-title-single': "Klimawandel-Animation",
         'card-subtitle-single-max': "Nutzen Sie den Play-Button, um den Anstieg extrem heißer Tage über Jahrzehnte hinweg zu animieren.",
         'card-subtitle-single-min': "Nutzen Sie den Play-Button, um die Entwicklung warmer Nächte über Jahrzehnte hinweg zu animieren.",
@@ -96,7 +96,7 @@ const i18n = {
         'card-title-season': "Saisonlänge",
         'card-subtitle-season-max': "Spanne zwischen erstem und letztem Tag mit Tagesmaximum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
         'card-subtitle-season-min': "Spanne zwischen erster und letzter Nacht mit Tagesminimum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
-        'annual-series-label': "DWD-Stationen",
+        'annual-series-label': "Stationsmeldungen",
         'annual-trend-label': "Linearer Trend",
         'annual-axis-label': "Meldungen pro Jahr",
         'annual-peak-label': "Jahr mit den meisten Meldungen",
@@ -109,7 +109,7 @@ const i18n = {
         'season-empty': "Keine Saisonlängen-Daten für die aktuelle Filterauswahl. Bitte `download_and_process.py` neu ausführen.",
         'season-axis-label': "Tage zwischen erstem und letztem Ereignis",
         'season-methodology': "Pro Jahr wird die deutschlandweite Spanne zwischen frühestem und spätestem Schwellenereignis über alle selektierten Stationen berechnet.",
-        'legend-lbl-days': "Tage:",
+        'legend-lbl-days': "Tage je Station:",
         'loading-txt': "Lade Klimadaten & Landkarten-Modul...",
         'inspector-title': "Stations-Inspektor & Metadaten-Chronik",
         'inspector-subtitle': "Suchen Sie eine Wetterstation, um deren exakte Umzüge, Namensänderungen und Temperatur-Trends zu inspizieren.",
@@ -151,6 +151,9 @@ const i18n = {
         'lbl-active': "aktiv",
         'lbl-target': "Soll",
         'lbl-day-unit': "d",
+        'lbl-report-unit-singular': "Meldung",
+        'lbl-report-unit-plural': "Meldungen",
+        'lbl-report-unit-short': "Meld.",
         
         'no-names': "Keine Namenshistorie.",
         'no-owners': "Keine Betreiberhistorie.",
@@ -203,14 +206,14 @@ const i18n = {
         'summer-months': "May–Sep",
         'n-months': "{n} Months",
         'card-title-decades': "Decade Totals Across All Station Reports",
-        'card-subtitle-decades-max': "Compares full 10-year periods: all days with daily maximum at or above {temp} °C are summed across active stations.",
-        'card-subtitle-decades-min': "Compares full 10-year periods: all nights with daily minimum at or above {temp} °C are summed across active stations.",
-        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent accumulated days with daily maximum temperature at or above {temp} °C across all selected stations within each decade.",
-        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent accumulated nights with daily minimum temperature at or above {temp} °C across all selected stations within each decade.",
+        'card-subtitle-decades-max': "Compares full 10-year periods: all station reports with daily maximum at or above {temp} °C are summed.",
+        'card-subtitle-decades-min': "Compares full 10-year periods: all station reports with daily minimum at or above {temp} °C are summed.",
+        'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent station reports with daily maximum temperature at or above {temp} °C across all selected stations within each decade.",
+        'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent station reports with daily minimum temperature at or above {temp} °C across all selected stations within each decade.",
         'decades-axis-label': "Reports per decade",
         'card-title-grid': "Germany Weather Map Grid",
-        'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days with daily maximum temperature exceeding the threshold.",
-        'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights with daily minimum temperature at or above the threshold.",
+        'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days per station with daily maximum temperature exceeding the threshold.",
+        'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights per station with daily minimum temperature at or above the threshold.",
         'card-title-single': "Climate Change Animation",
         'card-subtitle-single-max': "Use the play button to animate the rise of extremely hot days across decades.",
         'card-subtitle-single-min': "Use the play button to animate the development of warm nights across decades.",
@@ -230,7 +233,7 @@ const i18n = {
         'card-title-season': "Season Length",
         'card-subtitle-season-max': "Span between the first and last day with daily maximum at or above {temp} °C across selected stations in Germany.",
         'card-subtitle-season-min': "Span between the first and last night with daily minimum at or above {temp} °C across selected stations in Germany.",
-        'annual-series-label': "DWD stations",
+        'annual-series-label': "Station reports",
         'annual-trend-label': "Linear trend",
         'annual-axis-label': "Reports per year",
         'annual-peak-label': "Year with the most reports",
@@ -243,7 +246,7 @@ const i18n = {
         'season-empty': "No season-length data for the current filter selection. Please rerun `download_and_process.py`.",
         'season-axis-label': "Days between first and last event",
         'season-methodology': "For each year, the Germany-wide span between the earliest and latest threshold event is calculated across all selected stations.",
-        'legend-lbl-days': "Days:",
+        'legend-lbl-days': "Days per station:",
         'loading-txt': "Loading climate records & vector maps...",
         'inspector-title': "Station Inspector & Metadata Chronology",
         'inspector-subtitle': "Search for a weather station to inspect its relocations, name modifications, and local temperature trends.",
@@ -285,6 +288,9 @@ const i18n = {
         'lbl-active': "active",
         'lbl-target': "Target",
         'lbl-day-unit': "d",
+        'lbl-report-unit-singular': "report",
+        'lbl-report-unit-plural': "reports",
+        'lbl-report-unit-short': "rep.",
         
         'no-names': "No name history.",
         'no-owners': "No operator history.",
@@ -547,6 +553,12 @@ function formatDate(dStr) {
         return `${dStr.substring(6, 8)}.${dStr.substring(4, 6)}.${dStr.substring(0, 4)}`;
     }
     return dStr;
+}
+
+function getReportUnit(count, options = {}) {
+    const t = i18n[currentLang];
+    if (options.short) return t['lbl-report-unit-short'];
+    return count === 1 ? t['lbl-report-unit-singular'] : t['lbl-report-unit-plural'];
 }
 
 const HEAT_SCALES = {
@@ -1203,7 +1215,7 @@ function renderDecadesChart(filteredStations, decadeTotals = renderDecadalStats(
                 <text x="${padding.left - 20}" y="${y + 5}" fill="${textFill}" font-size="14" font-weight="900" text-anchor="end">${label}</text>
                 <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" stroke-dasharray="2 5" />
                 <rect x="${padding.left}" y="${y - 13}" width="${barWidth}" height="26" rx="6" fill="url(#decades-bar-grad)" opacity="${0.56 + pct * 0.44}">
-                    <title>${label}: ${formatCount(total)} ${t['lbl-day-unit']}</title>
+                    <title>${label}: ${formatCount(total)} ${getReportUnit(total)}</title>
                 </rect>
                 <text x="${Math.min(padding.left + barWidth + 12, width - padding.right)}" y="${y + 5}" fill="${pct > 0.82 ? barTop : textFill}" font-size="12" font-weight="900" text-anchor="${padding.left + barWidth + 12 > width - padding.right ? 'end' : 'start'}">${formatCount(total)}</text>
             </g>
@@ -1363,11 +1375,11 @@ function renderMapsGrid(filteredStations) {
             }
             
             let circlesSvg = '';
-            let totalYearDays = 0;
+            let totalYearReports = 0;
             
             filteredStations.forEach(s => {
                 const days = getDaysCountForYear(s, yr);
-                totalYearDays += days;
+                totalYearReports += days;
                 
                 const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
                 const style = getHeatStyle(days, 'grid');
@@ -1390,7 +1402,7 @@ function renderMapsGrid(filteredStations) {
             card.innerHTML = `
                 <div class="flex justify-between items-center w-full mb-1 text-[10px]">
                     <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
-                    <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearDays} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${i18n[currentLang]['lbl-day-unit']}</span></span>
+                    <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearReports} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${getReportUnit(totalYearReports, { short: true })}</span></span>
                 </div>
                 <svg viewBox="0 0 110 140" class="w-full h-auto">
                     ${statesPathsSvg}
@@ -1509,7 +1521,7 @@ function renderAnnualChart(filteredStations) {
         const barHeight = Math.max(1, height - padding.bottom - y);
         return `
             <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="1.5" fill="url(#annual-bar-grad)" class="transition duration-150">
-                <title>${years[index]}: ${value.toLocaleString()} ${t['lbl-day-unit']}</title>
+                <title>${years[index]}: ${value.toLocaleString()} ${getReportUnit(value)}</title>
             </rect>
         `;
     }).join('');
@@ -1549,11 +1561,11 @@ function renderAnnualChart(filteredStations) {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-800 pt-4">
                 <div class="flex flex-col gap-1">
-                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${counts[peakIndex].toLocaleString()} ${t['lbl-day-unit']}</span>
+                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${counts[peakIndex].toLocaleString()} ${getReportUnit(counts[peakIndex])}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-peak-label']}</span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${t['lbl-day-unit']}</span>
+                    <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${getReportUnit(Math.abs(trendPerDecade))}</span>
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-trend-stat-label']}</span>
                 </div>
             </div>
@@ -3019,11 +3031,11 @@ function renderSingleMap(filteredStations) {
     }).join('\n');
     
     let circlesSvg = '';
-    let totalYearDays = 0;
+    let totalYearReports = 0;
     
     filteredStations.forEach(s => {
         const days = getDaysCountForYear(s, currentActiveYear);
-        totalYearDays += days;
+        totalYearReports += days;
         
         const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
         const style = getHeatStyle(days, 'single');
@@ -3069,29 +3081,10 @@ function renderSingleMap(filteredStations) {
     
     const metaTotal = document.getElementById('single-map-meta-total');
     if (metaTotal) {
-        let totalWord;
-        if (currentLang === 'de') {
-            if (currentMetric === 'min') {
-                if (currentTempThreshold >= 20) {
-                    totalWord = totalYearDays === 1 ? 'Tropennacht gesamt' : 'Tropennächte gesamt';
-                } else {
-                    totalWord = totalYearDays === 1 ? 'Nacht gesamt' : 'Nächte gesamt';
-                }
-            } else {
-                totalWord = totalYearDays === 1 ? 'Tag gesamt' : 'Tage gesamt';
-            }
-        } else {
-            if (currentMetric === 'min') {
-                if (currentTempThreshold >= 20) {
-                    totalWord = totalYearDays === 1 ? 'tropical night total' : 'tropical nights total';
-                } else {
-                    totalWord = totalYearDays === 1 ? 'night total' : 'nights total';
-                }
-            } else {
-                totalWord = totalYearDays === 1 ? 'day total' : 'days total';
-            }
-        }
-        metaTotal.textContent = `${totalYearDays} ${totalWord}`;
+        const totalLabel = currentLang === 'de'
+            ? `${getReportUnit(totalYearReports)} gesamt`
+            : `${getReportUnit(totalYearReports)} total`;
+        metaTotal.textContent = `${totalYearReports} ${totalLabel}`;
     }
 }
 
