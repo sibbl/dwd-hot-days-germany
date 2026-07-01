@@ -2,6 +2,8 @@
 let weatherData = [];
 let geojson = null;
 let bbox = null;
+let dayCodesLoaded = false;
+let dayCodesLoadingPromise = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
 let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
@@ -10,6 +12,7 @@ let lastThresholdByMetric = { max: 35, min: 22 };
 let currentStartYear = 1961; // 1961 to 2020
 let currentCoverageThreshold = 0.90; // 0.50 to 1.00
 let currentMovesFilter = 'all'; // 'all', 'moved', 'unmoved'
+let currentCountMode = 'reports'; // 'reports' for station reports, 'days' for unique calendar days
 let excludeAirportEnvironment = false;
 let excludeCityEnvironment = false;
 let selectedStationId = null;
@@ -24,6 +27,8 @@ let currentSearchQuery = ''; // Search query for filtering stations
 const minYearGlobal = 1961;
 let maxYearGlobal = 2025; // Dynamically updated on load
 let maxDaysInMonthsOfLastYear = Array(12).fill(0); // Max observed valid days per month in the last year
+const DAY_CODE_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const monthByDoyCache = {};
 
 // Translation dictionary
 const i18n = {
@@ -36,6 +41,7 @@ const i18n = {
         'header-subtitle-min': "Eine interaktive Rekonstruktion der DWD-Tagesminimum-Daten (1961–2025)",
         'stat-lbl-stations': "Stationen",
         'stat-lbl-reports': "Gesamtmeldungen",
+        'stat-lbl-days': "Gesamttage",
         'stat-lbl-hottest': "Heißestes Jahr",
         'card-title-filter': "Parameter-Filter",
         'lbl-metric': "Messwert:",
@@ -51,6 +57,10 @@ const i18n = {
         'lbl-moves-filter': "Nur ortsfeste Stationen",
         'lbl-advanced-filters': "Erweiterte Filter",
         'desc-advanced-filters': "Stationen nach Standortumfeld ausschließen.",
+        'lbl-count-mode-header': "Zählweise:",
+        'count-mode-reports': "Meldungen",
+        'count-mode-days': "Tage",
+        'desc-count-mode': "Meldungen zählt jede Station. Tage zählt jeden Kalendertag nur einmal.",
         'lbl-airport-header': "Standortumfeld:",
         'lbl-airport-filter': "Flughafenumfeld ausschließen",
         'desc-airport-filter': "10-km-Umfeld großer deutscher Flughäfen",
@@ -69,11 +79,17 @@ const i18n = {
         'summer-months': "Mai–Sep",
         'n-months': "{n} Monate",
         'card-title-decades': "Jahrzehnt-Summen aller Stationsmeldungen",
+        'card-title-decades-days': "Jahrzehnt-Summen der Kalendertage",
         'card-subtitle-decades-max': "Vergleicht komplette 10-Jahres-Zeiträume: alle Stationsmeldungen mit Tagesmaximum ab {temp} °C werden aufsummiert.",
         'card-subtitle-decades-min': "Vergleicht komplette 10-Jahres-Zeiträume: alle Stationsmeldungen mit Tagesminimum ab {temp} °C werden aufsummiert.",
+        'card-subtitle-decades-days-max': "Vergleicht komplette 10-Jahres-Zeiträume: Ein Kalendertag zählt einmal, sobald mindestens eine selektierte Station Tagesmaximum ab {temp} °C meldet.",
+        'card-subtitle-decades-days-min': "Vergleicht komplette 10-Jahres-Zeiträume: Ein Kalendertag zählt einmal, sobald mindestens eine selektierte Station Tagesminimum ab {temp} °C meldet.",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden Stationsmeldungen mit Tagesmaximum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
         'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden Stationsmeldungen mit Tagesminimum ab {temp} °C an allen selektierten Stationen innerhalb des jeweiligen Jahrzehnts.",
+        'decades-methodology-days-max': "<span class=\"font-semibold text-orange-400\">Methodik:</span> Gezählt werden Kalendertage, an denen mindestens eine selektierte Station Tagesmaximum ab {temp} °C meldet.",
+        'decades-methodology-days-min': "<span class=\"font-semibold text-sky-400\">Methodik:</span> Gezählt werden Kalendertage, an denen mindestens eine selektierte Station Tagesminimum ab {temp} °C meldet.",
         'decades-axis-label': "Meldungen pro Jahrzehnt",
+        'decades-axis-label-days': "Tage pro Jahrzehnt",
         'card-title-grid': "Deutschlandkarten-Raster",
         'card-subtitle-grid-max': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage je Station mit Tagesmaximum über dem Schwellenwert.",
         'card-subtitle-grid-min': "Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Nächte je Station mit Tagesminimum ab dem Schwellenwert.",
@@ -91,16 +107,23 @@ const i18n = {
         'view-season': "Saisonlänge",
         'view-season-desc': "Erste bis letzte Meldung",
         'card-title-annual': "Jahressumme aller Stationsmeldungen",
+        'card-title-annual-days': "Jahressumme der Kalendertage",
         'card-subtitle-annual-max': "Zeigt die absolute Summe aller Tagesmaximum-Meldungen ab {temp} °C pro Jahr. Höhere Werte können auch durch mehr aktive Stationen entstehen.",
         'card-subtitle-annual-min': "Zeigt die absolute Summe aller Nachtminimum-Meldungen ab {temp} °C pro Jahr. Höhere Werte können auch durch mehr aktive Stationen entstehen.",
+        'card-subtitle-annual-days-max': "Zeigt die Zahl der Kalendertage pro Jahr, an denen mindestens eine selektierte Station Tagesmaximum ab {temp} °C meldet.",
+        'card-subtitle-annual-days-min': "Zeigt die Zahl der Kalendertage pro Jahr, an denen mindestens eine selektierte Station Tagesminimum ab {temp} °C meldet.",
         'card-title-season': "Saisonlänge",
         'card-subtitle-season-max': "Spanne zwischen erstem und letztem Tag mit Tagesmaximum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
         'card-subtitle-season-min': "Spanne zwischen erster und letzter Nacht mit Tagesminimum ab {temp} °C, deutschlandweit über die selektierten Stationen.",
         'annual-series-label': "Stationsmeldungen",
+        'annual-series-label-days': "Kalendertage",
         'annual-trend-label': "Linearer Trend",
         'annual-axis-label': "Meldungen pro Jahr",
+        'annual-axis-label-days': "Tage pro Jahr",
         'annual-peak-label': "Jahr mit den meisten Meldungen",
+        'annual-peak-label-days': "Jahr mit den meisten Tagen",
         'annual-trend-stat-label': "Linearer Trend pro Jahrzehnt",
+        'annual-trend-stat-label-days': "Linearer Tagestrend pro Jahrzehnt",
         'annual-empty': "Keine Daten für die aktuelle Filterauswahl.",
         'season-shortest': "Kürzeste",
         'season-longest': "Längste",
@@ -151,6 +174,8 @@ const i18n = {
         'lbl-active': "aktiv",
         'lbl-target': "Soll",
         'lbl-day-unit': "d",
+        'lbl-calendar-day-singular': "Tag",
+        'lbl-calendar-day-plural': "Tage",
         'lbl-report-unit-singular': "Meldung",
         'lbl-report-unit-plural': "Meldungen",
         'lbl-report-unit-short': "Meld.",
@@ -173,6 +198,7 @@ const i18n = {
         'header-subtitle-min': "An interactive reconstruction of DWD daily minimum temperature data (1961–2025)",
         'stat-lbl-stations': "Stations",
         'stat-lbl-reports': "Total Reports",
+        'stat-lbl-days': "Total Days",
         'stat-lbl-hottest': "Hottest Year",
         'card-title-filter': "Parameter Filters",
         'lbl-metric': "Measurement:",
@@ -188,6 +214,10 @@ const i18n = {
         'lbl-moves-filter': "Only unmoved stations",
         'lbl-advanced-filters': "Advanced filters",
         'desc-advanced-filters': "Exclude stations by local environment.",
+        'lbl-count-mode-header': "Counting:",
+        'count-mode-reports': "Reports",
+        'count-mode-days': "Days",
+        'desc-count-mode': "Reports count every station. Days count each calendar day once.",
         'lbl-airport-header': "Local environment:",
         'lbl-airport-filter': "Exclude airport surroundings",
         'desc-airport-filter': "10 km around major German airports",
@@ -206,11 +236,17 @@ const i18n = {
         'summer-months': "May–Sep",
         'n-months': "{n} Months",
         'card-title-decades': "Decade Totals Across All Station Reports",
+        'card-title-decades-days': "Decade Totals Of Calendar Days",
         'card-subtitle-decades-max': "Compares full 10-year periods: all station reports with daily maximum at or above {temp} °C are summed.",
         'card-subtitle-decades-min': "Compares full 10-year periods: all station reports with daily minimum at or above {temp} °C are summed.",
+        'card-subtitle-decades-days-max': "Compares full 10-year periods: one calendar day counts once when at least one selected station reports daily maximum at or above {temp} °C.",
+        'card-subtitle-decades-days-min': "Compares full 10-year periods: one calendar day counts once when at least one selected station reports daily minimum at or above {temp} °C.",
         'decades-methodology-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent station reports with daily maximum temperature at or above {temp} °C across all selected stations within each decade.",
         'decades-methodology-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent station reports with daily minimum temperature at or above {temp} °C across all selected stations within each decade.",
+        'decades-methodology-days-max': "<span class=\"font-semibold text-orange-400\">Methodology:</span> Counts represent calendar days when at least one selected station reports daily maximum temperature at or above {temp} °C.",
+        'decades-methodology-days-min': "<span class=\"font-semibold text-sky-400\">Methodology:</span> Counts represent calendar days when at least one selected station reports daily minimum temperature at or above {temp} °C.",
         'decades-axis-label': "Reports per decade",
+        'decades-axis-label-days': "Days per decade",
         'card-title-grid': "Germany Weather Map Grid",
         'card-subtitle-grid-max': "Each dot represents a weather station. Bubble size & color denote the count of days per station with daily maximum temperature exceeding the threshold.",
         'card-subtitle-grid-min': "Each dot represents a weather station. Bubble size & color denote the count of nights per station with daily minimum temperature at or above the threshold.",
@@ -228,16 +264,23 @@ const i18n = {
         'view-season': "Season length",
         'view-season-desc': "First to last report",
         'card-title-annual': "Annual Total Across All Station Reports",
+        'card-title-annual-days': "Annual Total Of Calendar Days",
         'card-subtitle-annual-max': "Shows the absolute sum of all daily-maximum reports at or above {temp} °C per year. Higher values can also reflect more active stations.",
         'card-subtitle-annual-min': "Shows the absolute sum of all nightly-minimum reports at or above {temp} °C per year. Higher values can also reflect more active stations.",
+        'card-subtitle-annual-days-max': "Shows the number of calendar days per year when at least one selected station reports daily maximum at or above {temp} °C.",
+        'card-subtitle-annual-days-min': "Shows the number of calendar days per year when at least one selected station reports daily minimum at or above {temp} °C.",
         'card-title-season': "Season Length",
         'card-subtitle-season-max': "Span between the first and last day with daily maximum at or above {temp} °C across selected stations in Germany.",
         'card-subtitle-season-min': "Span between the first and last night with daily minimum at or above {temp} °C across selected stations in Germany.",
         'annual-series-label': "Station reports",
+        'annual-series-label-days': "Calendar days",
         'annual-trend-label': "Linear trend",
         'annual-axis-label': "Reports per year",
+        'annual-axis-label-days': "Days per year",
         'annual-peak-label': "Year with the most reports",
+        'annual-peak-label-days': "Year with the most days",
         'annual-trend-stat-label': "Linear trend per decade",
+        'annual-trend-stat-label-days': "Linear day trend per decade",
         'annual-empty': "No data for the current filter selection.",
         'season-shortest': "Shortest",
         'season-longest': "Longest",
@@ -288,6 +331,8 @@ const i18n = {
         'lbl-active': "active",
         'lbl-target': "Target",
         'lbl-day-unit': "d",
+        'lbl-calendar-day-singular': "day",
+        'lbl-calendar-day-plural': "days",
         'lbl-report-unit-singular': "report",
         'lbl-report-unit-plural': "reports",
         'lbl-report-unit-short': "rep.",
@@ -343,7 +388,7 @@ function setLanguage(lang) {
     document.getElementById('header-title').textContent = i18n[lang][headerTitleKey];
     document.getElementById('header-subtitle').textContent = i18n[lang][headerSubtitleKey].replace('2025', endYearLabel);
     document.getElementById('stat-lbl-stations').textContent = i18n[lang]['stat-lbl-stations'];
-    document.getElementById('stat-lbl-reports').textContent = i18n[lang]['stat-lbl-reports'];
+    updateAggregateStatLabel();
     const lblHottest = document.getElementById('stat-lbl-hottest');
     if (lblHottest) lblHottest.textContent = i18n[lang]['stat-lbl-hottest'];
     
@@ -371,6 +416,14 @@ function setLanguage(lang) {
     if (lblAdvancedFilters) lblAdvancedFilters.textContent = i18n[lang]['lbl-advanced-filters'];
     const descAdvancedFilters = document.getElementById('desc-advanced-filters');
     if (descAdvancedFilters) descAdvancedFilters.textContent = i18n[lang]['desc-advanced-filters'];
+    const lblCountMode = document.getElementById('lbl-count-mode-header');
+    if (lblCountMode) lblCountMode.textContent = i18n[lang]['lbl-count-mode-header'];
+    const btnCountReports = document.getElementById('btn-count-reports');
+    if (btnCountReports) btnCountReports.textContent = i18n[lang]['count-mode-reports'];
+    const btnCountDays = document.getElementById('btn-count-days');
+    if (btnCountDays) btnCountDays.textContent = i18n[lang]['count-mode-days'];
+    const descCountMode = document.getElementById('desc-count-mode');
+    if (descCountMode) descCountMode.textContent = i18n[lang]['desc-count-mode'];
     const lblAirportHeader = document.getElementById('lbl-airport-header');
     if (lblAirportHeader) lblAirportHeader.textContent = i18n[lang]['lbl-airport-header'];
     const lblAirportFilter = document.getElementById('lbl-airport-filter');
@@ -559,6 +612,44 @@ function getReportUnit(count, options = {}) {
     const t = i18n[currentLang];
     if (options.short) return t['lbl-report-unit-short'];
     return count === 1 ? t['lbl-report-unit-singular'] : t['lbl-report-unit-plural'];
+}
+
+function getCalendarDayUnit(count, options = {}) {
+    const t = i18n[currentLang];
+    if (options.short) return t['lbl-day-unit'];
+    return count === 1 ? t['lbl-calendar-day-singular'] : t['lbl-calendar-day-plural'];
+}
+
+function getAggregateUnit(count, options = {}) {
+    return currentCountMode === 'days'
+        ? getCalendarDayUnit(count, options)
+        : getReportUnit(count, options);
+}
+
+function getAggregateAxisLabel(period) {
+    if (period === 'decade') {
+        return i18n[currentLang][currentCountMode === 'days' ? 'decades-axis-label-days' : 'decades-axis-label'];
+    }
+    return i18n[currentLang][currentCountMode === 'days' ? 'annual-axis-label-days' : 'annual-axis-label'];
+}
+
+function getAggregateSeriesLabel() {
+    return i18n[currentLang][currentCountMode === 'days' ? 'annual-series-label-days' : 'annual-series-label'];
+}
+
+function updateAggregateStatLabel() {
+    const label = document.getElementById('stat-lbl-reports');
+    if (label) {
+        label.textContent = i18n[currentLang][currentCountMode === 'days' ? 'stat-lbl-days' : 'stat-lbl-reports'];
+    }
+}
+
+function getAggregatePeakLabel() {
+    return i18n[currentLang][currentCountMode === 'days' ? 'annual-peak-label-days' : 'annual-peak-label'];
+}
+
+function getAggregateTrendLabel() {
+    return i18n[currentLang][currentCountMode === 'days' ? 'annual-trend-stat-label-days' : 'annual-trend-stat-label'];
 }
 
 const HEAT_SCALES = {
@@ -840,6 +931,8 @@ function expandCompactAnnualData(compactAnnualData, thresholds) {
             valid_days: compactAnnualData.vdm[yearIndex] || 0,
             valid_days_max: compactAnnualData.vdm[yearIndex] || 0,
             valid_days_min: compactAnnualData.vdn[yearIndex] || 0,
+            day_codes_max: compactAnnualData.td ? compactAnnualData.td[yearIndex] || '' : '',
+            day_codes_min: compactAnnualData.nd ? compactAnnualData.nd[yearIndex] || '' : '',
             m_valid: compactAnnualData.mvm[yearIndex] || Array(12).fill(0),
             m_valid_max: compactAnnualData.mvm[yearIndex] || Array(12).fill(0),
             m_valid_min: compactAnnualData.mvn[yearIndex] || Array(12).fill(0),
@@ -896,6 +989,43 @@ function normalizeWeatherData(rawData) {
     throw new Error('Unsupported weather data schema');
 }
 
+function mergeCompactDayCodes(rawDayCodeData) {
+    if (!rawDayCodeData || !Array.isArray(rawDayCodeData.stations)) {
+        throw new Error('Unsupported weather day-code schema');
+    }
+
+    const stationById = new Map(weatherData.map(station => [station.station_id, station]));
+    rawDayCodeData.stations.forEach(sourceStation => {
+        const station = stationById.get(sourceStation.station_id);
+        const compact = sourceStation.annual_data;
+        if (!station || !compact || !Array.isArray(compact.y)) return;
+
+        compact.y.forEach((year, yearIndex) => {
+            const yearData = station.annual_data[String(year)];
+            if (!yearData) return;
+            yearData.day_codes_max = compact.td ? compact.td[yearIndex] || '' : '';
+            yearData.day_codes_min = compact.nd ? compact.nd[yearIndex] || '' : '';
+        });
+    });
+
+    dayCodesLoaded = true;
+}
+
+async function ensureDayCodesLoaded() {
+    if (dayCodesLoaded) return;
+    if (!dayCodesLoadingPromise) {
+        dayCodesLoadingPromise = fetch('data/weather_day_codes.json' + getDataCacheSuffix())
+            .then(response => response.json())
+            .then(rawDayCodeData => {
+                mergeCompactDayCodes(rawDayCodeData);
+            })
+            .finally(() => {
+                dayCodesLoadingPromise = null;
+            });
+    }
+    await dayCodesLoadingPromise;
+}
+
 // Initial Data Fetch
 async function loadData() {
     initTheme();
@@ -933,6 +1063,9 @@ async function loadData() {
         
         // Load state from URL hash
         loadStateFromURLHash();
+        if (currentCountMode === 'days') {
+            await ensureDayCodesLoaded();
+        }
         refreshMaxDaysInMonthsOfLastYear();
         setLanguage(currentLang);
         syncUIControls();
@@ -981,6 +1114,64 @@ function getDaysCountForYear(station, year) {
         }
     });
     return sum;
+}
+
+function getMonthForDayOfYear(year, dayOfYear) {
+    const cacheKey = String(year);
+    if (!monthByDoyCache[cacheKey]) {
+        const isLeap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+        const daysInYear = isLeap ? 366 : 365;
+        monthByDoyCache[cacheKey] = Array.from({ length: daysInYear }, (_, index) => (
+            new Date(Date.UTC(year, 0, index + 1)).getUTCMonth() + 1
+        ));
+    }
+    return monthByDoyCache[cacheKey][dayOfYear - 1];
+}
+
+function getCurrentThresholdLevel() {
+    const config = getMetricConfig();
+    return currentTempThreshold - config.minThreshold + 1;
+}
+
+function getEventDayCodesForYear(station, year) {
+    const yrData = station.annual_data[year];
+    if (!yrData) return '';
+    return currentMetric === 'min' ? yrData.day_codes_min || '' : yrData.day_codes_max || '';
+}
+
+function getCalendarDaysCountForYear(filteredStations, year) {
+    const thresholdLevel = getCurrentThresholdLevel();
+    const selectedMonths = new Set(currentMonths);
+    const days = new Set();
+
+    filteredStations.forEach(station => {
+        const codes = getEventDayCodesForYear(station, year);
+        for (let index = 0; index < codes.length; index++) {
+            const level = DAY_CODE_ALPHABET.indexOf(codes[index]);
+            if (level < thresholdLevel) continue;
+
+            const dayOfYear = index + 1;
+            if (selectedMonths.has(getMonthForDayOfYear(year, dayOfYear))) {
+                days.add(dayOfYear);
+            }
+        }
+    });
+
+    return days.size;
+}
+
+function getReportsCountForYear(filteredStations, year) {
+    let total = 0;
+    filteredStations.forEach(station => {
+        total += getDaysCountForYear(station, year);
+    });
+    return total;
+}
+
+function getAggregateCountForYear(filteredStations, year) {
+    return currentCountMode === 'days'
+        ? getCalendarDaysCountForYear(filteredStations, year)
+        : getReportsCountForYear(filteredStations, year);
 }
 
 // Helper: Calculate data coverage for a station only over the selected sub-period and months
@@ -1101,22 +1292,17 @@ function renderDecadalStats(filteredStations) {
         [currentDecadeLabel]: 0
     };
     
-    filteredStations.forEach(s => {
-        Object.entries(s.annual_data).forEach(([yearStr, data]) => {
-            const yr = parseInt(yearStr);
-            if (yr < currentStartYear) return;
-            
-            const count = getDaysCountForYear(s, yr);
-            
-            if (yr >= 1961 && yr <= 1970) decadeTotals['1961–1970'] += count;
-            else if (yr >= 1971 && yr <= 1980) decadeTotals['1971–1980'] += count;
-            else if (yr >= 1981 && yr <= 1990) decadeTotals['1981–1990'] += count;
-            else if (yr >= 1991 && yr <= 2000) decadeTotals['1991–2000'] += count;
-            else if (yr >= 2001 && yr <= 2010) decadeTotals['2001–2010'] += count;
-            else if (yr >= 2011 && yr <= 2020) decadeTotals['2011–2020'] += count;
-            else if (yr >= 2021 && yr <= maxYearGlobal) decadeTotals[currentDecadeLabel] += count;
-        });
-    });
+    for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
+        const count = getAggregateCountForYear(filteredStations, yr);
+
+        if (yr >= 1961 && yr <= 1970) decadeTotals['1961–1970'] += count;
+        else if (yr >= 1971 && yr <= 1980) decadeTotals['1971–1980'] += count;
+        else if (yr >= 1981 && yr <= 1990) decadeTotals['1981–1990'] += count;
+        else if (yr >= 1991 && yr <= 2000) decadeTotals['1991–2000'] += count;
+        else if (yr >= 2001 && yr <= 2010) decadeTotals['2001–2010'] += count;
+        else if (yr >= 2011 && yr <= 2020) decadeTotals['2011–2020'] += count;
+        else if (yr >= 2021 && yr <= maxYearGlobal) decadeTotals[currentDecadeLabel] += count;
+    }
     
     const maxDecadeVal = Math.max(...Object.values(decadeTotals), 1);
     
@@ -1215,7 +1401,7 @@ function renderDecadesChart(filteredStations, decadeTotals = renderDecadalStats(
                 <text x="${padding.left - 20}" y="${y + 5}" fill="${textFill}" font-size="14" font-weight="900" text-anchor="end">${label}</text>
                 <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${gridStroke}" stroke-width="1" stroke-dasharray="2 5" />
                 <rect x="${padding.left}" y="${y - 13}" width="${barWidth}" height="26" rx="6" fill="url(#decades-bar-grad)" opacity="${0.56 + pct * 0.44}">
-                    <title>${label}: ${formatCount(total)} ${getReportUnit(total)}</title>
+                    <title>${label}: ${formatCount(total)} ${getAggregateUnit(total)}</title>
                 </rect>
                 <text x="${Math.min(padding.left + barWidth + 12, width - padding.right)}" y="${y + 5}" fill="${pct > 0.82 ? barTop : textFill}" font-size="12" font-weight="900" text-anchor="${padding.left + barWidth + 12 > width - padding.right ? 'end' : 'start'}">${formatCount(total)}</text>
             </g>
@@ -1232,7 +1418,7 @@ function renderDecadesChart(filteredStations, decadeTotals = renderDecadalStats(
                             <stop offset="100%" stop-color="${barTop}" stop-opacity="0.98" />
                         </linearGradient>
                     </defs>
-                    <text x="${padding.left}" y="18" fill="${textFill}" font-size="12" font-weight="800">${t['decades-axis-label']}</text>
+                    <text x="${padding.left}" y="18" fill="${textFill}" font-size="12" font-weight="800">${getAggregateAxisLabel('decade')}</text>
                     ${axisSvg}
                     ${rowsSvg}
                     <g transform="translate(${padding.left}, ${height - 16})">
@@ -1242,7 +1428,7 @@ function renderDecadesChart(filteredStations, decadeTotals = renderDecadalStats(
                 </svg>
             </div>
             <div class="border-t border-slate-200 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                ${t[`decades-methodology-${currentMetric}`].replace('{temp}', currentTempThreshold)}
+                ${t[`decades-methodology${currentCountMode === 'days' ? '-days' : ''}-${currentMetric}`].replace('{temp}', currentTempThreshold)}
             </div>
         </div>
     `;
@@ -1257,25 +1443,21 @@ function updateGlobalStats(filteredStations, decadeTotals) {
         stationsCount.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} text-sm`;
     }
     
-    let totalReports = 0;
+    let totalCount = 0;
     let yearTotals = {};
     
-    filteredStations.forEach(s => {
-        Object.entries(s.annual_data).forEach(([yrStr, data]) => {
-            const yr = parseInt(yrStr);
-            if (yr < currentStartYear) return;
-            
-            const count = getDaysCountForYear(s, yr);
-            totalReports += count;
-            yearTotals[yr] = (yearTotals[yr] || 0) + count;
-        });
-    });
+    for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
+        const count = getAggregateCountForYear(filteredStations, yr);
+        totalCount += count;
+        yearTotals[yr] = count;
+    }
     
     const statTotalReports = document.getElementById('stat-total-reports');
     if (statTotalReports) {
-        statTotalReports.textContent = totalReports.toLocaleString();
+        statTotalReports.textContent = totalCount.toLocaleString();
         statTotalReports.className = `font-bold ${accent.textSoft} ${accent.textSoftDark} text-sm`;
     }
+    updateAggregateStatLabel();
     
     let hottestYear = 'N/A';
     let maxYearCount = -1;
@@ -1375,11 +1557,10 @@ function renderMapsGrid(filteredStations) {
             }
             
             let circlesSvg = '';
-            let totalYearReports = 0;
+            const totalYearCount = getAggregateCountForYear(filteredStations, yr);
             
             filteredStations.forEach(s => {
                 const days = getDaysCountForYear(s, yr);
-                totalYearReports += days;
                 
                 const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
                 const style = getHeatStyle(days, 'grid');
@@ -1402,7 +1583,7 @@ function renderMapsGrid(filteredStations) {
             card.innerHTML = `
                 <div class="flex justify-between items-center w-full mb-1 text-[10px]">
                     <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
-                    <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearReports} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${getReportUnit(totalYearReports, { short: true })}</span></span>
+                    <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearCount} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${getAggregateUnit(totalYearCount, { short: true })}</span></span>
                 </div>
                 <svg viewBox="0 0 110 140" class="w-full h-auto">
                     ${statesPathsSvg}
@@ -1419,11 +1600,7 @@ function getAnnualTotals(filteredStations) {
     const counts = [];
     for (let yr = currentStartYear; yr <= maxYearGlobal; yr++) {
         years.push(yr);
-        let total = 0;
-        filteredStations.forEach(s => {
-            total += getDaysCountForYear(s, yr);
-        });
-        counts.push(total);
+        counts.push(getAggregateCountForYear(filteredStations, yr));
     }
     return { years, counts };
 }
@@ -1521,7 +1698,7 @@ function renderAnnualChart(filteredStations) {
         const barHeight = Math.max(1, height - padding.bottom - y);
         return `
             <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="1.5" fill="url(#annual-bar-grad)" class="transition duration-150">
-                <title>${years[index]}: ${value.toLocaleString()} ${getReportUnit(value)}</title>
+                <title>${years[index]}: ${value.toLocaleString()} ${getAggregateUnit(value)}</title>
             </rect>
         `;
     }).join('');
@@ -1543,7 +1720,7 @@ function renderAnnualChart(filteredStations) {
                         </linearGradient>
                     </defs>
 
-                    <text x="${padding.left}" y="13" fill="${textFill}" font-size="12" font-weight="800">${t['annual-axis-label']}</text>
+                    <text x="${padding.left}" y="13" fill="${textFill}" font-size="12" font-weight="800">${getAggregateAxisLabel('year')}</text>
                     ${yGridSvg}
                     <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="${axisStroke}" stroke-width="1.2" />
                     ${xLabelsSvg}
@@ -1552,7 +1729,7 @@ function renderAnnualChart(filteredStations) {
 
                     <g transform="translate(${width - padding.right - 260}, 18)">
                         <rect x="0" y="-10" width="10" height="10" rx="2" fill="url(#annual-bar-grad)" />
-                        <text x="17" y="-1" fill="${textFill}" font-size="11" font-weight="700">${t['annual-series-label']}</text>
+                        <text x="17" y="-1" fill="${textFill}" font-size="11" font-weight="700">${getAggregateSeriesLabel()}</text>
                         <line x1="128" y1="-5" x2="154" y2="-5" stroke="${trendStroke}" stroke-width="3" stroke-dasharray="${trendDash}" stroke-linecap="round" />
                         <text x="162" y="-1" fill="${textFill}" font-size="11" font-weight="700">${t['annual-trend-label']}</text>
                     </g>
@@ -1561,12 +1738,12 @@ function renderAnnualChart(filteredStations) {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-800 pt-4">
                 <div class="flex flex-col gap-1">
-                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${counts[peakIndex].toLocaleString()} ${getReportUnit(counts[peakIndex])}</span>
-                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-peak-label']}</span>
+                    <span class="text-xl font-black text-slate-800 dark:text-slate-100">${years[peakIndex]}: ${counts[peakIndex].toLocaleString()} ${getAggregateUnit(counts[peakIndex])}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${getAggregatePeakLabel()}</span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${getReportUnit(Math.abs(trendPerDecade))}</span>
-                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${t['annual-trend-stat-label']}</span>
+                    <span class="text-xl font-black ${accent.textSoft} ${accent.textSoftDark}">${trendValue} ${getAggregateUnit(Math.abs(trendPerDecade))}</span>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${getAggregateTrendLabel()}</span>
                 </div>
             </div>
         </div>
@@ -1858,9 +2035,11 @@ function updateDashboard() {
         } else if (currentViewMode === 'single') {
             titleElement.textContent = i18n[currentLang]['card-title-single'] + ` (${currentStartYear}–${endYearLabel})`;
         } else if (currentViewMode === 'annual') {
-            titleElement.textContent = i18n[currentLang]['card-title-annual'] + ` (${currentStartYear}–${endYearLabel})`;
+            const titleKey = currentCountMode === 'days' ? 'card-title-annual-days' : 'card-title-annual';
+            titleElement.textContent = i18n[currentLang][titleKey] + ` (${currentStartYear}–${endYearLabel})`;
         } else if (currentViewMode === 'decades') {
-            titleElement.textContent = i18n[currentLang]['card-title-decades'] + ` (${currentStartYear}–${endYearLabel})`;
+            const titleKey = currentCountMode === 'days' ? 'card-title-decades-days' : 'card-title-decades';
+            titleElement.textContent = i18n[currentLang][titleKey] + ` (${currentStartYear}–${endYearLabel})`;
         } else {
             titleElement.textContent = i18n[currentLang]['card-title-season'] + ` (${currentStartYear}–${endYearLabel})`;
         }
@@ -1871,9 +2050,11 @@ function updateDashboard() {
         } else if (currentViewMode === 'single') {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-single-${currentMetric}`];
         } else if (currentViewMode === 'annual') {
-            subtitleElement.textContent = i18n[currentLang][`card-subtitle-annual-${currentMetric}`].replace('{temp}', currentTempThreshold);
+            const subtitleKey = `card-subtitle-annual${currentCountMode === 'days' ? '-days' : ''}-${currentMetric}`;
+            subtitleElement.textContent = i18n[currentLang][subtitleKey].replace('{temp}', currentTempThreshold);
         } else if (currentViewMode === 'decades') {
-            subtitleElement.textContent = i18n[currentLang][`card-subtitle-decades-${currentMetric}`].replace('{temp}', currentTempThreshold);
+            const subtitleKey = `card-subtitle-decades${currentCountMode === 'days' ? '-days' : ''}-${currentMetric}`;
+            subtitleElement.textContent = i18n[currentLang][subtitleKey].replace('{temp}', currentTempThreshold);
         } else {
             subtitleElement.textContent = i18n[currentLang][`card-subtitle-season-${currentMetric}`].replace('{temp}', currentTempThreshold);
         }
@@ -1959,6 +2140,16 @@ function updateCoverageThreshold(val) {
 
 function toggleMovesFilter(isChecked) {
     currentMovesFilter = isChecked ? 'unmoved' : 'all';
+    updateDashboard();
+}
+
+async function setCountMode(mode) {
+    if (!['reports', 'days'].includes(mode) || currentCountMode === mode) return;
+    currentCountMode = mode;
+    syncUIControls();
+    if (currentCountMode === 'days') {
+        await ensureDayCodesLoaded();
+    }
     updateDashboard();
 }
 
@@ -2686,6 +2877,9 @@ function updateURLHash() {
     params.set('start', currentStartYear);
     params.set('coverage', Math.round(currentCoverageThreshold * 100));
     params.set('moves', currentMovesFilter);
+    if (currentCountMode !== 'reports') {
+        params.set('count', currentCountMode);
+    }
     if (excludeAirportEnvironment) {
         params.set('airport', 'exclude');
     }
@@ -2722,6 +2916,7 @@ function loadStateFromURLHash() {
     currentMetric = 'max';
     currentTempThreshold = METRIC_CONFIG.max.defaultThreshold;
     lastThresholdByMetric = { max: METRIC_CONFIG.max.defaultThreshold, min: METRIC_CONFIG.min.defaultThreshold };
+    currentCountMode = 'reports';
     excludeAirportEnvironment = false;
     excludeCityEnvironment = false;
     
@@ -2757,6 +2952,10 @@ function loadStateFromURLHash() {
     if (params.has('moves')) {
         const val = params.get('moves');
         if (val === 'all' || val === 'unmoved') currentMovesFilter = val;
+    }
+    if (params.has('count')) {
+        const val = params.get('count');
+        if (val === 'reports' || val === 'days') currentCountMode = val;
     }
     if (params.has('airport')) {
         const val = params.get('airport');
@@ -2819,6 +3018,18 @@ function syncUIControls() {
         const inactiveClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
         btnMetricMax.className = currentMetric === 'max' ? activeMaxClass : inactiveClass;
         btnMetricMin.className = currentMetric === 'min' ? activeMinClass : inactiveClass;
+    }
+
+    const btnCountReports = document.getElementById('btn-count-reports');
+    const btnCountDays = document.getElementById('btn-count-days');
+    if (btnCountReports && btnCountDays) {
+        btnCountReports.textContent = i18n[currentLang]['count-mode-reports'];
+        btnCountDays.textContent = i18n[currentLang]['count-mode-days'];
+
+        const activeClass = `flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 ${accent.bg} text-white shadow-sm`;
+        const inactiveClass = 'flex-1 px-2 py-1.5 rounded text-[10px] font-bold transition duration-150 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white';
+        btnCountReports.className = currentCountMode === 'reports' ? activeClass : inactiveClass;
+        btnCountDays.className = currentCountMode === 'days' ? activeClass : inactiveClass;
     }
     
     const tempSlider = document.getElementById('slider-temp-threshold');
@@ -3031,11 +3242,10 @@ function renderSingleMap(filteredStations) {
     }).join('\n');
     
     let circlesSvg = '';
-    let totalYearReports = 0;
+    const totalYearCount = getAggregateCountForYear(filteredStations, currentActiveYear);
     
     filteredStations.forEach(s => {
         const days = getDaysCountForYear(s, currentActiveYear);
-        totalYearReports += days;
         
         const [x, y] = project(s.current_location.lon, s.current_location.lat, 110, 140, bbox);
         const style = getHeatStyle(days, 'single');
@@ -3082,9 +3292,9 @@ function renderSingleMap(filteredStations) {
     const metaTotal = document.getElementById('single-map-meta-total');
     if (metaTotal) {
         const totalLabel = currentLang === 'de'
-            ? `${getReportUnit(totalYearReports)} gesamt`
-            : `${getReportUnit(totalYearReports)} total`;
-        metaTotal.textContent = `${totalYearReports} ${totalLabel}`;
+            ? `${getAggregateUnit(totalYearCount)} gesamt`
+            : `${getAggregateUnit(totalYearCount)} total`;
+        metaTotal.textContent = `${totalYearCount} ${totalLabel}`;
     }
 }
 
@@ -3153,8 +3363,11 @@ window.addEventListener('resize', () => {
 });
 
 // Listen for browser Back/Forward navigation to sync the UI
-window.addEventListener('hashchange', () => {
+window.addEventListener('hashchange', async () => {
     loadStateFromURLHash();
+    if (currentCountMode === 'days') {
+        await ensureDayCodesLoaded();
+    }
     refreshMaxDaysInMonthsOfLastYear();
     syncUIControls();
     updateDashboard();

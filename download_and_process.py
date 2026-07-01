@@ -11,6 +11,7 @@ from datetime import datetime
 # Output schema thresholds
 MAX_THRESHOLDS = list(range(25, 41))
 MIN_THRESHOLDS = list(range(18, 29))
+DAY_CODE_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # Setup directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -178,7 +179,31 @@ def compact_threshold_counts(stats, prefix, thresholds):
             counts.append([idx, count])
     return counts or None
 
-def compact_annual_data(annual_stats):
+def get_threshold_level(value, thresholds):
+    """Returns how many configured thresholds are reached by a temperature value."""
+    if value is None or pd.isna(value):
+        return 0
+    level = 0
+    for threshold in thresholds:
+        if value >= float(threshold):
+            level += 1
+        else:
+            break
+    return level
+
+def encode_event_day_codes(group, temp_column, thresholds, year):
+    """Encodes one character per day with the highest reached threshold level."""
+    is_leap = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+    codes = ['0'] * (366 if is_leap else 365)
+
+    for date, value in group[['DATE', temp_column]].itertuples(index=False):
+        level = get_threshold_level(value, thresholds)
+        if level:
+            codes[int(date.dayofyear) - 1] = DAY_CODE_ALPHABET[level]
+
+    return ''.join(codes).rstrip('0')
+
+def compact_annual_data(annual_stats, include_day_codes=False):
     """Converts verbose annual dictionaries to a compact static-transfer schema."""
     compact = {
         'y': [],
@@ -191,6 +216,9 @@ def compact_annual_data(annual_stats):
         's': {},
         'm': {}
     }
+    if include_day_codes:
+        compact['td'] = []
+        compact['nd'] = []
 
     for year in sorted(annual_stats, key=int):
         year_index = len(compact['y'])
@@ -202,6 +230,9 @@ def compact_annual_data(annual_stats):
         compact['mvn'].append(stats.get('m_valid_min', [0] * 12))
         compact['t'].append([stats.get(f't{threshold}', 0) for threshold in MAX_THRESHOLDS])
         compact['n'].append([stats.get(f'n{threshold}', 0) for threshold in MIN_THRESHOLDS])
+        if include_day_codes:
+            compact['td'].append(stats.get('day_codes_max', ''))
+            compact['nd'].append(stats.get('day_codes_min', ''))
 
         compact_season = compact_season_stats(stats.get('season'))
         if compact_season:
@@ -228,7 +259,7 @@ def compact_annual_data(annual_stats):
 
     return compact
 
-def compact_processed_stations(processed_stations):
+def compact_processed_stations(processed_stations, include_day_codes=False):
     """Builds the compact browser payload while preserving station-level field names."""
     compact_stations = []
     for station in processed_stations:
@@ -237,7 +268,7 @@ def compact_processed_stations(processed_stations):
             for key, value in station.items()
             if key != 'annual_data'
         }
-        compact_station['annual_data'] = compact_annual_data(station['annual_data'])
+        compact_station['annual_data'] = compact_annual_data(station['annual_data'], include_day_codes)
         compact_stations.append(compact_station)
 
     return {
@@ -247,6 +278,29 @@ def compact_processed_stations(processed_stations):
             'min': MIN_THRESHOLDS
         },
         'stations': compact_stations
+    }
+
+def compact_day_code_data(processed_stations):
+    """Stores per-day threshold codes separately so default dashboard load stays smaller."""
+    stations = []
+    for station in processed_stations:
+        years = sorted(station['annual_data'], key=int)
+        stations.append({
+            'station_id': station['station_id'],
+            'annual_data': {
+                'y': [int(year) for year in years],
+                'td': [station['annual_data'][year].get('day_codes_max', '') for year in years],
+                'nd': [station['annual_data'][year].get('day_codes_min', '') for year in years]
+            }
+        })
+
+    return {
+        'schema': 1,
+        'thresholds': {
+            'max': MAX_THRESHOLDS,
+            'min': MIN_THRESHOLDS
+        },
+        'stations': stations
     }
 
 def main():
@@ -552,7 +606,9 @@ def main():
             stats = {
                 'valid_days': valid_yr_days,
                 'valid_days_max': valid_yr_days,
-                'valid_days_min': valid_yr_nights
+                'valid_days_min': valid_yr_nights,
+                'day_codes_max': encode_event_day_codes(group, 'TXK', MAX_THRESHOLDS, int(yr)),
+                'day_codes_min': encode_event_day_codes(group, 'TNK', MIN_THRESHOLDS, int(yr))
             }
             for temp_t in MAX_THRESHOLDS:
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
@@ -625,6 +681,11 @@ def main():
     print(f"Writing aggregated results to: {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(compact_processed_stations(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
+
+    day_code_output_path = os.path.join(DATA_DIR, 'weather_day_codes.json')
+    print(f"Writing day-code results to: {day_code_output_path}")
+    with open(day_code_output_path, 'w', encoding='utf-8') as f:
+        json.dump(compact_day_code_data(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
         
     print(f"Pipeline complete! Successfully processed {len(processed_stations)} weather stations.")
 

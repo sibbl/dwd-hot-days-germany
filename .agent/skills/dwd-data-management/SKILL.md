@@ -14,6 +14,7 @@ Use this skill for data pipeline, generated dataset, and validation changes.
 - `data/weather_data.json` and `data/germany_states.json` are static browser assets.
 - `.github/workflows/import-data.yml` refreshes weather data monthly.
 - `data/weather_data.json` uses compact schema `2`: station-level fields stay readable, while `annual_data` stores years, threshold counts, monthly valid-day arrays, and season spans in arrays. `app.js` expands this payload back to the legacy in-memory shape at load time.
+- `data/weather_day_codes.json` stores per-day threshold code strings separately and is lazy-loaded only when the dashboard needs calendar-day aggregation.
 
 ## Pipeline Rules
 
