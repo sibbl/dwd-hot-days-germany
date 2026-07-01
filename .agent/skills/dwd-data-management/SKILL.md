@@ -13,6 +13,7 @@ Use this skill for data pipeline, generated dataset, and validation changes.
 - `verify_results.py` compares selected aggregates against the original Spiegel reference study.
 - `data/weather_data.json` and `data/germany_states.json` are static browser assets.
 - `.github/workflows/import-data.yml` refreshes weather data monthly.
+- `data/weather_data.json` uses compact schema `2`: station-level fields stay readable, while `annual_data` stores years, threshold counts, monthly valid-day arrays, and season spans in arrays. `app.js` expands this payload back to the legacy in-memory shape at load time.
 
 ## Pipeline Rules
 
@@ -29,6 +30,7 @@ Use this skill for data pipeline, generated dataset, and validation changes.
 - Aggregates include annual totals, monthly totals, and season first/last spans.
 - Airport and major-city exclusion filters derive from each station's current coordinates.
 - DWD historical and recent files can overlap; daily records should be deduplicated by date.
+- Recent `*_akt.zip` files must be force-refreshed during imports because their filenames stay stable while the contents change.
 
 ## Refresh Workflow
 

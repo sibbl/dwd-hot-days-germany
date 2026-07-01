@@ -4,6 +4,40 @@ import json
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, 'data', 'weather_data.json')
 
+def expand_weather_data(raw_data):
+    if isinstance(raw_data, list):
+        return raw_data
+
+    if not isinstance(raw_data, dict) or raw_data.get('schema') != 2:
+        raise ValueError('Unsupported weather data schema')
+
+    max_thresholds = raw_data['thresholds']['max']
+    min_thresholds = raw_data['thresholds']['min']
+    stations = []
+    for station in raw_data['stations']:
+        expanded_station = {
+            key: value
+            for key, value in station.items()
+            if key != 'annual_data'
+        }
+        annual_data = {}
+        compact = station['annual_data']
+        for idx, year in enumerate(compact['y']):
+            stats = {
+                'valid_days': compact['vdm'][idx],
+                'valid_days_max': compact['vdm'][idx],
+                'valid_days_min': compact['vdn'][idx]
+            }
+            for threshold_index, threshold in enumerate(max_thresholds):
+                stats[f't{threshold}'] = compact['t'][idx][threshold_index]
+            for threshold_index, threshold in enumerate(min_thresholds):
+                stats[f'n{threshold}'] = compact['n'][idx][threshold_index]
+            annual_data[str(year)] = stats
+        expanded_station['annual_data'] = annual_data
+        stations.append(expanded_station)
+
+    return stations
+
 def main():
     print("=== DWD CDC Extreme Heat Data Verification ===")
     
@@ -12,7 +46,7 @@ def main():
         return
         
     with open(DATA_FILE, 'r', encoding='utf-8') as f:
-        stations = json.load(f)
+        stations = expand_weather_data(json.load(f))
         
     print(f"Loaded {len(stations)} processed stations.")
     

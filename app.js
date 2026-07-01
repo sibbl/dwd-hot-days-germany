@@ -794,18 +794,113 @@ function translateDevice(devName) {
     return dict[devName] || devName;
 }
 
+function getDataCacheSuffix() {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('fresh') ? '?v=' + Date.now() : '';
+}
+
+function dayOfYearToIsoDate(year, dayOfYear) {
+    return new Date(Date.UTC(year, 0, dayOfYear)).toISOString().slice(0, 10);
+}
+
+function expandCompactSeason(entries, year) {
+    const season = {};
+    (entries || []).forEach(entry => {
+        const [key, firstDoy, lastDoy, length] = entry;
+        season[key] = {
+            first: dayOfYearToIsoDate(year, firstDoy),
+            last: dayOfYearToIsoDate(year, lastDoy),
+            first_doy: firstDoy,
+            last_doy: lastDoy,
+            length
+        };
+    });
+    return season;
+}
+
+function expandCompactAnnualData(compactAnnualData, thresholds) {
+    const annualData = {};
+    const maxThresholds = thresholds.max || [];
+    const minThresholds = thresholds.min || [];
+
+    compactAnnualData.y.forEach((year, yearIndex) => {
+        const stats = {
+            valid_days: compactAnnualData.vdm[yearIndex] || 0,
+            valid_days_max: compactAnnualData.vdm[yearIndex] || 0,
+            valid_days_min: compactAnnualData.vdn[yearIndex] || 0,
+            m_valid: compactAnnualData.mvm[yearIndex] || Array(12).fill(0),
+            m_valid_max: compactAnnualData.mvm[yearIndex] || Array(12).fill(0),
+            m_valid_min: compactAnnualData.mvn[yearIndex] || Array(12).fill(0),
+            m_data: {}
+        };
+
+        maxThresholds.forEach((threshold, index) => {
+            stats[`t${threshold}`] = compactAnnualData.t[yearIndex][index] || 0;
+        });
+        minThresholds.forEach((threshold, index) => {
+            stats[`n${threshold}`] = compactAnnualData.n[yearIndex][index] || 0;
+        });
+
+        const season = expandCompactSeason(compactAnnualData.s[String(yearIndex)], year);
+        if (Object.keys(season).length) {
+            stats.season = season;
+        }
+
+        const compactMonths = compactAnnualData.m[String(yearIndex)] || {};
+        Object.entries(compactMonths).forEach(([month, compactMonth]) => {
+            const monthStats = {};
+            (compactMonth.t || []).forEach(([thresholdIndex, count]) => {
+                monthStats[`t${maxThresholds[thresholdIndex]}`] = count;
+            });
+            (compactMonth.n || []).forEach(([thresholdIndex, count]) => {
+                monthStats[`n${minThresholds[thresholdIndex]}`] = count;
+            });
+
+            const monthSeason = expandCompactSeason(compactMonth.s, year);
+            if (Object.keys(monthSeason).length) {
+                monthStats.season = monthSeason;
+            }
+            stats.m_data[month] = monthStats;
+        });
+
+        annualData[String(year)] = stats;
+    });
+
+    return annualData;
+}
+
+function normalizeWeatherData(rawData) {
+    if (Array.isArray(rawData)) {
+        return rawData;
+    }
+
+    if (rawData && rawData.schema === 2 && Array.isArray(rawData.stations)) {
+        return rawData.stations.map(station => ({
+            ...station,
+            annual_data: expandCompactAnnualData(station.annual_data, rawData.thresholds)
+        }));
+    }
+
+    throw new Error('Unsupported weather data schema');
+}
+
 // Initial Data Fetch
 async function loadData() {
     initTheme();
     try {
         console.log("Loading weather and mapping data...");
+        const cacheSuffix = getDataCacheSuffix();
         const [weatherRes, geojsonRes] = await Promise.all([
-            fetch('data/weather_data.json?v=' + Date.now()),
-            fetch('data/germany_states.json?v=' + Date.now())
+            fetch('data/weather_data.json' + cacheSuffix),
+            fetch('data/germany_states.json' + cacheSuffix)
         ]);
         
-        weatherData = await weatherRes.json();
-        geojson = await geojsonRes.json();
+        const [rawWeatherData, rawGeojson] = await Promise.all([
+            weatherRes.json(),
+            geojsonRes.json()
+        ]);
+        weatherData = normalizeWeatherData(rawWeatherData);
+        geojson = rawGeojson;
         
         bbox = calculateBBox(geojson);
         

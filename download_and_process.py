@@ -8,6 +8,10 @@ import urllib.request
 import pandas as pd
 from datetime import datetime
 
+# Output schema thresholds
+MAX_THRESHOLDS = list(range(25, 41))
+MIN_THRESHOLDS = list(range(18, 29))
+
 # Setup directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
@@ -45,9 +49,9 @@ def get_directory_file_list(url):
     links = re.findall(r'href="([^"]+\.zip)"', html)
     return links
 
-def download_file(url, dest_path):
+def download_file(url, dest_path, force=False):
     """Downloads a file to the destination path if it doesn't already exist."""
-    if os.path.exists(dest_path) and os.path.getsize(dest_path) > 0:
+    if not force and os.path.exists(dest_path) and os.path.getsize(dest_path) > 0:
         return True
     
     print(f"Downloading: {url} -> {dest_path}")
@@ -151,6 +155,100 @@ def parse_stations_description(file_content):
         })
     return stations
 
+def compact_season_stats(season_stats):
+    """Compacts season spans; first/last dates are reconstructed from DOY in the client."""
+    if not season_stats:
+        return None
+    return [
+        [
+            key,
+            value['first_doy'],
+            value['last_doy'],
+            value['length']
+        ]
+        for key, value in season_stats.items()
+    ]
+
+def compact_threshold_counts(stats, prefix, thresholds):
+    """Stores sparse monthly threshold counts as [threshold_index, count] pairs."""
+    counts = []
+    for idx, threshold in enumerate(thresholds):
+        count = stats.get(f'{prefix}{threshold}', 0)
+        if count:
+            counts.append([idx, count])
+    return counts or None
+
+def compact_annual_data(annual_stats):
+    """Converts verbose annual dictionaries to a compact static-transfer schema."""
+    compact = {
+        'y': [],
+        'vdm': [],
+        'vdn': [],
+        'mvm': [],
+        'mvn': [],
+        't': [],
+        'n': [],
+        's': {},
+        'm': {}
+    }
+
+    for year in sorted(annual_stats, key=int):
+        year_index = len(compact['y'])
+        stats = annual_stats[year]
+        compact['y'].append(int(year))
+        compact['vdm'].append(stats.get('valid_days_max', stats.get('valid_days', 0)))
+        compact['vdn'].append(stats.get('valid_days_min', 0))
+        compact['mvm'].append(stats.get('m_valid_max', stats.get('m_valid', [0] * 12)))
+        compact['mvn'].append(stats.get('m_valid_min', [0] * 12))
+        compact['t'].append([stats.get(f't{threshold}', 0) for threshold in MAX_THRESHOLDS])
+        compact['n'].append([stats.get(f'n{threshold}', 0) for threshold in MIN_THRESHOLDS])
+
+        compact_season = compact_season_stats(stats.get('season'))
+        if compact_season:
+            compact['s'][str(year_index)] = compact_season
+
+        compact_months = {}
+        for month, month_stats in stats.get('m_data', {}).items():
+            compact_month = {}
+            max_counts = compact_threshold_counts(month_stats, 't', MAX_THRESHOLDS)
+            min_counts = compact_threshold_counts(month_stats, 'n', MIN_THRESHOLDS)
+            month_season = compact_season_stats(month_stats.get('season'))
+
+            if max_counts:
+                compact_month['t'] = max_counts
+            if min_counts:
+                compact_month['n'] = min_counts
+            if month_season:
+                compact_month['s'] = month_season
+            if compact_month:
+                compact_months[month] = compact_month
+
+        if compact_months:
+            compact['m'][str(year_index)] = compact_months
+
+    return compact
+
+def compact_processed_stations(processed_stations):
+    """Builds the compact browser payload while preserving station-level field names."""
+    compact_stations = []
+    for station in processed_stations:
+        compact_station = {
+            key: value
+            for key, value in station.items()
+            if key != 'annual_data'
+        }
+        compact_station['annual_data'] = compact_annual_data(station['annual_data'])
+        compact_stations.append(compact_station)
+
+    return {
+        'schema': 2,
+        'thresholds': {
+            'max': MAX_THRESHOLDS,
+            'min': MIN_THRESHOLDS
+        },
+        'stations': compact_stations
+    }
+
 def main():
     print("=== DWD CDC Extreme Heat Data Processing Pipeline ===")
     
@@ -165,7 +263,7 @@ def main():
     # 2. Download and parse station description
     desc_path = os.path.join(DATA_DIR, 'KL_Tageswerte_Beschreibung_Stationen.txt')
     print("Fetching master weather station list...")
-    download_file(URL_STATION_DESC, desc_path)
+    download_file(URL_STATION_DESC, desc_path, force=True)
     
     with open(desc_path, 'r', encoding='latin-1') as f:
         desc_content = f.read()
@@ -243,7 +341,7 @@ def main():
         recent_zip_path = None
         if recent_zip_name:
             recent_zip_path = os.path.join(ZIP_DIR, recent_zip_name)
-            download_file(f"{URL_RECENT_DIR}{recent_zip_name}", recent_zip_path)
+            download_file(f"{URL_RECENT_DIR}{recent_zip_name}", recent_zip_path, force=True)
             
         # 5. Extract and combine temperature data
         daily_records = []
@@ -456,13 +554,13 @@ def main():
                 'valid_days_max': valid_yr_days,
                 'valid_days_min': valid_yr_nights
             }
-            for temp_t in range(25, 41):
+            for temp_t in MAX_THRESHOLDS:
                 stats[f't{temp_t}'] = int((group['TXK'] >= float(temp_t)).sum())
-            for temp_t in range(18, 29):
+            for temp_t in MIN_THRESHOLDS:
                 stats[f'n{temp_t}'] = int((group['TNK'] >= float(temp_t)).sum())
             season_stats = {}
-            season_stats.update(collect_season_stats(group, 'TXK', 't', range(25, 41)))
-            season_stats.update(collect_season_stats(group, 'TNK', 'n', range(18, 29)))
+            season_stats.update(collect_season_stats(group, 'TXK', 't', MAX_THRESHOLDS))
+            season_stats.update(collect_season_stats(group, 'TNK', 'n', MIN_THRESHOLDS))
             if season_stats:
                 stats['season'] = season_stats
                 
@@ -477,17 +575,17 @@ def main():
                     m_valid[idx] = int(m_group['TXK'].notna().sum())
                     m_valid_min[idx] = int(m_group['TNK'].notna().sum())
                     m_stats = {}
-                    for temp_t in range(25, 41):
+                    for temp_t in MAX_THRESHOLDS:
                         count = int((m_group['TXK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f't{temp_t}'] = count
-                    for temp_t in range(18, 29):
+                    for temp_t in MIN_THRESHOLDS:
                         count = int((m_group['TNK'] >= float(temp_t)).sum())
                         if count > 0:
                             m_stats[f'n{temp_t}'] = count
                     month_season_stats = {}
-                    month_season_stats.update(collect_season_stats(m_group, 'TXK', 't', range(25, 41)))
-                    month_season_stats.update(collect_season_stats(m_group, 'TNK', 'n', range(18, 29)))
+                    month_season_stats.update(collect_season_stats(m_group, 'TXK', 't', MAX_THRESHOLDS))
+                    month_season_stats.update(collect_season_stats(m_group, 'TNK', 'n', MIN_THRESHOLDS))
                     if month_season_stats:
                         m_stats['season'] = month_season_stats
                     if m_stats:
@@ -526,7 +624,7 @@ def main():
     output_path = os.path.join(DATA_DIR, 'weather_data.json')
     print(f"Writing aggregated results to: {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(processed_stations, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump(compact_processed_stations(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
         
     print(f"Pipeline complete! Successfully processed {len(processed_stations)} weather stations.")
 
