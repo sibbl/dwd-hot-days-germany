@@ -203,7 +203,7 @@ def encode_event_day_codes(group, temp_column, thresholds, year):
 
     return ''.join(codes).rstrip('0')
 
-def compact_annual_data(annual_stats, include_day_codes=False):
+def compact_annual_data(annual_stats, include_day_codes=False, include_seasons=False, include_monthly=False):
     """Converts verbose annual dictionaries to a compact static-transfer schema."""
     compact = {
         'y': [],
@@ -212,13 +212,15 @@ def compact_annual_data(annual_stats, include_day_codes=False):
         'mvm': [],
         'mvn': [],
         't': [],
-        'n': [],
-        's': {},
-        'm': {}
+        'n': []
     }
     if include_day_codes:
         compact['td'] = []
         compact['nd'] = []
+    if include_seasons:
+        compact['s'] = {}
+    if include_monthly:
+        compact['m'] = {}
 
     for year in sorted(annual_stats, key=int):
         year_index = len(compact['y'])
@@ -234,28 +236,30 @@ def compact_annual_data(annual_stats, include_day_codes=False):
             compact['td'].append(stats.get('day_codes_max', ''))
             compact['nd'].append(stats.get('day_codes_min', ''))
 
-        compact_season = compact_season_stats(stats.get('season'))
-        if compact_season:
-            compact['s'][str(year_index)] = compact_season
+        if include_seasons:
+            compact_season = compact_season_stats(stats.get('season'))
+            if compact_season:
+                compact['s'][str(year_index)] = compact_season
 
-        compact_months = {}
-        for month, month_stats in stats.get('m_data', {}).items():
-            compact_month = {}
-            max_counts = compact_threshold_counts(month_stats, 't', MAX_THRESHOLDS)
-            min_counts = compact_threshold_counts(month_stats, 'n', MIN_THRESHOLDS)
-            month_season = compact_season_stats(month_stats.get('season'))
+        if include_monthly:
+            compact_months = {}
+            for month, month_stats in stats.get('m_data', {}).items():
+                compact_month = {}
+                max_counts = compact_threshold_counts(month_stats, 't', MAX_THRESHOLDS)
+                min_counts = compact_threshold_counts(month_stats, 'n', MIN_THRESHOLDS)
+                month_season = compact_season_stats(month_stats.get('season'))
 
-            if max_counts:
-                compact_month['t'] = max_counts
-            if min_counts:
-                compact_month['n'] = min_counts
-            if month_season:
-                compact_month['s'] = month_season
-            if compact_month:
-                compact_months[month] = compact_month
+                if max_counts:
+                    compact_month['t'] = max_counts
+                if min_counts:
+                    compact_month['n'] = min_counts
+                if month_season:
+                    compact_month['s'] = month_season
+                if compact_month:
+                    compact_months[month] = compact_month
 
-        if compact_months:
-            compact['m'][str(year_index)] = compact_months
+            if compact_months:
+                compact['m'][str(year_index)] = compact_months
 
     return compact
 
@@ -266,7 +270,7 @@ def compact_processed_stations(processed_stations, include_day_codes=False):
         compact_station = {
             key: value
             for key, value in station.items()
-            if key != 'annual_data'
+            if key not in ('annual_data', 'metadata')
         }
         compact_station['annual_data'] = compact_annual_data(station['annual_data'], include_day_codes)
         compact_stations.append(compact_station)
@@ -278,6 +282,97 @@ def compact_processed_stations(processed_stations, include_day_codes=False):
             'min': MIN_THRESHOLDS
         },
         'stations': compact_stations
+    }
+
+def compact_monthly_data(processed_stations):
+    """Stores sparse monthly threshold counts and month-scoped season spans separately."""
+    def compact_station_monthly(annual_stats):
+        compact = {
+            'y': [],
+            'm': {}
+        }
+        for year in sorted(annual_stats, key=int):
+            year_index = len(compact['y'])
+            stats = annual_stats[year]
+            compact['y'].append(int(year))
+
+            compact_months = {}
+            for month, month_stats in stats.get('m_data', {}).items():
+                compact_month = {}
+                max_counts = compact_threshold_counts(month_stats, 't', MAX_THRESHOLDS)
+                min_counts = compact_threshold_counts(month_stats, 'n', MIN_THRESHOLDS)
+                month_season = compact_season_stats(month_stats.get('season'))
+
+                if max_counts:
+                    compact_month['t'] = max_counts
+                if min_counts:
+                    compact_month['n'] = min_counts
+                if month_season:
+                    compact_month['s'] = month_season
+                if compact_month:
+                    compact_months[month] = compact_month
+
+            if compact_months:
+                compact['m'][str(year_index)] = compact_months
+        return compact
+
+    return {
+        'schema': 1,
+        'thresholds': {
+            'max': MAX_THRESHOLDS,
+            'min': MIN_THRESHOLDS
+        },
+        'stations': [
+            {
+                'station_id': station['station_id'],
+                'annual_data': compact_station_monthly(station['annual_data'])
+            }
+            for station in processed_stations
+        ]
+    }
+
+def compact_season_data(processed_stations):
+    """Stores annual season spans separately for the season-length view."""
+    def compact_station_seasons(annual_stats):
+        compact = {
+            'y': [],
+            's': {}
+        }
+        for year in sorted(annual_stats, key=int):
+            year_index = len(compact['y'])
+            stats = annual_stats[year]
+            compact['y'].append(int(year))
+            compact_season = compact_season_stats(stats.get('season'))
+            if compact_season:
+                compact['s'][str(year_index)] = compact_season
+        return compact
+
+    return {
+        'schema': 1,
+        'thresholds': {
+            'max': MAX_THRESHOLDS,
+            'min': MIN_THRESHOLDS
+        },
+        'stations': [
+            {
+                'station_id': station['station_id'],
+                'annual_data': compact_station_seasons(station['annual_data'])
+            }
+            for station in processed_stations
+        ]
+    }
+
+def compact_metadata(processed_stations):
+    """Stores station history metadata separately for inspector and move filtering."""
+    return {
+        'schema': 1,
+        'stations': [
+            {
+                'station_id': station['station_id'],
+                'metadata': station['metadata']
+            }
+            for station in processed_stations
+        ]
     }
 
 def compact_day_code_data(processed_stations):
@@ -682,10 +777,25 @@ def main():
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(compact_processed_stations(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
 
+    monthly_output_path = os.path.join(DATA_DIR, 'weather_monthly_data.json')
+    print(f"Writing monthly results to: {monthly_output_path}")
+    with open(monthly_output_path, 'w', encoding='utf-8') as f:
+        json.dump(compact_monthly_data(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
+
+    season_output_path = os.path.join(DATA_DIR, 'weather_season_data.json')
+    print(f"Writing season results to: {season_output_path}")
+    with open(season_output_path, 'w', encoding='utf-8') as f:
+        json.dump(compact_season_data(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
+
     day_code_output_path = os.path.join(DATA_DIR, 'weather_day_codes.json')
     print(f"Writing day-code results to: {day_code_output_path}")
     with open(day_code_output_path, 'w', encoding='utf-8') as f:
         json.dump(compact_day_code_data(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
+
+    metadata_output_path = os.path.join(DATA_DIR, 'weather_metadata.json')
+    print(f"Writing metadata results to: {metadata_output_path}")
+    with open(metadata_output_path, 'w', encoding='utf-8') as f:
+        json.dump(compact_metadata(processed_stations), f, ensure_ascii=False, separators=(',', ':'))
         
     print(f"Pipeline complete! Successfully processed {len(processed_stations)} weather stations.")
 

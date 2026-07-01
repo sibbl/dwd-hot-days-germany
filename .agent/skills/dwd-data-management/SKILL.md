@@ -13,8 +13,8 @@ Use this skill for data pipeline, generated dataset, and validation changes.
 - `verify_results.py` compares selected aggregates against the original Spiegel reference study.
 - `data/weather_data.json` and `data/germany_states.json` are static browser assets.
 - `.github/workflows/import-data.yml` refreshes weather data monthly.
-- `data/weather_data.json` uses compact schema `2`: station-level fields stay readable, while `annual_data` stores years, threshold counts, monthly valid-day arrays, and season spans in arrays. `app.js` expands this payload back to the legacy in-memory shape at load time.
-- `data/weather_day_codes.json` stores per-day threshold code strings separately and is lazy-loaded only when the dashboard needs calendar-day aggregation.
+- `data/weather_data.json` uses compact schema `2`: station-level fields stay readable, while `annual_data` stores years, annual threshold counts, and monthly valid-day arrays. `app.js` expands this payload back to the legacy in-memory shape at load time.
+- Heavy optional payloads are split and lazy-loaded: `data/weather_monthly_data.json` for month-filtered counts, `data/weather_season_data.json` for season spans, `data/weather_day_codes.json` for calendar-day aggregation, and `data/weather_metadata.json` for the station inspector and move filtering.
 
 ## Pipeline Rules
 

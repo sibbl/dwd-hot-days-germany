@@ -4,6 +4,13 @@ let geojson = null;
 let bbox = null;
 let dayCodesLoaded = false;
 let dayCodesLoadingPromise = null;
+let monthlyDataLoaded = false;
+let monthlyDataLoadingPromise = null;
+let seasonDataLoaded = false;
+let seasonDataLoadingPromise = null;
+let metadataLoaded = false;
+let metadataLoadingPromise = null;
+let inspectorRenderTimer = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
 let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
@@ -946,12 +953,14 @@ function expandCompactAnnualData(compactAnnualData, thresholds) {
             stats[`n${threshold}`] = compactAnnualData.n[yearIndex][index] || 0;
         });
 
-        const season = expandCompactSeason(compactAnnualData.s[String(yearIndex)], year);
-        if (Object.keys(season).length) {
-            stats.season = season;
+        if (compactAnnualData.s) {
+            const season = expandCompactSeason(compactAnnualData.s[String(yearIndex)], year);
+            if (Object.keys(season).length) {
+                stats.season = season;
+            }
         }
 
-        const compactMonths = compactAnnualData.m[String(yearIndex)] || {};
+        const compactMonths = compactAnnualData.m ? compactAnnualData.m[String(yearIndex)] || {} : {};
         Object.entries(compactMonths).forEach(([month, compactMonth]) => {
             const monthStats = {};
             (compactMonth.t || []).forEach(([thresholdIndex, count]) => {
@@ -1026,6 +1035,147 @@ async function ensureDayCodesLoaded() {
     await dayCodesLoadingPromise;
 }
 
+function mergeCompactMonthlyData(rawMonthlyData, thresholds) {
+    if (!rawMonthlyData || !Array.isArray(rawMonthlyData.stations)) {
+        throw new Error('Unsupported weather monthly-data schema');
+    }
+
+    const maxThresholds = thresholds.max || [];
+    const minThresholds = thresholds.min || [];
+    const stationById = new Map(weatherData.map(station => [station.station_id, station]));
+
+    rawMonthlyData.stations.forEach(sourceStation => {
+        const station = stationById.get(sourceStation.station_id);
+        const compact = sourceStation.annual_data;
+        if (!station || !compact || !compact.m) return;
+
+        Object.entries(compact.m).forEach(([yearIndex, compactMonths]) => {
+            const year = compact.y ? compact.y[Number(yearIndex)] : null;
+            const yearData = station.annual_data[String(year)];
+            if (!yearData) return;
+
+            Object.entries(compactMonths || {}).forEach(([month, compactMonth]) => {
+                const monthStats = {};
+                (compactMonth.t || []).forEach(([thresholdIndex, count]) => {
+                    monthStats[`t${maxThresholds[thresholdIndex]}`] = count;
+                });
+                (compactMonth.n || []).forEach(([thresholdIndex, count]) => {
+                    monthStats[`n${minThresholds[thresholdIndex]}`] = count;
+                });
+
+                const monthSeason = expandCompactSeason(compactMonth.s, Number(year));
+                if (Object.keys(monthSeason).length) {
+                    monthStats.season = monthSeason;
+                }
+                yearData.m_data[String(month)] = monthStats;
+            });
+        });
+    });
+
+    monthlyDataLoaded = true;
+}
+
+async function ensureMonthlyDataLoaded() {
+    if (monthlyDataLoaded) return;
+    if (!monthlyDataLoadingPromise) {
+        monthlyDataLoadingPromise = fetch('data/weather_monthly_data.json' + getDataCacheSuffix())
+            .then(response => response.json())
+            .then(rawMonthlyData => {
+                mergeCompactMonthlyData(rawMonthlyData, rawMonthlyData.thresholds || { max: [], min: [] });
+            })
+            .finally(() => {
+                monthlyDataLoadingPromise = null;
+            });
+    }
+    await monthlyDataLoadingPromise;
+}
+
+function mergeCompactSeasonData(rawSeasonData) {
+    if (!rawSeasonData || !Array.isArray(rawSeasonData.stations)) {
+        throw new Error('Unsupported weather season-data schema');
+    }
+
+    const stationById = new Map(weatherData.map(station => [station.station_id, station]));
+    rawSeasonData.stations.forEach(sourceStation => {
+        const station = stationById.get(sourceStation.station_id);
+        const compact = sourceStation.annual_data;
+        if (!station || !compact || !compact.s) return;
+
+        Object.entries(compact.s).forEach(([yearIndex, compactSeason]) => {
+            const year = compact.y ? compact.y[Number(yearIndex)] : null;
+            const yearData = station.annual_data[String(year)];
+            if (!yearData) return;
+            const season = expandCompactSeason(compactSeason, Number(year));
+            if (Object.keys(season).length) {
+                yearData.season = season;
+            }
+        });
+    });
+
+    seasonDataLoaded = true;
+}
+
+async function ensureSeasonDataLoaded() {
+    if (seasonDataLoaded) return;
+    if (!seasonDataLoadingPromise) {
+        seasonDataLoadingPromise = fetch('data/weather_season_data.json' + getDataCacheSuffix())
+            .then(response => response.json())
+            .then(rawSeasonData => {
+                mergeCompactSeasonData(rawSeasonData);
+            })
+            .finally(() => {
+                seasonDataLoadingPromise = null;
+            });
+    }
+    await seasonDataLoadingPromise;
+}
+
+function mergeMetadata(rawMetadata) {
+    if (!rawMetadata || !Array.isArray(rawMetadata.stations)) {
+        throw new Error('Unsupported weather metadata schema');
+    }
+
+    const stationById = new Map(weatherData.map(station => [station.station_id, station]));
+    rawMetadata.stations.forEach(sourceStation => {
+        const station = stationById.get(sourceStation.station_id);
+        if (station) {
+            station.metadata = sourceStation.metadata || { geography: [], names: [], owners: [], devices: [] };
+        }
+    });
+
+    metadataLoaded = true;
+}
+
+async function ensureMetadataLoaded() {
+    if (metadataLoaded) return;
+    if (!metadataLoadingPromise) {
+        metadataLoadingPromise = fetch('data/weather_metadata.json' + getDataCacheSuffix())
+            .then(response => response.json())
+            .then(rawMetadata => {
+                mergeMetadata(rawMetadata);
+            })
+            .finally(() => {
+                metadataLoadingPromise = null;
+            });
+    }
+    await metadataLoadingPromise;
+}
+
+async function ensureDataForCurrentState() {
+    if (currentCountMode === 'days') {
+        await ensureDayCodesLoaded();
+    }
+    if (currentMonths.length < 12) {
+        await ensureMonthlyDataLoaded();
+    }
+    if (currentViewMode === 'season') {
+        await ensureSeasonDataLoaded();
+    }
+    if (currentMovesFilter !== 'all' || selectedStationId) {
+        await ensureMetadataLoaded();
+    }
+}
+
 // Initial Data Fetch
 async function loadData() {
     initTheme();
@@ -1063,9 +1213,7 @@ async function loadData() {
         
         // Load state from URL hash
         loadStateFromURLHash();
-        if (currentCountMode === 'days') {
-            await ensureDayCodesLoaded();
-        }
+        await ensureDataForCurrentState();
         refreshMaxDaysInMonthsOfLastYear();
         setLanguage(currentLang);
         syncUIControls();
@@ -1077,7 +1225,7 @@ async function loadData() {
         if (selectedStationId) {
             const activeStations = getFilteredStations();
             if (activeStations.some(s => s.station_id === selectedStationId)) {
-                selectStation(selectedStationId, { force: true });
+                await selectStation(selectedStationId, { force: true });
             }
         }
         
@@ -1225,6 +1373,10 @@ function calculateCoverageForPeriod(station, startYear, endYear) {
 
 // Helper: Check if a station moved during the selected sub-period
 function checkMovesForPeriod(station, startYear, endYear) {
+    if (!metadataLoaded || !station.metadata || !Array.isArray(station.metadata.geography)) {
+        return Boolean(station.has_moved);
+    }
+
     const startStr = startYear + '0101';
     const endStr = endYear + '1231';
     
@@ -1270,9 +1422,11 @@ function getFilteredStations() {
         const periodCoverage = calculateCoverageForPeriod(s, currentStartYear, maxYearGlobal);
         if (periodCoverage < currentCoverageThreshold) return false;
         
-        const periodMoved = checkMovesForPeriod(s, currentStartYear, maxYearGlobal);
-        if (currentMovesFilter === 'moved' && !periodMoved) return false;
-        if (currentMovesFilter === 'unmoved' && periodMoved) return false;
+        if (currentMovesFilter !== 'all') {
+            const periodMoved = checkMovesForPeriod(s, currentStartYear, maxYearGlobal);
+            if (currentMovesFilter === 'moved' && !periodMoved) return false;
+            if (currentMovesFilter === 'unmoved' && periodMoved) return false;
+        }
         if (!matchesEnvironmentFilters(s)) return false;
         
         return true;
@@ -2075,8 +2229,7 @@ function updateDashboard() {
         renderSeasonChart(filteredStations);
     }
     
-    renderInspectorStationList(filteredStations);
-    filterStationList(currentSearchQuery, true);
+    scheduleInspectorRender(filteredStations);
     
     updateAdvancedFilterRatios();
     
@@ -2086,6 +2239,17 @@ function updateDashboard() {
     
     // Update the URL hash to capture full parameter states
     updateURLHash();
+}
+
+function scheduleInspectorRender(filteredStations) {
+    if (inspectorRenderTimer) {
+        clearTimeout(inspectorRenderTimer);
+    }
+    inspectorRenderTimer = setTimeout(() => {
+        renderInspectorStationList(filteredStations);
+        filterStationList(currentSearchQuery, true);
+        inspectorRenderTimer = null;
+    }, 0);
 }
 
 // Parameters modifications
@@ -2138,8 +2302,11 @@ function updateCoverageThreshold(val) {
     updateDashboard();
 }
 
-function toggleMovesFilter(isChecked) {
+async function toggleMovesFilter(isChecked) {
     currentMovesFilter = isChecked ? 'unmoved' : 'all';
+    if (currentMovesFilter !== 'all') {
+        await ensureMetadataLoaded();
+    }
     updateDashboard();
 }
 
@@ -2147,9 +2314,7 @@ async function setCountMode(mode) {
     if (!['reports', 'days'].includes(mode) || currentCountMode === mode) return;
     currentCountMode = mode;
     syncUIControls();
-    if (currentCountMode === 'days') {
-        await ensureDayCodesLoaded();
-    }
+    await ensureDataForCurrentState();
     updateDashboard();
 }
 
@@ -2193,7 +2358,7 @@ function closeMonthDropdown() {
     }, 150);
 }
 
-function selectMonths(type) {
+async function selectMonths(type) {
     if (type === 'all') {
         currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     } else if (type === 'summer') {
@@ -2210,14 +2375,15 @@ function selectMonths(type) {
     }
     
     updateMonthButtonLabel();
+    await ensureDataForCurrentState();
     updateDashboard();
     
     if (selectedStationId) {
-        renderStationWorkspace(selectedStationId);
+        await renderStationWorkspace(selectedStationId);
     }
 }
 
-function onMonthCheckboxChange(checkbox) {
+async function onMonthCheckboxChange(checkbox) {
     const val = parseInt(checkbox.value);
     if (checkbox.checked) {
         if (!currentMonths.includes(val)) {
@@ -2229,10 +2395,11 @@ function onMonthCheckboxChange(checkbox) {
     currentMonths.sort((a, b) => a - b);
     
     updateMonthButtonLabel();
+    await ensureDataForCurrentState();
     updateDashboard();
     
     if (selectedStationId) {
-        renderStationWorkspace(selectedStationId);
+        await renderStationWorkspace(selectedStationId);
     }
 }
 
@@ -2315,17 +2482,21 @@ function renderInspectorStationList(filteredStations) {
             const startStr = currentStartYear + '0101';
             const coordsHistory = [];
             
-            s.metadata.geography.forEach(g => {
-                const epochStart = g.start || '19000101';
-                const epochEnd = g.end || '99991231';
-                if (epochStart <= maxYearGlobal + '1231' && epochEnd >= startStr) {
-                    const lat = g.lat, lon = g.lon;
-                    if (!coordsHistory.some(d => Math.abs(d.lat - lat) < 0.0001 && Math.abs(d.lon - lon) < 0.0001)) {
-                        coordsHistory.push({ lat, lon });
+            if (metadataLoaded && s.metadata && Array.isArray(s.metadata.geography)) {
+                s.metadata.geography.forEach(g => {
+                    const epochStart = g.start || '19000101';
+                    const epochEnd = g.end || '99991231';
+                    if (epochStart <= maxYearGlobal + '1231' && epochEnd >= startStr) {
+                        const lat = g.lat, lon = g.lon;
+                        if (!coordsHistory.some(d => Math.abs(d.lat - lat) < 0.0001 && Math.abs(d.lon - lon) < 0.0001)) {
+                            coordsHistory.push({ lat, lon });
+                        }
                     }
-                }
-            });
-            periodMoveCount = Math.max(coordsHistory.length - 1, 0);
+                });
+                periodMoveCount = Math.max(coordsHistory.length - 1, 0);
+            } else {
+                periodMoveCount = s.move_count || 0;
+            }
             
             if (periodMoveCount > 0) {
                 const movedText = currentLang === 'de' ? 'Verlegt' : 'Moved';
@@ -2370,7 +2541,7 @@ function filterStationList(query, skipHashUpdate = false) {
     }
 }
 
-function selectStation(sid, options = {}) {
+async function selectStation(sid, options = {}) {
     if (sid && selectedStationId === sid && !options.force) {
         selectStation(null);
         return;
@@ -2409,7 +2580,7 @@ function selectStation(sid, options = {}) {
         newItem.className = `flex flex-col items-start px-3 py-2 rounded-lg text-left w-full text-xs transition duration-150 ${accent.bg} text-white font-semibold shadow-sm ${accent.shadow}`;
     }
     
-    renderStationWorkspace(sid);
+    await renderStationWorkspace(sid);
     if (currentViewMode === 'single') {
         renderSingleMap(getFilteredStations());
     }
@@ -2417,10 +2588,20 @@ function selectStation(sid, options = {}) {
 }
 
 // Draw Inspector panels
-function renderStationWorkspace(sid) {
+async function renderStationWorkspace(sid) {
     const s = weatherData.find(st => st.station_id === sid);
     const workspace = document.getElementById('inspector-workspace');
     if (!s) return;
+    if (!metadataLoaded || !s.metadata) {
+        if (workspace) {
+            workspace.innerHTML = `
+                <div class="col-span-full py-16 text-center text-slate-500 dark:text-slate-400 text-sm font-semibold">
+                    ${i18n[currentLang]['loading-txt']}
+                </div>
+            `;
+        }
+        await ensureMetadataLoaded();
+    }
     
     const periodCoverage = calculateCoverageForPeriod(s, currentStartYear, maxYearGlobal);
     const periodMoved = checkMovesForPeriod(s, currentStartYear, maxYearGlobal);
@@ -3205,7 +3386,7 @@ function updatePlayButtonAccent() {
 }
 
 // Set the active visualization view mode ('grid', 'single', 'annual', 'decades', or 'season')
-function setViewMode(mode) {
+async function setViewMode(mode) {
     if (!['grid', 'single', 'annual', 'decades', 'season'].includes(mode)) return;
     if (currentViewMode === mode) return;
     
@@ -3216,6 +3397,7 @@ function setViewMode(mode) {
     
     currentViewMode = mode;
     syncUIControls();
+    await ensureDataForCurrentState();
     updateDashboard();
 }
 
@@ -3365,15 +3547,13 @@ window.addEventListener('resize', () => {
 // Listen for browser Back/Forward navigation to sync the UI
 window.addEventListener('hashchange', async () => {
     loadStateFromURLHash();
-    if (currentCountMode === 'days') {
-        await ensureDayCodesLoaded();
-    }
+    await ensureDataForCurrentState();
     refreshMaxDaysInMonthsOfLastYear();
     syncUIControls();
     updateDashboard();
     if (selectedStationId) {
-        selectStation(selectedStationId, { force: true });
+        await selectStation(selectedStationId, { force: true });
     } else {
-        selectStation(null);
+        await selectStation(null);
     }
 });
