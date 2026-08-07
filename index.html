@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="doc-title">DWD Extrem Heiße Tage in Deutschland (1961–2025)</title>
+    <title id="doc-title">DWD Extrem Heiße Tage in Deutschland seit 1961</title>
     <!-- Tailwind CSS v3 Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -83,7 +83,7 @@
                     Immer mehr extrem heiße Tage
                 </h1>
                 <p id="header-subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Eine interaktive Rekonstruktion & Erweiterung der DWD-Wetterstations-Daten (1961–2025)
+                    Eine interaktive Rekonstruktion & Erweiterung der DWD-Wetterstations-Daten seit 1961
                 </p>
             </div>
             
@@ -204,7 +204,7 @@
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <div class="flex flex-col gap-1.5 min-w-0">
                             <h2 id="card-title-grid" class="text-lg font-bold text-slate-700 dark:text-slate-200">
-                                Deutschlandkarten-Raster (1961–2025)
+                                Deutschlandkarten-Raster seit 1961
                             </h2>
                             <p id="card-subtitle-grid" class="text-xs text-slate-500 dark:text-slate-400">
                                 Jeder Punkt steht für eine Messstation. Die Größe & Farbe zeigt die Anzahl der Tage je Station über dem Schwellenwert.
@@ -386,7 +386,7 @@
                         <!-- Mini details overlay card -->
                         <div class="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-955/95 border border-slate-300/80 dark:border-slate-800/80 rounded-xl p-3 text-[10px] shadow-lg backdrop-blur-md z-20 flex flex-col gap-0.5 min-w-[110px] hover:scale-105 transition duration-150">
                             <span class="font-extrabold text-[8px] text-slate-500 dark:text-slate-550 uppercase tracking-widest" id="single-map-meta-title">Jahresübersicht</span>
-                            <span class="font-black text-base text-orange-600 dark:text-orange-400 mt-0.5" id="single-map-meta-year">2025</span>
+                            <span class="font-black text-base text-orange-600 dark:text-orange-400 mt-0.5" id="single-map-meta-year">…</span>
                             <span class="font-bold text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-1 border-t border-slate-200 dark:border-slate-800 pt-1" id="single-map-meta-total">0 Meldungen gesamt</span>
                         </div>
                     </div>
@@ -402,7 +402,7 @@
                             </button>
                             
                             <div class="flex flex-col">
-                                <span id="lbl-active-year-val" class="font-extrabold text-lg text-orange-600 dark:text-orange-400 leading-none">2025</span>
+                                <span id="lbl-active-year-val" class="font-extrabold text-lg text-orange-600 dark:text-orange-400 leading-none">…</span>
                                 <span id="lbl-active-year-sub" class="text-[9px] text-slate-550 dark:text-slate-550 uppercase tracking-wider font-semibold mt-0.5">Jahr / Year</span>
                             </div>
                         </div>
@@ -411,7 +411,7 @@
                         <div class="flex-grow flex items-center gap-3 px-2 w-full sm:w-auto">
                             <span id="slider-min-year-lbl" class="text-[10px] text-slate-500 font-bold">1961</span>
                             <input id="slider-single-year" type="range" min="1961" max="2025" value="2025" step="1" oninput="setActiveYear(this.value)" class="flex-grow h-1.5 bg-slate-300 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
-                            <span id="slider-max-year-lbl" class="text-[10px] text-slate-500 font-bold">2025</span>
+                            <span id="slider-max-year-lbl" class="text-[10px] text-slate-500 font-bold">…</span>
                         </div>
 
                         <!-- Speed Regulator dropdown -->
@@ -514,6 +514,6 @@
     </footer>
 
     <!-- Main JS Application script -->
-    <script src="app.js?v=46"></script>
+    <script src="app.js?v=47"></script>
 </body>
 </html>

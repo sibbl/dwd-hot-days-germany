@@ -11,6 +11,8 @@ let seasonDataLoadingPromise = null;
 let metadataLoaded = false;
 let metadataLoadingPromise = null;
 let inspectorRenderTimer = null;
+let dashboardRenderTimer = null;
+let mapGridObserver = null;
 
 let currentLang = localStorage.getItem('dwd_lang') || 'de'; // 'de' or 'en'
 let currentMetric = 'max'; // 'max' for daily maximum, 'min' for tropical nights
@@ -25,7 +27,7 @@ let excludeCityEnvironment = false;
 let selectedStationId = null;
 let currentMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 1 to 12 representing Jan to Dec
 
-let currentViewMode = 'grid'; // 'grid', 'single', 'annual', 'decades', or 'season'
+let currentViewMode = window.matchMedia('(max-width: 639px)').matches ? 'single' : 'grid'; // Faster mobile default
 let currentActiveYear = 2025; // Active year for the single map view
 let animationIntervalId = null;
 let animationSpeed = 250; // ms per year in animation
@@ -1672,6 +1674,11 @@ function updateAdvancedFilterRatios() {
 // Render the miniature maps grid
 function renderMapsGrid(filteredStations) {
     const gridContainer = document.getElementById('map-grid-container');
+    if (mapGridObserver) {
+        mapGridObserver.disconnect();
+        mapGridObserver = null;
+    }
+
     gridContainer.innerHTML = '';
     
     // Check active theme
@@ -1739,14 +1746,32 @@ function renderMapsGrid(filteredStations) {
                     <span class="font-extrabold text-slate-500 dark:text-slate-300 text-xs">${yr}</span>
                     <span class="font-bold ${accent.textSoft} ${accent.textSoftDark} ${accent.bgSoft} px-1 rounded border ${accent.borderSoft}">${totalYearCount} <span class="text-[8px] font-normal text-slate-400 dark:text-slate-500">${getAggregateUnit(totalYearCount, { short: true })}</span></span>
                 </div>
-                <svg viewBox="0 0 110 140" class="w-full h-auto">
-                    ${statesPathsSvg}
-                    ${circlesSvg}
-                </svg>
+                <div class="map-card-canvas w-full aspect-[11/14] rounded bg-slate-200/20 dark:bg-slate-900/20" aria-label="${yr}"></div>
             `;
+            card.renderMap = () => {
+                if (card.dataset.rendered === 'true') return;
+                const canvas = card.querySelector('.map-card-canvas');
+                if (canvas) canvas.outerHTML = `<svg viewBox="0 0 110 140" class="w-full h-auto">${statesPathsSvg}${circlesSvg}</svg>`;
+                card.dataset.rendered = 'true';
+                delete card.renderMap;
+            };
             gridContainer.appendChild(card);
         }
     });
+
+    const cards = Array.from(gridContainer.querySelectorAll('[id^="map-card-"]'));
+    if ('IntersectionObserver' in window) {
+        mapGridObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.renderMap?.();
+                mapGridObserver.unobserve(entry.target);
+            });
+        }, { rootMargin: '400px 0px' });
+        cards.forEach(card => mapGridObserver.observe(card));
+    } else {
+        cards.forEach(card => card.renderMap?.());
+    }
 }
 
 function getAnnualTotals(filteredStations) {
@@ -2253,6 +2278,15 @@ function scheduleInspectorRender(filteredStations) {
 }
 
 // Parameters modifications
+function scheduleDashboardUpdate() {
+    if (dashboardRenderTimer) clearTimeout(dashboardRenderTimer);
+    dashboardRenderTimer = setTimeout(() => {
+        dashboardRenderTimer = null;
+        updateDashboard();
+        if (selectedStationId) renderStationWorkspace(selectedStationId);
+    }, 120);
+}
+
 function setTemperatureThreshold(temp) {
     currentTempThreshold = parseInt(temp);
     lastThresholdByMetric[currentMetric] = currentTempThreshold;
@@ -2267,11 +2301,7 @@ function setTemperatureThreshold(temp) {
         slider.value = currentTempThreshold;
     }
     
-    updateDashboard();
-    
-    if (selectedStationId) {
-        renderStationWorkspace(selectedStationId);
-    }
+    scheduleDashboardUpdate();
 }
 
 function setMetric(metric) {
@@ -2293,13 +2323,13 @@ function setMetric(metric) {
 function updateStartYear(val) {
     currentStartYear = parseInt(val);
     document.getElementById('start-year-val').textContent = val;
-    updateDashboard();
+    scheduleDashboardUpdate();
 }
 
 function updateCoverageThreshold(val) {
     currentCoverageThreshold = val / 100;
     document.getElementById('coverage-val').textContent = `${val} %`;
-    updateDashboard();
+    scheduleDashboardUpdate();
 }
 
 async function toggleMovesFilter(isChecked) {
@@ -3091,7 +3121,7 @@ function loadStateFromURLHash() {
     const hash = window.location.hash.substring(1);
     
     // Set default responsive view mode if view parameter is missing
-    currentViewMode = 'grid';
+    currentViewMode = window.matchMedia('(max-width: 639px)').matches ? 'single' : 'grid';
     currentActiveYear = maxYearGlobal;
     currentSearchQuery = '';
     currentMetric = 'max';
